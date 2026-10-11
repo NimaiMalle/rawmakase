@@ -8,7 +8,7 @@ use std::path::Path;
 pub const GROUPS: &[&str] = &[
     "Color",
     "Creative",
-    "Film",
+    "RMKS Film",
     "B&W",
     "Curve",
     "Grain",
@@ -29,10 +29,6 @@ pub(super) const FILES: &[(&str, &str)] = files![
     "Color/Matte.xmp",
     "Creative/Concrete Haze.xmp",
     "Creative/Faded Gold.xmp",
-    "Film/Portra-ish 400.xmp",
-    "Film/Portra-ish 400 Print.xmp",
-    "Film/Kodachrome-ish 64.xmp",
-    "Film/Kodachrome-ish 64 Print.xmp",
     "BandW/Neutral.xmp",
     "BandW/High Contrast.xmp",
     "BandW/Soft.xmp",
@@ -53,6 +49,8 @@ pub(super) const FILES: &[(&str, &str)] = files![
     "Vignetting/Strong.xmp",
     "Vignetting/Light.xmp",
 ];
+/// The RMKS Film presets, one per film look, listed by `scripts/film/film-look.py --all`.
+pub(super) const FILM_FILES: &[(&str, &str)] = include!("film_files.in");
 
 fn load(path: &str, text: &str) -> Result<Preset> {
     let mut preset = parse(&Path::new("builtin").join(path), text)?;
@@ -72,7 +70,7 @@ fn load(path: &str, text: &str) -> Result<Preset> {
 pub fn presets() -> (Vec<Preset>, Vec<String>) {
     let mut presets = Vec::new();
     let mut errors = Vec::new();
-    for (path, text) in FILES {
+    for (path, text) in FILES.iter().chain(FILM_FILES) {
         match load(path, text) {
             Ok(p) => presets.push(p),
             Err(e) => errors.push(format!("Built-in {path}: {e:#}")),

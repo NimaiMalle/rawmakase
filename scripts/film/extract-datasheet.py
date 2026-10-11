@@ -3,32 +3,53 @@
 # requires-python = ">=3.11"
 # dependencies = ["pdfplumber==0.11.10"]
 # ///
-"""Read a film's or paper's published curves out of its Kodak datasheet PDF.
+"""Read a film's or paper's published curves out of its datasheet PDF.
 
-Kodak's technical data sheets draw their curves as vector paths, so the curves can
-be read exactly rather than traced by hand. Each entry in FILMS names where its PDF
-is published and its SHA-256, the page, the plots on it (where each axis' ticks
-are, in PDF points), and which path in a plot is which curve. The datasheets are
-not kept in the repository: `datasheet()` downloads one on every run, refuses it if
-it differs from the one these coordinates were read from, and extracts its curves
-in memory, which `film-look.py` turns into a look profile.
+Kodak's and Fujifilm's technical data sheets draw their curves as vector paths, so
+the curves can be read exactly rather than traced by hand. Each stock is a file in
+`stocks/`: where its datasheet is published and its SHA-256, the page, the plots on
+it (where two ticks of each axis are, in PDF points) and which path in a plot is
+which curve. The curves read from it are kept in `data/`, so a build needs no
+network; `--refresh` downloads the datasheet again, refuses it if it differs from
+the one the coordinates were read from, and reads the curves anew.
 
-    uv run scripts/film/extract-datasheet.py portra-400            # summary
-    uv run scripts/film/extract-datasheet.py portra-400 -o p.json  # the curves
-    uv run scripts/film/extract-datasheet.py portra-400 --list 4   # a page's paths
+    uv run scripts/film/extract-datasheet.py portra-400             # summary
+    uv run scripts/film/extract-datasheet.py --all --refresh        # every stock
+    uv run scripts/film/extract-datasheet.py portra-400 --list 4    # a page's paths
 
-To add a film: render its datasheet page, run with `--list` to see its paths and
-tick marks, and add an entry to FILMS.
+A stock's plot names a page if it isn't the stock's `page`, its `region` (x0, top,
+x1, bottom), `x` and `y` as two ticks each (point, value, point, value), and
+`curves` as one sort key (`top`, `bottom`, `x0`, `x1`, `peak`, the x of a curve's
+highest point, or `index`, the order `--list` prints them in) with the curves'
+names in that order; `null` drops a curve the model doesn't use, and a name given
+twice joins a curve drawn in pieces. `min_width` overrides the line weight that tells data from
+gridlines (0.6 pt), and `min_points` the points a curve has at least (7; Fuji
+draws some with a handful of Bézier segments); `chain` joins curves drawn as many
+short pieces whose ends meet within that many points. To add a stock: run `--list` on its datasheet page, write its
+file, and check the summary against the printed plots.
 """
 import argparse
 import hashlib
 import io
 import json
+import re
 import sys
 import urllib.request
 from pathlib import Path
 
 import pdfplumber
+
+HERE = Path(__file__).resolve().parent
+STOCKS = HERE / 'stocks'
+DATA = HERE / 'data'
+
+
+def stocks():
+    return sorted(p.stem for p in STOCKS.glob('*.json'))
+
+
+def stock(name):
+    return json.loads((STOCKS / f'{name}.json').read_text())
 
 
 def axis(p0, v0, p1, v1):
@@ -36,143 +57,11 @@ def axis(p0, v0, p1, v1):
     return lambda p: v0 + (p - p0) * (v1 - v0) / (p1 - p0)
 
 
-FILMS = {
-    'portra-400': {
-        'url': 'https://imaging.kodakalaris.com/sites/default/files/files/products/e4050_portra_400.pdf',
-        'sha256': 'e83ac6775d37832a4cb466892a3e1cf4c88917a6ee93384e59d6924b1cd97e3a',
-        'name': 'Kodak Portra 400',
-        'source': 'Kodak Alaris, KODAK PROFESSIONAL PORTRA 400 Film, publication E-4050 (2016-02)',
-        'type': 'negative',
-        'page': 4,
-        'notes': {
-            'characteristic': 'Daylight exposure, Status M densitometry, Log H Ref -1.44 (normal exposure of a midscale neutral).',
-            'sensitivity': 'Daylight, Status M, sensitivity = 1/exposure (erg/cm2) for 0.2 above D-min.',
-            'dye_density': 'Diffuse spectral density of a midscale neutral and of D-min (no per-dye curves published).',
-        },
-        'log_h_ref': -1.44,
-        'plots': {
-            # Ticks: x -4.0 at 81.16 and 0.0 at 228.74; density 0 at 287.37 and 3 at 148.97.
-            'characteristic': {
-                'region': (81, 100, 266, 288),
-                'x': axis(81.16, -4.0, 228.74, 0.0), 'y': axis(287.37, 0.0, 148.97, 3.0),
-                'curves': {'top': ['blue', 'green', 'red']},
-            },
-            # Gridlines: 400 nm at 136.4, 600 nm at 216.5; log sensitivity 1 at 456.7, 3 at 380.9.
-            'sensitivity': {
-                'region': (76, 343, 277, 495),
-                'x': axis(136.4, 400., 216.5, 600.), 'y': axis(456.7, 1.0, 380.9, 3.0),
-                'curves': {'x0': ['blue', 'green', 'red']},
-            },
-            # Ticks: 400 nm at 357.14, 700 nm at 541.74; density 0 at 288.06, 2.5 at 103.71.
-            'dye_density': {
-                'region': (356, 104, 543, 289),
-                'x': axis(357.14, 400., 541.74, 700.), 'y': axis(288.06, 0.0, 103.71, 2.5),
-                'curves': {'top': ['midscale_neutral', 'minimum']},
-            },
-        },
-    },
-    'kodachrome-64': {
-        'url': 'https://125px.com/docs/film/kodak/e55-2009_06.pdf',
-        'sha256': '89ef8788a2a830e84e342d9f6f200336f31b0327adbc4ae5396517b3cfc0d2aa',
-        'name': 'Kodak Kodachrome 64',
-        'source': 'Eastman Kodak, KODACHROME 25, 64, and 200 Professional Film, publication E-55 (2009-06), page 4',
-        'type': 'reversal',
-        'page': 4,
-        'notes': {
-            'characteristic': 'Daylight exposure 1/50 s, process K-14, Status A densitometry.',
-            'sensitivity': 'Effective exposure 1.4 s, K-14, E.N.D. density 1.00, sensitivity = 1/exposure (erg/cm2).',
-            'dye_density': 'Dyes normalized to form a visual density of 1.0 for a viewing illuminant of 3200 K.',
-        },
-        'viewing_illuminant_k': 3200,
-        'plots': {
-            # Ticks: x -3.0 at 72.07 and 0.0 at 210.46; density 0 at 302.0 and 3 at 163.62.
-            'characteristic': {
-                'region': (72, 117, 257, 302.5),
-                'x': axis(72.07, -3.0, 210.46, 0.0), 'y': axis(302.0, 0.0, 163.62, 3.0),
-                'curves': {'top': ['red', 'green', 'blue']},
-            },
-            # Gridlines: 300 nm at 94.75, 700 nm at 255.52; log sensitivity 1 at 424.68, -1 at 500.42.
-            'sensitivity': {
-                'region': (74, 386, 276, 539),
-                'x': axis(94.75, 300., 255.52, 700.), 'y': axis(424.68, 1.0, 500.42, -1.0),
-                'curves': {'x0': ['blue', 'green', 'red']},
-            },
-            # Ticks: 400 nm at 350.78, 700 nm at 535.13; density 0 at 303.95, 1.0 at 176.94.
-            'dye_density': {
-                'region': (350, 119, 536, 305),
-                'x': axis(350.78, 400., 535.13, 700.), 'y': axis(303.95, 0.0, 176.94, 1.0),
-                'curves': {'top': ['visual_neutral', 'cyan', 'magenta', 'yellow']},
-            },
-        },
-    },
-    'endura-premier': {
-        'url': 'https://business.kodakmoments.com/sites/default/files/files/products/e4070.pdf',
-        'sha256': '94ead00f26a4bbf8ce1a991ff73add049514e38f32d6e88aa7a8a1e3e2d7982e',
-        'name': 'Kodak Endura Premier',
-        'source': 'Kodak Alaris, KODAK PROFESSIONAL ENDURA Premier Paper, publication E-4070 (2017-12)',
-        'type': 'paper',
-        'page': 4,
-        'notes': {
-            'characteristic': 'Exposure 0.5 s, process RA-4, Status A densitometry.',
-            'sensitivity': 'Effective exposure 0.5 s, RA-4, sensitivity = 1/exposure (erg/cm2).',
-            'dye_density': 'Diffuse spectral density of each dye, each normalized to a peak of 1.0 (page 5).',
-        },
-        'plots': {
-            # Ticks: x -2.0 at 426.16 and -1.0 at 487.72; density 1 at 195.65 and 2 at 134.07.
-            'characteristic': {
-                'region': (364, 80, 552, 258),
-                'x': axis(426.16, -2.0, 487.72, -1.0), 'y': axis(195.65, 1.0, 134.07, 2.0),
-                'curves': {'top': ['red', 'green', 'blue']},
-            },
-            # Gridlines: 400 nm at 410.75, 700 nm at 531.03; log sensitivity 1 at 353.61, -1 at 429.41.
-            'sensitivity': {
-                'region': (350, 315, 552, 468),
-                'x': axis(410.75, 400., 531.03, 700.), 'y': axis(353.61, 1.0, 429.41, -1.0),
-                'curves': {'x0': ['blue', 'green', 'red']},
-            },
-            # Ticks: 450 nm at 119.63, 650 nm at 242.54; density 0.5 at 198.02 and 1.0 at 161.19.
-            'dye_density': {
-                'page': 5,
-                'region': (88, 80, 275, 236),
-                'x': axis(119.63, 450., 242.54, 650.), 'y': axis(198.02, 0.5, 161.19, 1.0),
-                'curves': {'peak': ['yellow', 'magenta', 'cyan']},
-            },
-        },
-    },
-    'radiance-iii': {
-        'url': 'https://125px.com/docs/unsorted/kodak/e1766.pdf',
-        'sha256': 'f44b76b7f19bddbe9ff01f4539f0936abfd32900b77896309c7ace89c998e83c',
-        'name': 'Kodak Ektachrome Radiance III',
-        'source': 'Eastman Kodak, KODAK EKTACHROME RADIANCE III Paper, publication E-1766 (2003-02)',
-        'type': 'paper',
-        'page': 5,
-        'notes': {
-            'characteristic': 'Reversal paper. Exposure 1/2 s, 2850 K + CC filtration, process R-3, Status A reflection densitometry.',
-            'sensitivity': 'Effective exposure 1 s, R-3, sensitivity = 1/exposure (erg/cm2).',
-            'dye_density': 'Diffuse spectral density of each dye, process R-3.',
-        },
-        'plots': {
-            # Ticks: x 1.0 at 132.77 and 3.0 at 225.01; density 1 at 217.71 and 3 at 125.47.
-            'characteristic': {
-                'region': (86, 100, 272, 265),
-                'x': axis(132.77, 1.0, 225.01, 3.0), 'y': axis(217.71, 1.0, 125.47, 3.0),
-                'curves': {'top': ['red', 'blue', 'green']},
-            },
-            # Gridlines: 400 nm at 284.96, 650 nm at 385.44; log sensitivity 1 at 382.38, -1 at 458.11.
-            'sensitivity': {
-                'region': (224, 344, 426, 496),
-                'x': axis(284.96, 400., 385.44, 650.), 'y': axis(382.38, 1.0, 458.11, -1.0),
-                'curves': {'x0': ['blue', 'green', 'red']},
-            },
-            # Ticks: 400 nm at 362.79, 600 nm at 485.68; density 0.5 at 229.41 and 2.0 at 118.81.
-            'dye_density': {
-                'region': (362, 100, 548, 267),
-                'x': axis(362.79, 400., 485.68, 600.), 'y': axis(229.41, 0.5, 118.81, 2.0),
-                'curves': {'peak': ['yellow', 'magenta', 'cyan']},
-            },
-        },
-    },
-}
+def dump(data):
+    """JSON with lists of numbers, names and points on one line."""
+    text = json.dumps(data, indent=1)
+    return re.sub(r'\[\s*([^\[\]{}]*?)\s*\]', lambda m: '[' + ', '.join(i.strip() for i in m.group(1).split(',')) + ']',
+                  text) + '\n'
 
 
 def flatten(path, steps=16):
@@ -211,12 +100,12 @@ def inside(c, region):
     return c['x0'] >= x0 and c['x1'] <= x1 and c['top'] >= top and c['bottom'] <= bottom
 
 
-def is_data_curve(c):
+def is_data_curve(c, min_width=0.6, min_points=7):
     """A plotted curve rather than a frame, gridline, tick or label leader: a stroked
     open path of a plot's line weight, with more than a handful of points and some
     extent in both directions."""
-    return (c.get('stroke') and not c.get('fill') and len(c['pts']) > 6
-            and (c.get('linewidth') or 0) >= 0.6
+    return (c.get('stroke') and not c.get('fill') and len(c['pts']) >= min_points
+            and (c.get('linewidth') or 0) >= min_width
             and c['x1'] - c['x0'] > 5 and c['bottom'] - c['top'] > 5)
 
 
@@ -225,16 +114,75 @@ def peak(c):
     return min(c['pts'], key=lambda p: p[1])[0]
 
 
+def plot_curves(page, plot):
+    """The data curves inside a plot's region, in page order. With `chain`, curves
+    drawn as many short pieces (or dashes) are first joined end to end: pieces whose
+    ends lie within `chain` points of each other become one curve."""
+    width = plot.get('min_width', 0.6)
+    if 'chain' in plot:
+        pieces = [c for c in page.curves + page.lines
+                  if inside(c, plot['region']) and c.get('stroke', True) and not c.get('fill')
+                  and (c.get('linewidth') or 0) >= width]
+        return [c for c in chain(pieces, plot['chain'])
+                if is_data_curve(c, width, plot.get('min_points', 7))]
+    return [c for c in page.curves
+            if inside(c, plot['region'])
+            and is_data_curve(c, width, plot.get('min_points', 7))]
+
+
+def chain(pieces, tolerance):
+    """Polylines joined from pieces whose ends meet within `tolerance` points, as
+    curves with the fields the rest of this script reads."""
+    segments = [flatten(c['path']) if c.get('path') else [(c['x0'], c['top']), (c['x1'], c['bottom'])]
+                for c in pieces]
+    used = [False] * len(segments)
+    near = lambda a, b: abs(a[0] - b[0]) <= tolerance and abs(a[1] - b[1]) <= tolerance
+    curves = []
+    for i, first in enumerate(segments):
+        if used[i]:
+            continue
+        used[i] = True
+        line = list(first)
+        grew = True
+        while grew:
+            grew = False
+            for j, seg in enumerate(segments):
+                if used[j]:
+                    continue
+                if near(line[-1], seg[0]):
+                    line += seg[1:]
+                elif near(line[-1], seg[-1]):
+                    line += seg[::-1][1:]
+                elif near(line[0], seg[-1]):
+                    line = seg[:-1] + line
+                elif near(line[0], seg[0]):
+                    line = seg[::-1][:-1] + line
+                else:
+                    continue
+                used[j] = grew = True
+        xs, ys = [p[0] for p in line], [p[1] for p in line]
+        curves.append({'pts': line, 'path': [('m', line[0])] + [('l', p) for p in line[1:]],
+                       'x0': min(xs), 'x1': max(xs), 'top': min(ys), 'bottom': max(ys),
+                       'stroke': True, 'fill': False, 'linewidth': max((c.get('linewidth') or 0) for c in pieces)})
+    return curves
+
+
 def read_plot(page, plot):
-    curves = [c for c in page.curves if inside(c, plot['region']) and is_data_curve(c)]
+    curves = plot_curves(page, plot)
     (key, names), = plot['curves'].items()
     if len(curves) != len(names):
-        sys.exit(f'expected {len(names)} curves in {plot["region"]}, found {len(curves)}: '
-                 + ', '.join(f'x0={c["x0"]:.1f} top={c["top"]:.1f} n={len(c["pts"])}' for c in curves))
-    curves.sort(key=peak if key == 'peak' else lambda c: c[key])
-    out = {}
+        raise ValueError(f'expected {len(names)} curves in {plot["region"]}, found {len(curves)}: '
+                         + ', '.join(f'x0={c["x0"]:.1f} top={c["top"]:.1f} n={len(c["pts"])}' for c in curves))
+    if key != 'index':
+        curves.sort(key=peak if key == 'peak' else lambda c: c[key])
+    to_x, to_y = axis(*plot['x']), axis(*plot['y'])
+    pieces = {}
     for name, c in zip(names, curves):
-        pts = [(plot['x'](x), plot['y'](y)) for x, y in flatten(c['path'])]
+        # A name given more than once joins the pieces of a curve drawn in several paths.
+        if name is not None:
+            pieces.setdefault(name, []).extend((to_x(x), to_y(y)) for x, y in flatten(c['path']))
+    out = {}
+    for name, pts in pieces.items():
         pts.sort()
         # Drop repeated x values left by subdivision, keeping the curve a function of x.
         clean = []
@@ -247,8 +195,11 @@ def read_plot(page, plot):
 
 
 def list_page(page):
+    """A page's paths (data curves numbered as `index` counts them within a region at
+    the default line weight), tick-like lines and numeric labels."""
     for c in page.curves:
-        print(f'curve n={len(c["pts"]):3} x0={c["x0"]:6.1f} x1={c["x1"]:6.1f} top={c["top"]:6.1f} '
+        mark = 'data ' if is_data_curve(c) else '     '
+        print(f'{mark}curve n={len(c["pts"]):3} x0={c["x0"]:6.1f} x1={c["x1"]:6.1f} top={c["top"]:6.1f} '
               f'bottom={c["bottom"]:6.1f} width={c.get("linewidth") or 0:.2f}')
     for line in page.lines:
         if min(line['x1'] - line['x0'], line['bottom'] - line['top']) < 1:
@@ -265,37 +216,62 @@ def download(film):
         pdf = response.read()
     digest = hashlib.sha256(pdf).hexdigest()
     if digest != film['sha256']:
-        sys.exit(f'{film["url"]} changed (SHA-256 {digest}): check its plots before updating FILMS')
+        raise ValueError(f'{film["url"]} changed (SHA-256 {digest}): check its plots before updating its stock')
     return pdf
 
 
-def datasheet(name):
-    """A film's or paper's curves, read from its datasheet downloaded now."""
-    film = FILMS[name]
+def extract(name):
+    """A stock's curves, read from its datasheet downloaded now."""
+    film = stock(name)
     pdf = pdfplumber.open(io.BytesIO(download(film)))
-    data = {k: v for k, v in film.items() if k not in ('plots', 'page', 'sha256')}
+    data = {k: v for k, v in film.items() if k != 'plots'}
     data['curves'] = {plot_name: read_plot(pdf.pages[plot.get('page', film['page']) - 1], plot)
                       for plot_name, plot in film['plots'].items()}
     return data
 
 
+def datasheet(name, refresh=False):
+    """A stock's curves: from `data/` when they were read from the datasheet its stock
+    file names, else read from it now and kept there."""
+    film = stock(name)
+    cached = DATA / f'{name}.json'
+    if not refresh and cached.exists():
+        data = json.loads(cached.read_text())
+        if data.get('sha256') == film['sha256'] and data.get('plots') == film['plots']:
+            return {**{k: v for k, v in film.items() if k != 'plots'}, 'curves': data['curves']}
+    data = extract(name)
+    DATA.mkdir(exist_ok=True)
+    cached.write_text(dump({'sha256': film['sha256'], 'plots': film['plots'], 'curves': data['curves']}))
+    return data
+
+
+def summary(name, data):
+    for plot, curves in data['curves'].items():
+        for curve, pts in curves.items():
+            print(f'{name:22} {plot:15} {curve:17} {len(pts):4} points, x {pts[0][0]:7.2f}..{pts[-1][0]:7.2f}, '
+                  f'y {min(p[1] for p in pts):6.3f}..{max(p[1] for p in pts):6.3f}')
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('film', help=', '.join(FILMS))
-    ap.add_argument('-o', '--out', type=Path, help='write the curves to this JSON file')
+    ap.add_argument('stock', nargs='?', help=', '.join(stocks()))
+    ap.add_argument('--all', action='store_true', help='every stock in stocks/')
+    ap.add_argument('--refresh', action='store_true', help='download the datasheets and read them again')
     ap.add_argument('--list', type=int, metavar='PAGE', help="print a page's paths, ticks and labels")
     args = ap.parse_args()
     if args.list:
-        list_page(pdfplumber.open(io.BytesIO(download(FILMS[args.film]))).pages[args.list - 1])
+        list_page(pdfplumber.open(io.BytesIO(download(stock(args.stock)))).pages[args.list - 1])
         return
-    data = datasheet(args.film)
-    for plot, curves in data['curves'].items():
-        for name, pts in curves.items():
-            print(f'{plot:15} {name:17} {len(pts):4} points, x {pts[0][0]:7.2f}..{pts[-1][0]:7.2f}, '
-                  f'y {min(p[1] for p in pts):6.3f}..{max(p[1] for p in pts):6.3f}')
-    if args.out:
-        args.out.write_text(json.dumps(data, indent=1) + '\n')
-        print(args.out)
+    names = stocks() if args.all else [args.stock]
+    failed = []
+    for name in names:
+        try:
+            summary(name, datasheet(name, args.refresh))
+        except Exception as e:  # report every stock, then fail
+            print(f'{name}: {e}', file=sys.stderr)
+            failed.append(name)
+    if failed:
+        sys.exit(f'failed: {", ".join(failed)}')
 
 
 if __name__ == '__main__':

@@ -1,28 +1,37 @@
 # Film looks
 
 These scripts make RAWmakase's [film looks](../../docs/lightroom-profiles.md#film-looks)
-from Kodak's published technical datasheets. The datasheets are not kept in the
-repository: every run downloads them, checks each against the SHA-256 its plot
-coordinates were read from, and reads the curves in memory.
+and their RMKS Film presets from Kodak's, Fujifilm's and Agfa's published technical
+datasheets.
 
 ```sh
-scripts/film/build-assets.sh       # assets/looks and assets/presets/Film
-uv run scripts/film/film-look.py portra-400 -o ~/film-looks          # one look, to try
-uv run scripts/film/film-look.py kodachrome-64 --print -o ~/film-looks
-uv run scripts/film/extract-datasheet.py portra-400 -o portra.json   # the curves
+uv run scripts/film/film-look.py --all                 # assets/looks, the presets and their lists
+uv run scripts/film/film-look.py --all --resume        # finish a build that stopped
+uv run scripts/film/film-look.py portra-400 --print --push 1 -o ~/film-looks   # one look, to try
+uv run scripts/film/extract-datasheet.py --all --refresh   # read every datasheet again
 ```
 
-They need [uv](https://docs.astral.sh/uv/) and a network connection; the Python
-dependencies are pinned in each script, so a run reproduces the shipped files.
+They need [uv](https://docs.astral.sh/uv/); the Python dependencies are pinned in
+each script, so a run reproduces the shipped files.
 
+- `stocks/` has a file per film or paper: where its datasheet is published and its
+  SHA-256, the page, where two ticks of each plot's axes are and which path is which
+  curve, and what the datasheet says about the stock (speed, reference exposure,
+  granularity, viewing light).
+- `data/` keeps the curves read from each datasheet, so a build needs no network.
+  `extract-datasheet.py --refresh` downloads the datasheets again, refuses one that
+  changed, and reads them anew.
 - `extract-datasheet.py` reads a datasheet's spectral sensitivity, characteristic and
-  spectral dye density curves out of the PDF's vector paths. `FILMS` names each
-  film's and paper's datasheet, its page and where each plot's axis ticks are.
-- `film-look.py` follows the light through the film for each entry of a 33³ RGB table
-  and writes a Lightroom look profile and a preset choosing it. Its docstring
+  spectral dye density curves out of the PDF's vector paths. Its docstring describes
+  the stock file format.
+- `film-look.py` follows the light through the film (and the paper, for a print) for
+  each entry of a 25³ RGB table, and writes a Lightroom look profile and a preset
+  choosing it. `--all` makes every stock's looks, scanned or projected and printed,
+  and a negative's +1 and -1, and lists them for the app
+  (`camera_profiles/film_files.in`, `presets/film_files.in`). Its docstring
   describes the model and what it assumes where the datasheets say nothing.
 
-To add a film, run `extract-datasheet.py FILM --list PAGE` on its datasheet to see the
-page's paths, tick marks and labels, add it to `FILMS` (and a name to `NAMES` and its
-grain to `GRAIN` in `film-look.py`), and check the summary `extract-datasheet.py FILM`
-prints against the printed plots.
+To add a stock, run `extract-datasheet.py STOCK --list PAGE` on its datasheet to see
+the page's paths, tick marks and labels, write `stocks/STOCK.json` (see the others),
+run `extract-datasheet.py STOCK --refresh`, and check the curves it reads against the
+printed plots. Datasheets whose plots are scanned images can't be read.

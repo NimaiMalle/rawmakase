@@ -313,3 +313,37 @@ fn film_looks_keep_mid_gray_neutral() {
         assert!((out[1] / gray - 1.).abs() < 0.15, "{}: {out:?}", p.name);
     }
 }
+
+/// The Profile menu lists each film look under its stock, by its name without the
+/// group; other profiles aren't film looks.
+#[test]
+fn film_looks_are_listed_under_their_stock() {
+    let looks = film::profiles(&x100f());
+    let mut portra: Vec<_> = looks
+        .iter()
+        .filter_map(film::listing)
+        .filter(|(stock, _)| *stock == "Portra-ish 400")
+        .map(|(_, title)| title)
+        .collect();
+    // In the order the profile list sorts them.
+    portra.sort();
+    assert_eq!(
+        portra,
+        [
+            "Portra-ish 400",
+            "Portra-ish 400 +1",
+            "Portra-ish 400 -1",
+            "Portra-ish 400 Print",
+            "Portra-ish 400 Print +1",
+            "Portra-ish 400 Print -1",
+        ]
+    );
+    assert!(looks.iter().all(|p| film::listing(p).is_some()));
+    for other in [open::standard(&x100f()), open::color(&x100f())] {
+        assert!(film::listing(&other.unwrap()).is_none());
+    }
+    // A look named like one but over another base isn't one of RAWmakase's.
+    let mut imported = looks[0].clone();
+    imported.enhanced.as_mut().unwrap().base_name = "Adobe Standard".into();
+    assert!(film::listing(&imported).is_none());
+}

@@ -3,15 +3,15 @@
 # requires-python = ">=3.11"
 # dependencies = ["numpy==2.5.3", "scipy==1.18.1", "colour-science==0.4.7", "pdfplumber==0.11.10"]
 # ///
-"""Make a film look profile from a film's datasheet curves.
+"""Make film look profiles from films' and papers' datasheet curves.
 
-Downloads the film's Kodak datasheet (and its paper's, for a print) and reads its
-curves with `extract-datasheet.py`, then writes a Camera Raw look profile, an XMP
-with a 3D RGB table, which RAWmakase and Lightroom both import, and a develop preset
-choosing it. `build-assets.sh` makes the ones RAWmakase ships.
+Reads a stock's curves with `extract-datasheet.py` (kept in `data/`, read from the
+datasheet when missing) and writes a Camera Raw look profile, an XMP with a 3D RGB
+table, which RAWmakase and Lightroom both import, with a develop preset choosing it.
 
+    uv run scripts/film/film-look.py --all              # every look RAWmakase ships
     uv run scripts/film/film-look.py portra-400 -o ~/film-looks
-    uv run scripts/film/film-look.py kodachrome-64 --print -o ~/film-looks
+    uv run scripts/film/film-look.py portra-400 --print --push 1 -o ~/film-looks
 
 The model follows the light, as a film would see it:
 
@@ -21,34 +21,41 @@ The model follows the light, as a film would see it:
 2. Each colour becomes a plausible spectrum (Jakob and Hanika's sigmoid model,
    2019), which exposes the film's three layers through their published spectral
    sensitivities, under daylight (D55). Mid gray exposes every layer at the
-   datasheet's reference exposure.
+   datasheet's reference exposure: its "Log H Ref" when printed, else the one its
+   speed gives (`REF_H_ISO`, from Portra 400's).
 3. The characteristic curves turn each layer's exposure into density, so
    exposure decides where a colour sits on the film's toe and shoulder: the
    Exposure slider moves a photo along the film's response, as over- and
-   underexposing film does.
-4. Negative film is then scanned: densities are inverted channel by channel
-   with each channel's own gamma (so the straight part of the curve stays neutral,
-   as a scanner balanced on mid gray does), the film base is set to black, and the
-   three channels are written out as sRGB, as a lab scanner outputs them: nothing
-   corrects the film's colour back toward the camera's. The base tone curve then
-   renders it.
-   Reversal film is viewed instead: each layer's density becomes an amount of its
-   dye, the dyes' spectra filter the projector's light (the datasheet's viewing
-   illuminant), and the eye adapts to the film's clear base. The film's own curve
-   is the tone curve.
-   With `--print` the film is printed instead, on Kodak's paper for its kind
-   (PAPERS) or the one named: its densities, brought to a common gamma, expose the
-   paper, whose dyes are viewed under D50 with 1% flare. The papers' printing
-   densities and a lab's printer settings aren't published, so a print is the
-   datasheets' best guess: more contrasty than a scan.
+   underexposing film does. `--push N` exposes the film N stops over (or under),
+   then scans or prints it balanced on gray as a lab would: the same brightness,
+   another part of the curve.
+4. The developed film becomes a picture one of three ways:
+   - A negative scanned: densities are inverted channel by channel with each
+     channel's own gamma (so the straight part of the curve stays neutral, as a
+     scanner balanced on mid gray does), the film base set to black, and the three
+     channels written out as sRGB, as a lab scanner outputs them: nothing corrects
+     the film's colour back toward the camera's. The base tone curve renders it.
+   - A slide projected: each layer's density becomes an amount of its dye, the dyes'
+     spectra filter the projector's light (the datasheet's viewing illuminant, else
+     5000 K), and the eye adapts to the film's clear base.
+   - Either printed (`--print`): an enlarger's 3200 K lamp shines through the
+     film's dyes onto the paper, whose layers take it through their own spectral
+     sensitivities, the printer's filtration set so a correctly exposed gray prints
+     as a neutral mid gray. The paper's curves and dyes, seen under D50 with 1%
+     viewing flare (`PRINT_FLARE`), make the print. Negatives print on Endura
+     Premier, slides on Ektachrome Radiance III (`PAPERS`).
 
-With every look, `presets/<name>.xmp` is a develop preset choosing it at full
-Amount with the film's grain (GRAIN), for the Presets panel.
+Where a datasheet publishes only the total density of a midscale neutral and of
+D-min (as Kodak's negatives do), the three dyes are estimated from it: smooth bands
+with their peaks in the yellow, magenta and cyan ranges, fitted to the difference.
 
-What the datasheets don't give is approximated, and the output says so: Status M
-and Status A densitometry are taken as narrow bands at each dye's peak, the
-scanner writes its channels as sRGB rather than through a model of a Frontier, and
-there is no grain, halation or interlayer effect.
+Every look gets a develop preset in the RMKS Film group choosing it with the film's
+grain: from its published rms granularity, scaled by how much the scan, projection
+or print stretches the film's contrast, else estimated from its speed.
+
+What the datasheets don't give is approximated: Status M and Status A densitometry
+as narrow bands at each dye's peak, the negatives' individual dyes, the scanner's
+colour (sRGB) and the printer's lamp, and there is no halation or interlayer effect.
 """
 import argparse
 import hashlib
@@ -89,22 +96,9 @@ D55 = colour.SDS_ILLUMINANTS['D55'].copy().align(SHAPE)
 PRO = colour.RGB_COLOURSPACES['ProPhoto RGB']
 PRO_TO_XYZ = PRO.matrix_RGB_to_XYZ
 XYZ_TO_PRO = PRO.matrix_XYZ_to_RGB
-# The companion presets' Grain (Amount, Size, Roughness). RAWmakase's grain adds
-# 0.93% luminance noise (rms over mean) per unit of Amount at mid gray (Size 25,
-# measured on a 970 px render; it scales with the photo's long edge, as a frame's
-# grain does). Kodachrome 64's rms granularity of 10 (σD 0.010 through a 48 µm
-# aperture) is 2.3% transmittance noise, 2.6% at a 970 px frame's 37 µm pixel: Amount
-# 3. Portra 400's datasheet gives only a print grain index, so its Amount is an
-# estimate, not a measurement.
-GRAIN = {
-    'kodachrome-64': (3, 25, 50),
-    'portra-400': (8, 25, 50),
-}
-# The profiles' names: a nod to the film, marked as an emulation.
-NAMES = {
-    'portra-400': 'RMKS Film: Portra-ish 400',
-    'kodachrome-64': 'RMKS Film: Kodachrome-ish 64',
-}
+# The group the looks and their presets are listed under, and the looks' name prefix.
+GROUP = 'RMKS Film'
+PREFIX = GROUP + ': '
 # The paper `--print` uses for each kind of film: Kodak's papers for printing
 # negatives (RA-4) and slides (R-3).
 PAPERS = {
@@ -113,6 +107,28 @@ PAPERS = {
 }
 # Viewing flare on a print: light reflected off its surface, as a fraction of its white.
 PRINT_FLARE = 0.01
+# The enlarger lamp a print is exposed with, and a slide's viewing light when its
+# datasheet names none.
+ENLARGER_K = 3200
+VIEWING_K = 5000
+# Exposure (lux-seconds) times speed for a correctly exposed mid gray on a negative:
+# Portra 400's printed Log H Ref, -1.44, at ISO 400. Negatives without one use it.
+REF_H_ISO = 10 ** -1.44 * 400
+# RGB table divisions per side: 25 renders within ΔE00 0.1 on average (0.5 at the
+# 99th percentile) of 33 at under half the size.
+DIVISIONS = 25
+# The push and pull variants of a negative, in stops.
+PUSHES = (1, -1)
+# RAWmakase's grain adds 0.93% luminance noise (rms over mean) per unit of Amount at
+# mid gray (Size 25, measured on a 970 px render; it scales with the photo's long
+# edge, as a frame's grain does). A 48 µm granularity aperture is 1.15 times the
+# side of a 970 px frame's pixel on 35 mm film.
+GRAIN_NOISE_PER_AMOUNT = 0.0093
+GRAIN_APERTURE = 1.15
+GRAIN_SIZE, GRAIN_ROUGHNESS = 25, 50
+# A Print Grain Index (35 mm at 4×6 in) and the Amount its film's rms gives: Portra
+# 400's 37, set to Fujicolor Pro 400H's Amount (rms 4), a film of its class.
+PGI_REF = (37, 3)
 # Mid gray as the base tone curve shows it: L* 50.
 MID_GRAY = 0.1842
 
@@ -212,39 +228,105 @@ def spectral(points):
     return np.clip(np.interp(WL, c[:, 0], c[:, 1]), 0, None)
 
 
+CHANNELS = ('red', 'green', 'blue')
+DYES = ('cyan', 'magenta', 'yellow')
+
+
 class Film:
+    """A film's or paper's curves: characteristic curves per channel, the layers'
+    spectral sensitivities and its dyes' spectra."""
+
     def __init__(self, data):
         self.data = data
-        self.kind = data['type']
+        self.kind = data['kind']
         curves = data['curves']
-        self.channels = ('red', 'green', 'blue')
-        self.curves = [characteristic(curves['characteristic'][c], self.kind) for c in self.channels]
-        sens = np.stack([sensitivity(curves['sensitivity'][c]) for c in self.channels])
+        self.curves = [characteristic(curves['characteristic'][c], self.kind) for c in CHANNELS]
+        # Linear spectral sensitivity of the red, green and blue layers.
+        self.layers = np.stack([sensitivity(curves['sensitivity'][c]) for c in CHANNELS])
         # A flat spectrum under daylight exposes every layer equally, at 1: the
         # characteristic curves were measured on neutrals under daylight.
-        self.sens = sens * D55.values / (sens * D55.values).sum(axis=1, keepdims=True)
+        lit = self.layers * D55.values
+        self.sens = lit / lit.sum(axis=1, keepdims=True)
+        self.eps, self.base, self.calibration = dye_spectra(curves['dye_density'])
 
     def exposure(self, reflectance):
         """Layer exposures of spectra (…, WL), relative to a white reflector."""
         return reflectance @ self.sens.T
 
 
+def dye_spectra(dd):
+    """The dyes' spectra (cyan, magenta, yellow, by wavelength), the base's, and how a
+    unit of each relates to a neutral: `('neutral', None)` when the datasheet's dyes
+    are normalized to form one, `('solve', None)` when a neutral must be found, or
+    `('reference', amounts)` for dyes estimated from a midscale neutral, which those
+    amounts form at the film's reference exposure."""
+    base = spectral(dd['minimum']) if 'minimum' in dd else np.zeros(len(WL))
+    if all(d in dd for d in DYES):
+        eps = np.stack([spectral(dd[d]) for d in DYES])
+        if 'visual_neutral' in dd:
+            neutral = spectral(dd['visual_neutral'])
+            inside = (WL >= 420) & (WL <= 700)
+            if np.abs(eps.sum(axis=0) - neutral)[inside].max() < 0.1 * neutral[inside].max():
+                return eps, base, ('neutral', None)
+        return eps, base, ('solve', None)
+    eps, amounts = decompose(np.array(dd['midscale_neutral'], dtype=float),
+                             np.array(dd['minimum'], dtype=float) if 'minimum' in dd else None)
+    return eps, base, ('reference', amounts)
+
+
+# Where each estimated dye peaks, in nm: cyan, magenta, yellow.
+DYE_PEAKS = ((600., 700.), (510., 580.), (420., 480.))
+
+
+def bump(wl, peak, left, right):
+    """A smooth absorption band: Gaussian, with a width of its own on either side."""
+    return np.exp(-0.5 * ((wl - peak) / np.where(wl < peak, left, right)) ** 2)
+
+
+def decompose(midscale, minimum):
+    """Three dyes that add up to a midscale neutral's density above D-min, each a
+    smooth band peaking in its colour's range. Returns their spectra on WL, each
+    peaking at 1, and their amounts in the neutral."""
+    from scipy.optimize import least_squares
+    wl = midscale[:, 0]
+    target = midscale[:, 1] - (np.interp(wl, minimum[:, 0], minimum[:, 1]) if minimum is not None else 0)
+
+    def model(p, x):
+        return sum(p[4 * i] * bump(x, *p[4 * i + 1:4 * i + 4]) for i in range(3))
+
+    p0, lo, hi = [], [], []
+    for a, b in DYE_PEAKS:
+        p0 += [target.max() / 2, (a + b) / 2, 35., 35.]
+        lo += [0., a, 15., 15.]
+        hi += [5., b, 90., 90.]
+    fit = least_squares(lambda p: model(p, wl) - target, p0, bounds=(lo, hi))
+    p = fit.x
+    eps = np.stack([bump(WL, *p[4 * i + 1:4 * i + 4]) for i in range(3)])
+    return eps, np.array([p[4 * i] for i in range(3)])
+
+
 # The brightness spectra are found at: the ProPhoto value of a dark-ish surface. Bright
 # saturated colours have no smooth reflectance spectrum; real ones are darker.
 SPECTRUM_VALUE = 0.2
+N_HUE, N_SAT = 72, 25
 
 
-def jakob_shapes(n_hue, n_sat):
-    """Spectra for a grid of chromaticities (HSV hue and saturation of linear
-    ProPhoto at SPECTRUM_VALUE), from Jakob and Hanika's sigmoid model under D50, the white
-    ProPhoto is balanced to. Returns the spectra and their colours' remaining XYZ
-    error, for colours no smooth reflectance reaches (ProPhoto's corners)."""
-    spectra = np.zeros((n_hue, n_sat, len(WL)))
-    residual = np.zeros((n_hue, n_sat, 3))
-    for i in range(n_hue):
+def jakob_shapes():
+    """Spectra for a grid of chromaticities (HSV hue and saturation of linear ProPhoto
+    at SPECTRUM_VALUE), from Jakob and Hanika's sigmoid model under D50, the white
+    ProPhoto is balanced to, and their colours' remaining XYZ error, for colours no
+    smooth reflectance reaches (ProPhoto's corners). The same for every film, so kept
+    in the user's cache."""
+    cache = Path.home() / '.cache' / 'rawmakase-film' / f'spectra-{N_HUE}x{N_SAT}-{SPECTRUM_VALUE}.npz'
+    if cache.exists():
+        z = np.load(cache)
+        return z['spectra'], z['residual']
+    spectra = np.zeros((N_HUE, N_SAT, len(WL)))
+    residual = np.zeros((N_HUE, N_SAT, 3))
+    for i in range(N_HUE):
         coefficients = np.zeros(3)
-        for j in range(n_sat):
-            rgb = colour.HSV_to_RGB([i / n_hue, j / (n_sat - 1), SPECTRUM_VALUE])
+        for j in range(N_SAT):
+            rgb = colour.HSV_to_RGB([i / N_HUE, j / (N_SAT - 1), SPECTRUM_VALUE])
             xyz = PRO_TO_XYZ @ rgb
             if j == 0:
                 coefficients = np.zeros(3)
@@ -252,8 +334,10 @@ def jakob_shapes(n_hue, n_sat):
             r = sd_Jakob2019(coefficients, SHAPE).values
             spectra[i, j] = r
             residual[i, j] = xyz - reflectance_xyz(r)
-        print(f'\rspectra {i + 1}/{n_hue}', end='', file=sys.stderr)
+        print(f'\rspectra {i + 1}/{N_HUE}', end='', file=sys.stderr)
     print(file=sys.stderr)
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    np.savez(cache, spectra=spectra, residual=residual)
     return spectra, residual
 
 
@@ -268,80 +352,81 @@ def colorchecker():
     return np.stack([sd.copy().align(SHAPE).values for sd in sds.values()])
 
 
+def blackbody(k):
+    return colour.sd_blackbody(k, SHAPE).values
+
+
 class Model:
-    def __init__(self, film, paper=None, n_hue=72, n_sat=25):
+    def __init__(self, film, paper=None, push=0):
         self.film = film
-        self.n_hue, self.n_sat = n_hue, n_sat
-        spectra, residual = jakob_shapes(n_hue, n_sat)
+        spectra, residual = jakob_shapes()
         # Colours a smooth spectrum can't reach keep their difference linearly, through
         # the best linear map from XYZ to layer exposure over the ColorChecker.
         cc = colorchecker()
         k = np.linalg.lstsq(reflectance_xyz(cc), film.exposure(cc), rcond=None)[0].T
         # Exposures per unit of linear ProPhoto value.
         self.unit = np.maximum(film.exposure(spectra) + residual @ k.T, 0) / SPECTRUM_VALUE
-        self.paper = None
         if film.kind == 'negative':
-            self.log_h_ref = film.data['log_h_ref']
+            data = film.data
+            self.log_h_ref = data.get('log_h_ref', np.log10(REF_H_ISO / data['iso']))
         else:
-            light = colour.sd_blackbody(film.data['viewing_illuminant_k'], SHAPE).values
-            # Kodak normalizes a slide's dyes so that one unit of each forms a neutral.
-            self.dyes = Dyes(film.data, film.curves, light, neutral=np.ones(3))
-            self.log_h_ref = self.dyes.reference_exposure()
-        self.d_ref = np.array([c(np.array(self.log_h_ref)) for c in film.curves])
+            if push:
+                raise ValueError('push and pull are for negatives: a slide is its own picture')
+            light = blackbody(film.data.get('viewing_illuminant_k', VIEWING_K))
+            self.film_dyes = Dyes(film, light)
+            self.log_h_ref = self.film_dyes.reference_exposure()
+        # Where a correctly exposed gray lands on the film: over or under by `push`.
+        self.log_h_gray = self.log_h_ref + push * np.log10(2)
+        self.d_gray = density(film.curves, np.full(3, self.log_h_gray))
         x = self.log_h_ref + np.linspace(-0.6, 0.6, 13)
-        gamma = np.array([np.polyfit(x, c(x), 1)[0] for c in film.curves])
+        self.gamma = np.array([np.polyfit(x, c(x), 1)[0] for c in film.curves])
+        self.paper = paper
         if paper is not None:
-            # Printed: the paper sees the film through its Status M (negative) or Status
-            # A (slide) densities. Film and paper are made so a gray prints neutral,
-            # but those densities aren't quite the paper's printing densities (blue's
-            # gamma reads apart), so each channel is brought to the three's mean gamma
-            # at gray. The printer's three lights are then set, as a lab sets them, so
-            # a correctly exposed gray prints as a neutral mid gray.
-            self.paper = paper
-            self.paper_dyes = Dyes(paper.data, paper.curves, D50.values, neutral=None,
-                                   flare=PRINT_FLARE)
-            self.print_gain = gamma.mean() / gamma
-            target = self.paper_dyes.mid_gray_densities()
-            self.printer = np.array([inverse(c, t) for c, t in zip(paper.curves, target)])
+            if film.kind == 'negative':
+                self.film_dyes = Dyes(film, blackbody(ENLARGER_K), reference=self.log_h_ref)
+            self.printer = Printer(self.film_dyes, paper, self.d_gray)
         elif film.kind == 'negative':
-            # Scanned: each channel inverted with its own gamma over two stops either
-            # side of mid gray, the film base set to black, and the channels written
-            # out as sRGB. No calibration pulls colours back toward the camera's.
+            # Scanned: each channel inverted with its own gamma, balanced on gray, the
+            # film base set to black, and the channels written out as sRGB. No
+            # calibration pulls colours back toward the camera's.
             self.matrix = colour.matrix_RGB_to_RGB(colour.RGB_COLOURSPACES['sRGB'], PRO,
                                                    chromatic_adaptation_transform='Bradford')
-            self.gamma = gamma
             self.d_min = np.array([c(np.array(-10.)) for c in film.curves])
 
     def layer_exposure(self, scene):
-        """Log exposure of each layer for scene-linear ProPhoto colours, with mid
-        gray at the datasheet's reference."""
+        """Log exposure of each layer for scene-linear ProPhoto colours, with mid gray
+        at `log_h_gray`."""
         scene = np.clip(scene, 0, None)
         hsv = colour.RGB_to_HSV(scene)
-        h = hsv[..., 0] * self.n_hue
-        s = hsv[..., 1] * (self.n_sat - 1)
+        h = hsv[..., 0] * N_HUE
+        s = hsv[..., 1] * (N_SAT - 1)
         h0 = np.floor(h).astype(int)
-        s0 = np.clip(np.floor(s).astype(int), 0, self.n_sat - 2)
+        s0 = np.clip(np.floor(s).astype(int), 0, N_SAT - 2)
         fh, fs = (h - h0)[..., None], np.clip(s - s0, 0, 1)[..., None]
-        h0 %= self.n_hue
-        h1 = (h0 + 1) % self.n_hue
+        h0 %= N_HUE
+        h1 = (h0 + 1) % N_HUE
         u = self.unit
         unit = ((1 - fh) * (1 - fs) * u[h0, s0] + fh * (1 - fs) * u[h1, s0]
                 + (1 - fh) * fs * u[h0, s0 + 1] + fh * fs * u[h1, s0 + 1])
         h = unit * hsv[..., 2:3]
-        return self.log_h_ref + np.log10(np.maximum(h, 1e-9) / SCENE_GRAY)
+        return self.log_h_gray + np.log10(np.maximum(h, 1e-9) / SCENE_GRAY)
 
     def display(self, scene):
         """Display-linear ProPhoto of scene-linear ProPhoto colours."""
         d = density(self.film.curves, self.layer_exposure(scene))
         if self.paper is not None:
-            printing = (d - self.d_ref) * self.print_gain
-            return self.paper_dyes.view(density(self.paper.curves, self.printer - printing))
+            return self.printer.display(d)
         if self.film.kind != 'negative':
-            return self.dyes.view(d)
-        positive = SCENE_GRAY * 10 ** ((d - self.d_ref) / self.gamma)
-        base = SCENE_GRAY * 10 ** ((self.d_min - self.d_ref) / self.gamma)
+            return self.film_dyes.view(d)
+        positive = SCENE_GRAY * 10 ** ((d - self.d_gray) / self.gamma)
+        base = SCENE_GRAY * 10 ** ((self.d_min - self.d_gray) / self.gamma)
         positive = SCENE_GRAY * (positive - base) / (SCENE_GRAY - base)
         return hue_preserving(positive @ self.matrix.T, tone)
+
+    def system_gamma(self):
+        """How steeply displayed luminance follows scene luminance at mid gray (log-log)."""
+        y = [(self.display(np.full((1, 3), SCENE_GRAY * 2 ** e)) @ PRO_TO_XYZ.T)[0, 1] for e in (-0.5, 0.5)]
+        return np.log10(y[1] / y[0]) / np.log10(2)
 
 
 def density(curves, log_h):
@@ -357,36 +442,43 @@ def inverse(curve, d):
 
 
 class Dyes:
-    """A slide's or a print's dyes: from the three layers' densities to the colour of
-    the light they pass, under the light they are viewed in."""
+    """A film's or paper's dyes: from its three channels' densities to dye amounts, the
+    light they pass, and its colour under the light it is seen in."""
 
-    def __init__(self, data, curves, light, neutral, flare=0.):
-        dd = data['curves']['dye_density']
-        # Light reflected off the surface or scattered in the room, as a fraction of
-        # the white, added to every colour.
+    def __init__(self, film, light, flare=0., reference=None):
+        self.eps, self.base, (how, amounts) = film.eps, film.base, film.calibration
+        self.curves = film.curves
         self.flare = flare
-        self.eps = np.stack([spectral(dd[d]) for d in ('cyan', 'magenta', 'yellow')])
-        self.curves = curves
         self.light = light / (light * CMFS.values[:, 1]).sum()
-        # Densitometry as narrow bands at each dye's peak (Status A approximated).
+        # Densitometry as narrow bands at each dye's peak (Status M or A approximated).
         peaks = WL[self.eps.argmax(axis=1)]
         self.bands = np.exp(-0.5 * ((WL[None] - peaks[:, None]) / 15.) ** 2)
         self.bands /= self.bands.sum(axis=1, keepdims=True)
         self.scale = np.ones(3)
-        # The amounts that form a visual neutral of density 1.0: given by the datasheet
-        # when its dyes are normalized so, else solved for.
-        self.neutral = neutral if neutral is not None else self.solve_neutral()
-        # A material balanced for its light forms a neutral from a gray exposure, so its
-        # characteristic curves' densities where they average 1.0 are that neutral as
-        # Status A reads it (not 1.0 in every channel): scale each band to read so.
-        x = np.linspace(-6, 4, 10001)
-        mean = np.mean([c(x) for c in curves], axis=0)
-        at = x[np.argmin(np.abs(mean - 1.0))]
-        self.scale = (np.array([c(np.array(at)) for c in curves])
-                      / self.band_density(self.neutral[None])[0])
-        # The eye adapts to the material's clearest white: a slide's base under the
-        # projector, a print's paper white.
-        d_min = np.array([c.y.min() for c in curves])
+        # Densities above the base: with dyes estimated from a midscale neutral, the
+        # base (D-min) is its own spectrum; otherwise the dyes carry all the density.
+        self.d_base = (np.array([c(np.array(-10.)) for c in self.curves])
+                       if how == 'reference' else np.zeros(3))
+        if how == 'reference':
+            # The estimated dyes form the published midscale neutral at the film's
+            # reference exposure: scale each band to read that exposure's densities.
+            self.neutral = amounts
+            at = density(self.curves, np.full(3, reference)) - self.d_base
+        else:
+            # The amounts forming a visual neutral of density 1.0: given when the
+            # datasheet's dyes are normalized so, else solved for. A material balanced
+            # for its light forms a neutral from a gray exposure, so its curves'
+            # densities where they average 1.0 are that neutral as the densitometer
+            # reads it: scale each band to read so.
+            self.neutral = np.ones(3) if how == 'neutral' else self.solve_neutral()
+            x = np.linspace(-6, 4, 10001)
+            mean = np.mean([c(x) for c in self.curves], axis=0)
+            log_h = x[np.argmin(np.abs(mean - 1.0))]
+            at = density(self.curves, np.full(3, log_h))
+        self.scale = at / self.band_density(self.neutral[None])[0]
+        # The eye adapts to the clearest white: a slide's base under the projector, a
+        # print's paper white.
+        d_min = np.array([c.y.min() if hasattr(c, 'y') else c(np.array(-10.)) for c in self.curves])
         self.white = self.xyz(self.amounts(d_min[None]))[0]
 
     def solve_neutral(self):
@@ -407,8 +499,9 @@ class Dyes:
         return -np.log10(np.maximum(t @ self.bands.T, 1e-12)) * self.scale
 
     def amounts(self, d):
-        """Dye amounts whose band densities are `d`, by Newton's method."""
-        a = np.array(d, dtype=float)
+        """Dye amounts whose band densities are `d` (above the base), by Newton's method."""
+        d = np.asarray(d, dtype=float) - self.d_base
+        a = np.maximum(d, 0)
         for _ in range(30):
             f = self.band_density(a) - d
             jac = np.stack([(self.band_density(a + e * 1e-4) - self.band_density(a)) / 1e-4
@@ -419,9 +512,11 @@ class Dyes:
                 break
         return a
 
+    def transmittance(self, a):
+        return 10 ** -(self.base + a @ self.eps)
+
     def xyz(self, a):
-        t = 10 ** -(a @ self.eps)
-        return (t * self.light) @ CMFS.values
+        return (self.transmittance(a) * self.light) @ CMFS.values
 
     def view(self, d):
         """Display-linear ProPhoto of densities, white at 1 after adaptation."""
@@ -439,7 +534,7 @@ class Dyes:
             s = (lo + hi) / 2
             y = (self.xyz(s * self.neutral)[1] / self.white[1] + self.flare) / (1 + self.flare)
             lo, hi = (lo, s) if y < MID_GRAY else (s, hi)
-        return self.band_density(((lo + hi) / 2 * self.neutral)[None])[0]
+        return self.band_density(((lo + hi) / 2 * self.neutral)[None])[0] + self.d_base
 
     def reference_exposure(self):
         """The exposure at which a gray shows as mid gray: a correctly exposed slide."""
@@ -450,6 +545,30 @@ class Dyes:
             y = (self.view(d) @ PRO_TO_XYZ.T)[0, 1]
             lo, hi = (mid, hi) if y < MID_GRAY else (lo, mid)
         return (lo + hi) / 2
+
+
+class Printer:
+    """An enlarger: its lamp through the film's dyes onto the paper's layers, filtered
+    so the film's gray prints as a neutral mid gray, and the print seen under D50."""
+
+    def __init__(self, film_dyes, paper, d_gray):
+        self.film_dyes = film_dyes
+        self.paper = paper
+        self.paper_dyes = Dyes(paper, D50.values, flare=PRINT_FLARE)
+        self.lamp = blackbody(ENLARGER_K)
+        target = self.paper_dyes.mid_gray_densities()
+        log_h = np.array([inverse(c, t) for c, t in zip(paper.curves, target)])
+        self.filtration = log_h - np.log10(self.exposure(self.film_dyes.amounts(d_gray[None]))[0])
+
+    def exposure(self, a):
+        """Each paper layer's exposure through film of dye amounts `a`."""
+        return (self.film_dyes.transmittance(a) * self.lamp) @ self.paper.layers.T
+
+    def display(self, d):
+        shape = d.shape
+        a = self.film_dyes.amounts(d.reshape(-1, 3))
+        log_h = np.log10(np.maximum(self.exposure(a), 1e-30)) + self.filtration
+        return self.paper_dyes.view(density(self.paper.curves, log_h)).reshape(shape)
 
 
 def table(model, divisions):
@@ -503,7 +622,7 @@ def xmp(name, sources, rgb):
         'ConvertToGrayscale': 'False', 'RGBTable': digest,
         f'Table_{digest}': synthetic_looks.base85(rgb),
     }
-    return description(attributes, name, 'Film') + '  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n'
+    return description(attributes, name, GROUP) + '  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n'
 
 
 def preset(name, title, grain):
@@ -523,72 +642,152 @@ def preset(name, title, grain):
     look = ('   <crs:Look>\n    <rdf:Description\n'
             f'     crs:Name="{name}"\n     crs:Amount="1"\n     crs:UUID="{look_uuid(name)}"\n'
             '     crs:SupportsAmount="true"/>\n   </crs:Look>\n')
-    return description(attributes, title, 'Film') + look + '  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n'
+    return description(attributes, title, GROUP) + look + '  </rdf:Description>\n </rdf:RDF>\n</x:xmpmeta>\n'
 
 
-def report(model):
-    """How mid gray and an exposure sweep come out, for a quick sanity check."""
-    print(f'scene mid gray {SCENE_GRAY:.4f} (display {MID_GRAY}); reference log H {model.log_h_ref:.3f}')
-    for ev in (-4, -2, -1, 0, 1, 2):
-        scene = np.full((1, 3), min(SCENE_GRAY * 2 ** ev, 1.))
-        out = model.display(scene)[0]
-        print(f'  gray {ev:+d} EV -> display {srgb_encode(out).round(3)}')
+def grain(data, model):
+    """The preset's Grain (Amount, Size, Roughness) and where its Amount comes from.
+    A published rms granularity (σD × 1000 through a 48 µm aperture) is film density
+    noise; divided by the film's gamma it is exposure noise, which the scan,
+    projection or print stretches by the system's gamma. Kodak's negatives publish a
+    Print Grain Index instead (35 mm at 4×6 in; 4 units are one just-noticeable
+    step): each step is 1.2 times the grain of PGI_REF, a film whose rms gives its
+    Amount. Without either, the Amount is estimated from the film's speed."""
+    published = data.get('grain', {})
+    pgi = {k: v for k, v in published.get('print_grain_index', {}).items() if '135' in k and '4x6' in k}
+    if 'rms' in published:
+        film_gamma = np.abs(model.gamma).mean()
+        noise = np.log(10) * published['rms'] / 1000 * GRAIN_APERTURE * model.system_gamma() / film_gamma
+        amount, how = noise / GRAIN_NOISE_PER_AMOUNT, f'rms granularity {published["rms"]}'
+    elif pgi:
+        value, = pgi.values()
+        index = 21 if str(value).startswith('<') else float(value)
+        amount = PGI_REF[1] * 1.2 ** ((index - PGI_REF[0]) / 4)
+        how = f'print grain index {value}'
+    else:
+        amount, how = 2 + 3 * np.log2(data['iso'] / 100), f'estimated from ISO {data["iso"]}'
+    return (int(round(min(max(amount, 1), 40))), GRAIN_SIZE, GRAIN_ROUGHNESS), how
+
+
+def report(name, model):
+    """How mid gray, an exposure sweep and a few colours come out."""
     cc = colorchecker()
     scene = reflectance_xyz(cc) @ XYZ_TO_PRO.T * (SCENE_GRAY / 0.18)
-    before = hue_preserving(scene, tone)
-    after = model.display(scene)
     lab = lambda rgb: colour.XYZ_to_Lab(np.clip(rgb, 0, None) @ PRO_TO_XYZ.T, PRO.whitepoint)
-    de = colour.delta_E(lab(before), lab(after), method='CIE 2000')
-    names = list(colour.SDS_COLOURCHECKERS['BabelColor Average'])
-    print(f'  ColorChecker vs the base rendering: mean ΔE00 {de.mean():.1f}, max {de.max():.1f} ({names[de.argmax()]})')
-    for i in (1, 2, 3, 13, 14, 15):
-        b, a = lab(before)[i], lab(after)[i]
-        print(f'    {names[i]:14} L {b[0]:5.1f}->{a[0]:5.1f}  C {np.hypot(*b[1:]):5.1f}->{np.hypot(*a[1:]):5.1f}  '
-              f'h {np.degrees(np.arctan2(b[2], b[1])) % 360:5.1f}->{np.degrees(np.arctan2(a[2], a[1])) % 360:5.1f}')
+    before, after = lab(hue_preserving(scene, tone)), lab(model.display(scene))
+    de = colour.delta_E(before, after, method='CIE 2000')
+    grays = ' '.join(f'{e:+d}:{srgb_encode(model.display(np.full((1, 3), min(SCENE_GRAY * 2 ** e, 1.))))[0].round(2)}'
+                     for e in (-3, 0, 2))
+    lch = lambda v: f'{v[0]:.0f}/{np.hypot(*v[1:]):.0f}/{np.degrees(np.arctan2(v[2], v[1])) % 360:.0f}'
+    return (f'{name}: log H gray {model.log_h_gray:.2f}, gray {grays}; ColorChecker ΔE00 {de.mean():.1f}; '
+            f'green {lch(before[13])} -> {lch(after[13])}, skin {lch(before[1])} -> {lch(after[1])}')
+
+
+def look_name(data, paper, push):
+    return PREFIX + data['look'] + (' Print' if paper else '') + (f' {push:+d}' if push else '')
+
+
+def safe(name):
+    """A file name without characters macOS or Windows refuse."""
+    return ''.join(c for c in name if c not in ':/\\?*"<>|')
+
+
+def build(stock, paper_name=None, push=0, out=Path('.'), presets=None, divisions=None, name=None):
+    """Write one look and its preset; returns a line of report."""
+    data = extract.datasheet(stock)
+    sources = [data['source']]
+    paper = None
+    if paper_name:
+        paper_name = PAPERS[data['kind']] if paper_name == 'auto' else paper_name
+        paper_data = extract.datasheet(paper_name)
+        paper = Film(paper_data)
+        sources.append(f'printed on {paper_data["source"]}')
+    model = Model(Film(data), paper, push)
+    name = name or look_name(data, paper, push)
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f'{safe(name)}.xmp').write_text(xmp(name, sources, pack(table(model, divisions or DIVISIONS))))
+    settings, how = grain(data, model)
+    presets = presets or out / 'presets'
+    presets.mkdir(parents=True, exist_ok=True)
+    title = name.removeprefix(PREFIX)
+    (presets / f'{safe(title)}.xmp').write_text(preset(name, title, [str(g) for g in settings]))
+    return report(name, model) + f'; grain {settings[0]} ({how})'
+
+
+def variants(stock):
+    """The looks a stock ships as: scanned or projected, and printed; a negative also
+    pushed and pulled, both ways."""
+    kind = extract.stock(stock)['kind']
+    yield stock, None, 0
+    yield stock, 'auto', 0
+    if kind == 'negative':
+        for push in PUSHES:
+            yield stock, None, push
+            yield stock, 'auto', push
+
+
+def build_all(looks, presets, jobs, resume=False):
+    """Every stock's looks into `looks` and their presets into `presets`, replacing
+    what is there (or, with `resume`, keeping the looks already built), and the lists
+    of them the app embeds."""
+    from concurrent.futures import ProcessPoolExecutor
+    jakob_shapes()
+    for d in (looks, presets):
+        d.mkdir(parents=True, exist_ok=True)
+        for f in d.glob('*.xmp'):
+            if not resume:
+                f.unlink()
+    films = [s for s in extract.stocks() if extract.stock(s)['kind'] != 'paper' and 'look' in extract.stock(s)]
+    todo = [v for s in films for v in variants(s)]
+    if resume:
+        def done(stock, paper, push):
+            name = look_name(extract.stock(stock), paper, push)
+            return ((looks / f'{safe(name)}.xmp').exists()
+                    and (presets / f'{safe(name.removeprefix(PREFIX))}.xmp').exists())
+        todo = [v for v in todo if not done(*v)]
+    print(f'{len(todo)} looks to build', flush=True)
+    with ProcessPoolExecutor(jobs) as pool:
+        futures = [pool.submit(build, s, p, push, looks, presets) for s, p, push in todo]
+        for f in futures:
+            print(f.result(), flush=True)
+    write_lists(looks, presets)
+
+
+def write_lists(looks, presets):
+    """The Rust lists of the embedded files, so the app's build includes them."""
+    def rust(path, files, what):
+        body = ''.join(f'    "{f}",\n' for f in files)
+        path.write_text(f'// Generated by scripts/film/film-look.py --all: every {what}.\n'
+                        f'// Do not edit; run the script again.\nfiles![\n{body}]\n')
+    rust(ROOT / 'crates/rawmakase-model/src/camera_profiles/film_files.in',
+         sorted(f.name for f in looks.glob('*.xmp')), 'look in assets/looks')
+    rust(ROOT / 'crates/rawmakase-interop/src/presets/film_files.in',
+         sorted(f'{GROUP}/{f.name}' for f in presets.glob('*.xmp')), f'preset in assets/presets/{GROUP}')
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('film', help=', '.join(k for k, v in extract.FILMS.items() if v['type'] != 'paper'))
+    ap.add_argument('stock', nargs='?', help=', '.join(s for s in extract.stocks() if extract.stock(s)['kind'] != 'paper'))
+    ap.add_argument('--all', action='store_true', help="build every stock's looks into assets/")
+    ap.add_argument('-j', '--jobs', type=int, default=2, help='looks built at once with --all')
+    ap.add_argument('--resume', action='store_true', help='with --all, keep the looks already built')
     ap.add_argument('-o', '--out', type=Path, default=Path.cwd(), help='output directory')
     ap.add_argument('--presets', type=Path, help="the presets' directory (default: OUT/presets)")
-    ap.add_argument('--name', help="the profile's name (default: the film's name)")
-    ap.add_argument('--divisions', type=int, default=33, help='RGB table divisions per side, 2-64')
+    ap.add_argument('--name', help="the profile's name (default: RMKS Film: and the stock's look)")
+    ap.add_argument('--divisions', type=int, default=DIVISIONS, help='RGB table divisions per side, 2-64')
     ap.add_argument('--print', dest='paper', nargs='?', const='auto',
-                    help="print the film on a paper in extract-datasheet.py instead of scanning a "
-                         "negative or projecting a slide (default paper: %s)" % ', '.join(
-                             f'{k} for {v}' for v, k in PAPERS.items()))
-    ap.add_argument('--grain', help="the preset's Grain as Amount,Size,Roughness (default: the film's)")
+                    help="print the film on a paper from stocks/ instead of scanning a negative or "
+                         "projecting a slide (default: %s)" % ', '.join(f'{k} for {v}' for v, k in PAPERS.items()))
+    ap.add_argument('--push', type=int, default=0, help='stops a negative is exposed over (or under, negative)')
     args = ap.parse_args()
+    if args.all:
+        build_all(ROOT / 'assets/looks', ROOT / 'assets/presets' / GROUP, args.jobs, args.resume)
+        return
+    if not args.stock:
+        ap.error('name a stock or use --all')
     if not 2 <= args.divisions <= 64:
-        sys.exit('--divisions must be 2-64')
-    data = extract.datasheet(args.film)
-    sources = [data['source']]
-    paper = None
-    if args.paper:
-        paper_name = PAPERS[data['type']] if args.paper == 'auto' else args.paper
-        paper_data = extract.datasheet(paper_name)
-        paper = Film(paper_data)
-        sources.append(f'printed on {paper_data["source"]}')
-    model = Model(Film(data), paper)
-    report(model)
-    rgb = pack(table(model, args.divisions))
-    name = args.name or NAMES.get(args.film, data['name']) + (' Print' if paper else '')
-    args.out.mkdir(parents=True, exist_ok=True)
-    # File names without characters macOS or Windows refuse.
-    file = ''.join(c for c in name if c not in ':/\\?*"<>|')
-    path = args.out / f'{file}.xmp'
-    path.write_text(xmp(name, sources, rgb))
-    print(path)
-    grain = args.grain.split(',') if args.grain else GRAIN.get(args.film)
-    if grain:
-        presets = args.presets or args.out / 'presets'
-        presets.mkdir(parents=True, exist_ok=True)
-        # In the Presets panel's Film group the brand is redundant.
-        title = name.removeprefix('RMKS Film: ')
-        path = presets / f"{''.join(c for c in title if c not in ':/\\?*\"<>|')}.xmp"
-        path.write_text(preset(name, title, [str(g) for g in grain]))
-        print(path)
+        ap.error('--divisions must be 2-64')
+    print(build(args.stock, args.paper, args.push, args.out, args.presets, args.divisions, args.name))
 
 
 if __name__ == '__main__':
