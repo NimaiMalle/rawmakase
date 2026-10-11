@@ -91,6 +91,15 @@ uniform! {
         grain_measured: u32,
         pad3: u32,
         pad4: u32,
+        /// `effects::FilmGrainField`; a zero amount has no film grain.
+        film_amount: f32,
+        film_radius: f32,
+        film_sigma: f32,
+        film_cell: f32,
+        film_max_radius: f32,
+        film_area: f32,
+        film_darkest: f32,
+        film_seed: u32,
     }
 }
 

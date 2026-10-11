@@ -18,6 +18,9 @@ struct Params {
     vignette_feather: f32, lens_vignette: f32, lens_vignette_midpoint: f32, effects: u32,
     count: u32, halo: f32, dark: f32, pad2: u32,
     grain_fine: f32, grain_measured: u32, pad3: u32, pad4: u32,
+    // `effects::FilmGrainField`; a zero amount has no film grain.
+    film_amount: f32, film_radius: f32, film_sigma: f32, film_cell: f32,
+    film_max_radius: f32, film_area: f32, film_darkest: f32, film_seed: u32,
 };
 @group(0) @binding(0) var<storage, read_write> pixels: array<f32>;
 @group(0) @binding(1) var<storage, read_write> scratch: array<f32>;
@@ -106,6 +109,99 @@ fn grain_strength(l: f32) -> f32 {
     }
     let t = clamp((l - GRAIN_L[i - 1u]) / (GRAIN_L[i] - GRAIN_L[i - 1u]), 0.0, 1.0);
     return GRAIN_GAIN[i - 1u] + (GRAIN_GAIN[i] - GRAIN_GAIN[i - 1u]) * t;
+}
+// `film_grain::unit_hash`: integer hash to [0, 1) in 24-bit steps.
+fn unit_hash(x: i32, y: i32, seed: u32) -> f32 {
+    var v = (bitcast<u32>(x) * 0x9e3779b9u) ^ (bitcast<u32>(y) * 0x85ebca6bu) ^ seed;
+    v ^= v >> 16u;
+    v *= 0x7feb352du;
+    v ^= v >> 15u;
+    v *= 0x846ca68bu;
+    v ^= v >> 16u;
+    return f32(v >> 8u) / 16777216.0;
+}
+// `film_grain::smoothstep`, defined for any edges (WGSL's needs e0 < e1).
+fn step_smooth(e0: f32, e1: f32, x: f32) -> f32 {
+    let t = clamp((x - e0) / (e1 - e0), 0.0, 1.0);
+    return t * t * (3.0 - 2.0 * t);
+}
+// `FilmGrainField`'s constants.
+const FILM_CANDIDATES = 16u;
+const FILM_PRESENCE = 0.02;
+const FILM_TONE_LIMIT = 0.02;
+const FILM_MAX_PRESENCE = 0.95;
+const FILM_EDGE_SOFTNESS = 0.5;
+const FILM_EDGE_MIN = 0.6;
+const FILM_BLUR = 0.8;
+const FILM_STRENGTH = 0.4;
+const FILM_R2 = vec2(0.7548777, 0.5698403);
+const TAU = 6.2831855;
+// `FilmGrainField::uncovered`.
+fn film_uncovered(x: f32, y: f32, presence: f32) -> f32 {
+    var uncovered = 1.0;
+    let cell = p.film_cell;
+    for (var k = 0u; k < FILM_CANDIDATES; k++) {
+        let ox = fract(0.5 + f32(k) * FILM_R2.x) * cell;
+        let oy = fract(0.5 + f32(k) * FILM_R2.y) * cell;
+        let lx = x - ox;
+        let ly = y - oy;
+        let cx = i32(floor(lx / cell));
+        let cy = i32(floor(ly / cell));
+        let key = p.film_seed ^ (k * 0x632be5abu);
+        for (var j = -1; j <= 1; j++) {
+            for (var i = -1; i <= 1; i++) {
+                let gx = cx + i;
+                let gy = cy + j;
+                let threshold = unit_hash(gx, gy, key ^ 0x68e31da4u);
+                if threshold - FILM_PRESENCE >= presence { continue; }
+                let px = (f32(gx) + unit_hash(gx, gy, key ^ 0xb5ad4eceu)) * cell;
+                let py = (f32(gy) + unit_hash(gx, gy, key ^ 0x1b873593u)) * cell;
+                let d = length(vec2(lx - px, ly - py));
+                if d >= cell { continue; }
+                let alpha = step_smooth(threshold - FILM_PRESENCE, threshold + FILM_PRESENCE, presence);
+                let u = 1.0 - unit_hash(gx, gy, key ^ 0xcc9e2d51u);
+                let angle = unit_hash(gx, gy, key ^ 0x27d4eb2fu);
+                let z = sqrt(-2.0 * log(u)) * cos(TAU * angle);
+                let s = p.film_sigma;
+                let r = min(p.film_radius * exp(s * z - 0.5 * s * s), p.film_max_radius);
+                // `film_grain::coverage`.
+                let drawn = max(r, FILM_BLUR);
+                let w = max(FILM_EDGE_SOFTNESS * drawn, FILM_EDGE_MIN);
+                let opacity = (r / drawn) * (r / drawn);
+                let coverage = opacity * (1.0 - step_smooth(drawn - w, drawn + w, d));
+                uncovered *= 1.0 - alpha * coverage;
+            }
+        }
+    }
+    return uncovered;
+}
+// `FilmGrainField::delta`.
+fn film_delta(x: f32, y: f32, l: f32) -> f32 {
+    let fade = clamp(min(l / p.film_darkest, (1.0 - l) / FILM_TONE_LIMIT), 0.0, 1.0);
+    if fade == 0.0 { return 0.0; }
+    let tone = clamp(l, p.film_darkest, 1.0 - FILM_TONE_LIMIT);
+    let cell = p.film_cell;
+    let presence = min(
+        -log(tone) * cell * cell / (f32(FILM_CANDIDATES) * p.film_area),
+        FILM_MAX_PRESENCE,
+    );
+    var n = 1u;
+    var attenuation = 1.0;
+    if p.scale < 1.0 {
+        n = clamp(u32(ceil(1.0 / p.scale - 1e-4)), 1u, 4u);
+        attenuation = min(f32(n) * p.scale * (2.0 * max(p.film_radius, FILM_BLUR) + 0.5), 1.0);
+    }
+    let footprint = 1.0 / min(p.scale, 1.0);
+    var sum = 0.0;
+    for (var j = 0u; j < n; j++) {
+        for (var i = 0u; i < n; i++) {
+            let ox = ((f32(i) + 0.5) / f32(n) - 0.5) * footprint;
+            let oy = ((f32(j) + 0.5) / f32(n) - 0.5) * footprint;
+            sum += film_uncovered(x + ox, y + oy, presence);
+        }
+    }
+    let grain = sum / f32(n * n);
+    return FILM_STRENGTH * p.film_amount * fade * (grain - tone) * attenuation;
 }
 // Rust's `round`: halves away from zero (WGSL's `round` goes to even).
 fn round_away(v: f32) -> f32 {
@@ -244,7 +340,11 @@ fn spatial(color: vec3<f32>, x: u32, y: u32) -> vec3<f32> {
             * min(p.scale, 1.0);
         noise = (coarse * p.grain_coarse + fine * p.grain_fine) * p.grain * strength;
     }
-    return clamp(c * gain + vec3(noise), vec3(0.0), vec3(1.0));
+    c = clamp(c * gain + vec3(noise), vec3(0.0), vec3(1.0));
+    if p.film_amount != 0.0 {
+        c = clamp(c + vec3(film_delta(gx, gy, luminance(c))), vec3(0.0), vec3(1.0));
+    }
+    return c;
 }
 // The monitor profile as a lattice over 8-bit input, `lut_size` points per axis at
 // equal byte steps, interpolated trilinearly.

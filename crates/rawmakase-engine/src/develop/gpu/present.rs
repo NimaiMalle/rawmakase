@@ -4,7 +4,7 @@
 //! shown pixels for the white balance loupe come back.
 use super::{Processor, develop::Input, uniforms::PresentParams};
 use crate::develop::{
-    effects::{GrainField, PostCropVignette},
+    effects::{FilmGrainField, GrainField, PostCropVignette},
     pipeline::pixel_params::PixelParams,
     quality,
 };
@@ -430,12 +430,17 @@ impl Processor {
         };
         let e = &recipe.effects;
         let lens_vignette = recipe.finished_lens_vignette();
-        let effects = e.grain != 0. || e.vignette != 0. || lens_vignette != 0.;
+        let effects =
+            e.grain != 0. || e.vignette != 0. || lens_vignette != 0. || !recipe.film_grain.is_off();
         let [cx, cy, cw, ch] = finish.crop;
         let vignette = PostCropVignette::new(e, finish.full);
         let grain = GrainField::new(
             e,
             recipe.grain_model,
+            finish.full[0].max(finish.full[1]) as f32 / finish.scale,
+        );
+        let film = FilmGrainField::new(
+            &recipe.film_grain,
             finish.full[0].max(finish.full[1]) as f32 / finish.scale,
         );
         let parameters = |shown: bool| -> wgpu::Buffer {
@@ -485,6 +490,14 @@ impl Processor {
                 dark: sharpener.dark,
                 grain_fine: grain.fine,
                 grain_measured: (grain.model == GrainModel::Measured) as u32,
+                film_amount: film.amount,
+                film_radius: film.radius,
+                film_sigma: film.sigma,
+                film_cell: film.cell,
+                film_max_radius: film.max_radius,
+                film_area: film.area,
+                film_darkest: film.darkest,
+                film_seed: film.seed,
                 ..Default::default()
             };
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
