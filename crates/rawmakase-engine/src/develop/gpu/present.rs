@@ -514,6 +514,13 @@ impl Processor {
                 film_blue_max_radius: blue.max_radius,
                 film_blue_norm: blue.norm,
                 film_blue_seed: blue.seed,
+                film_clumping: film.clumping,
+                film_clump_radius: film.clump.radius,
+                film_clump_cell: film.clump.cell,
+                film_clump_max_radius: film.clump.max_radius,
+                film_clump_norm: film.clump.norm,
+                film_clump_seed: film.clump.seed,
+                film_clump_sigma: film.clump.sigma,
                 ..Default::default()
             };
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {

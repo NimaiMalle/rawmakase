@@ -116,7 +116,16 @@ uniform! {
         film_blue_max_radius: f32,
         film_blue_norm: f32,
         film_blue_seed: u32,
+        /// Film Grain's clumping: its coarse noise, as a layer, and its strength.
+        film_clumping: f32,
+        film_clump_radius: f32,
+        film_clump_cell: f32,
+        film_clump_max_radius: f32,
+        film_clump_norm: f32,
+        film_clump_seed: u32,
+        film_clump_sigma: f32,
         pad5: u32,
+        pad6: u32,
     }
 }
 

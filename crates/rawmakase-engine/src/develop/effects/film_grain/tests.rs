@@ -331,8 +331,8 @@ fn extent(value: impl Fn(f32, f32) -> f32) -> f32 {
         .sum()
 }
 
-/// At Color 0 every channel takes the mono grain over the luminance, exactly as before
-/// Color existed.
+/// At Color 0 every channel takes the mono grain over the luminance, clumped, exactly
+/// as before Color existed.
 #[test]
 fn color_zero_is_the_mono_grain_on_every_channel() {
     let film = layers(0.);
@@ -347,7 +347,10 @@ fn color_zero_is_the_mono_grain_on_every_channel() {
     for (x, y) in spread(2000) {
         let rgb = [0.6, 0.4, 0.2];
         let l = crate::color::luminance(rgb);
-        assert_eq!(film.delta(x, y, 1., rgb), [mono.delta(x, y, 1., l); 3]);
+        assert_eq!(
+            film.delta(x, y, 1., rgb),
+            [mono.delta(x, y, 1., l) * film.clumps(x, y); 3]
+        );
     }
 }
 
@@ -365,7 +368,7 @@ fn color_changes_the_grains_colour_not_its_brightness() {
         for (x, y) in spread(20_000) {
             let d = film.delta(x, y, 1., rgb);
             let brightness = crate::color::luminance(d);
-            let expected = mono.delta(x, y, 1., l);
+            let expected = mono.delta(x, y, 1., l) * film.clumps(x, y);
             assert!(
                 (brightness - expected).abs() < 1e-5,
                 "Color {color}: {brightness} {expected}"
@@ -427,6 +430,62 @@ fn colour_grain_is_as_in_scans_of_colour_negatives() {
         (colour / brightness - 1.).abs() < 0.15,
         "{brightness} {colour}"
     );
+}
+
+/// The grain is a little stronger in some patches than others, as in film: its strength
+/// varies by a few percent over about 0.2–0.5 mm, more with Roughness, slowly compared
+/// with the grain, and without changing its overall strength or adding specks.
+#[test]
+fn grain_clumps_naturally() {
+    let mut last = 0.;
+    for roughness in [0., 0.5, 1.] {
+        let film = FilmGrainLayers::new(
+            &FilmGrain {
+                amount: 1.,
+                roughness,
+                ..FilmGrain::default()
+            },
+            6000.,
+        );
+        let clumps: Vec<f32> = spread(40_000).map(|(x, y)| film.clumps(x, y)).collect();
+        let power = clumps.iter().map(|c| c * c).sum::<f32>() / clumps.len() as f32;
+        assert!((power - 1.).abs() < 0.01, "Roughness {roughness}: {power}");
+        let (mean, deviation) = mean_and_deviation(&clumps);
+        let variation = deviation / mean;
+        assert!(
+            (variation / film.clumping - 1.).abs() < 0.15,
+            "Roughness {roughness}: {variation} against {}",
+            film.clumping
+        );
+        assert!(variation > last);
+        last = variation;
+        let near = correlation(
+            &clumps,
+            &spread(40_000)
+                .map(|(x, y)| film.clumps(x + 8., y))
+                .collect::<Vec<_>>(),
+        );
+        let far = correlation(
+            &clumps,
+            &spread(40_000)
+                .map(|(x, y)| film.clumps(x + 300., y))
+                .collect::<Vec<_>>(),
+        );
+        assert!(
+            near > 0.8 && far.abs() < 0.1,
+            "Roughness {roughness}: {near} {far}"
+        );
+        let deltas: Vec<f32> = spread(40_000)
+            .map(|(x, y)| film.delta(x, y, 1., [0.5; 3])[0])
+            .collect();
+        let (m, d) = mean_and_deviation(&deltas);
+        let kurtosis =
+            deltas.iter().map(|v| ((v - m) / d).powi(4)).sum::<f32>() / deltas.len() as f32 - 3.;
+        assert!(
+            kurtosis < 1.,
+            "Roughness {roughness}: excess kurtosis {kurtosis}"
+        );
+    }
 }
 
 /// Off, Film Grain leaves the finished photo exactly as it was; on, it changes it.

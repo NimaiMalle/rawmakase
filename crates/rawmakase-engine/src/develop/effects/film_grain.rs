@@ -13,6 +13,14 @@
 //! `t·√(−ln t)`, so the grain is strongest in the lower midtones and fades smoothly into
 //! black and white, with no isolated grains at either end.
 //!
+//! Film's grain is also uneven: its strength varies by a few percent from one 0.2–0.5 mm
+//! patch to the next. A coarse noise of the same kind modulates it, more with Roughness,
+//! keeping its mean strength.
+//!
+//! The grain is not equally strong everywhere: as in scans of film, its strength varies
+//! by a few percent from one 0.2–0.5 mm patch to the next, more with Roughness. A
+//! coarse noise modulates it, scaled so the grain keeps its overall strength.
+//!
 //! Previews down to half size average exactly the full-resolution pixels under each
 //! pixel; smaller ones take one sample a pixel and scale what is left: a statistical
 //! approximation of the resized export, as the measured Grain's.
@@ -42,6 +50,17 @@ const TAIL: f32 = 2.;
 pub(crate) const STRENGTH: f32 = 0.12;
 /// Candidate bumps per cell.
 pub(crate) const CANDIDATES: u32 = 8;
+/// Clumping: the grain's strength varies slowly, as in scans of film, where it varies
+/// about 1.3 (colour negatives, T-Max) to 1.65 (Tri-X) times as much from one 0.2 mm
+/// patch to the next as an even grain's. A coarse noise of `CLUMP_RADIUS` pixels at the
+/// reference edge, `CLUMP_COUNT` bumps per cell, modulates it by `CLUMP_BASE` plus
+/// `CLUMP_PER_ROUGHNESS` times Roughness.
+const CLUMP_RADIUS: f32 = 30.;
+const CLUMP_SIGMA: f32 = 0.4;
+pub(crate) const CLUMP_COUNT: u32 = 2;
+const CLUMP_BASE: f32 = 0.03;
+const CLUMP_PER_ROUGHNESS: f32 = 0.05;
+const SALT_CLUMP: u32 = 0x5be0_cd19;
 /// `t·√(−ln t)` at its peak, `t = e^(−1/2)`.
 const TONE_PEAK: f32 = 0.428_881;
 /// Hash salts for a candidate's centre, weight and radius.
@@ -97,6 +116,9 @@ pub(crate) struct FilmGrainLayers {
     pub(crate) mono: FilmGrainField,
     /// Red, green and blue.
     pub(crate) layers: [FilmGrainField; 3],
+    /// The coarse noise that modulates the grain's strength, and by how much.
+    pub(crate) clump: FilmGrainField,
+    pub(crate) clumping: f32,
 }
 impl FilmGrainLayers {
     pub(crate) fn new(g: &FilmGrain, edge: f32) -> Self {
@@ -106,7 +128,21 @@ impl FilmGrainLayers {
             layers: std::array::from_fn(|c| {
                 FilmGrainField::layer(g, edge, LAYER_SIZE[c], g.seed ^ LAYER_SALT[c])
             }),
+            clump: FilmGrainField::with(
+                1.,
+                (CLUMP_RADIUS * edge / REFERENCE_EDGE).max(2.),
+                CLUMP_SIGMA,
+                CLUMP_COUNT,
+                g.seed ^ SALT_CLUMP,
+            ),
+            clumping: CLUMP_BASE + CLUMP_PER_ROUGHNESS * g.roughness,
         }
+    }
+    /// How much stronger or weaker than its mean the grain is at full-resolution
+    /// position `x`, `y`: 1 on average over the photo, so Amount keeps its strength.
+    pub(crate) fn clumps(&self, x: f32, y: f32) -> f32 {
+        let a = self.clumping;
+        (1. + a * self.clump.noise(x, y)).max(0.) / (1. + a * a).sqrt()
     }
     /// What the grain adds to each channel of encoded `rgb` at full-resolution
     /// position `x`, `y`, for an output of `scale` pixels per full-resolution pixel:
@@ -116,12 +152,16 @@ impl FilmGrainLayers {
     pub(crate) fn delta(&self, x: f32, y: f32, scale: f32, rgb: [f32; 3]) -> [f32; 3] {
         let mono = self.mono.delta(x, y, scale, crate::color::luminance(rgb));
         if self.color == 0. {
-            return [mono; 3];
+            if mono == 0. {
+                return [0.; 3];
+            }
+            return [mono * self.clumps(x, y); 3];
         }
         let [r, g, b] = std::array::from_fn(|c| self.layers[c].delta(x, y, scale, rgb[c]));
         let dye = [r + OUTER_COUPLING * b, g, b + OUTER_COUPLING * r];
         let neutral = crate::color::luminance(dye);
-        dye.map(|d| mono + COLOR_STRENGTH * self.color * (d - neutral))
+        let clumps = self.clumps(x, y);
+        dye.map(|d| (mono + COLOR_STRENGTH * self.color * (d - neutral)) * clumps)
     }
 }
 
@@ -138,6 +178,8 @@ pub(crate) struct FilmGrainField {
     /// What scales the noise to unit deviation.
     pub(crate) norm: f32,
     pub(crate) seed: u32,
+    /// Candidate bumps per cell.
+    pub(crate) count: u32,
 }
 impl FilmGrainField {
     /// The mono grain.
@@ -150,19 +192,24 @@ impl FilmGrainField {
         let radius = ((RADIUS_BASE + RADIUS_PER_SIZE * g.size) * size * edge / REFERENCE_EDGE)
             .max(RADIUS_MIN);
         let sigma = SIGMA_BASE + SIGMA_PER_ROUGHNESS * g.roughness;
+        Self::with(g.amount, radius, sigma, CANDIDATES, seed)
+    }
+    /// A noise of mean radius `radius` with `count` bumps per cell, scaled by `amount`.
+    fn with(amount: f32, radius: f32, sigma: f32, count: u32, seed: u32) -> Self {
         let max_radius = TAIL * radius;
         let cell = KERNEL * max_radius;
         let mut field = Self {
-            amount: g.amount,
+            amount,
             radius,
             sigma,
             cell,
             max_radius,
             norm: 1.,
             seed,
+            count,
         };
         // A bump `(1 − (d/R)²)²` of reach `R` has `∫b² = πR²/5`; weights uniform in
-        // −1..1 have `E[w²] = 1/3`; there are `CANDIDATES` bumps per cell. The mean over
+        // −1..1 have `E[w²] = 1/3`; there are `count` bumps per cell. The mean over
         // the normal `z` of each radius's `R²`, by the midpoint rule over ±5.
         let nodes = 80;
         let (mut reach2, mut weights) = (0., 0.);
@@ -173,7 +220,7 @@ impl FilmGrainField {
             weights += weight;
         }
         let variance =
-            CANDIDATES as f32 / (cell * cell) / 3. * std::f32::consts::PI * (reach2 / weights) / 5.;
+            count as f32 / (cell * cell) / 3. * std::f32::consts::PI * (reach2 / weights) / 5.;
         field.norm = 1. / variance.sqrt();
         field
     }
@@ -183,7 +230,7 @@ impl FilmGrainField {
     /// The grain texture at full-resolution position `x`, `y`: mean 0, deviation 1.
     pub(crate) fn noise(&self, x: f32, y: f32) -> f32 {
         let mut sum = 0.;
-        for k in 0..CANDIDATES {
+        for k in 0..self.count {
             // Each candidate's grid is offset by the R2 sequence, so a position's phase
             // within its cell differs between candidates and no cell pattern shows.
             let ox = (0.5 + k as f32 * R2[0]).fract() * self.cell;

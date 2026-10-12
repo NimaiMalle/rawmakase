@@ -26,7 +26,10 @@ struct Params {
     film_red_norm: f32, film_red_seed: u32, film_green_radius: f32, film_green_cell: f32,
     film_green_max_radius: f32, film_green_norm: f32, film_green_seed: u32,
     film_blue_radius: f32, film_blue_cell: f32, film_blue_max_radius: f32,
-    film_blue_norm: f32, film_blue_seed: u32, pad5: u32,
+    film_blue_norm: f32, film_blue_seed: u32,
+    // Film Grain's clumping: its coarse noise, as a layer, and its strength.
+    film_clumping: f32, film_clump_radius: f32, film_clump_cell: f32, film_clump_max_radius: f32,
+    film_clump_norm: f32, film_clump_seed: u32, film_clump_sigma: f32, pad5: u32, pad6: u32,
 };
 @group(0) @binding(0) var<storage, read_write> pixels: array<f32>;
 @group(0) @binding(1) var<storage, read_write> scratch: array<f32>;
@@ -128,6 +131,7 @@ fn unit_hash(x: i32, y: i32, seed: u32) -> f32 {
 }
 // `film_grain`'s constants.
 const FILM_CANDIDATES = 8u;
+const FILM_CLUMP_COUNT = 2u;
 const FILM_KERNEL = 2.2;
 const FILM_STRENGTH = 0.12;
 const FILM_COLOR_STRENGTH = 1.1;
@@ -139,7 +143,7 @@ const FILM_R2 = vec2(0.7548777, 0.5698403);
 const TAU = 6.2831855;
 // One `FilmGrainField`: a grain layer.
 struct FilmLayer {
-    radius: f32, cell: f32, max_radius: f32, norm: f32, seed: u32,
+    radius: f32, cell: f32, max_radius: f32, norm: f32, seed: u32, sigma: f32, count: u32,
 };
 // `film_grain::tone_strength`.
 fn film_tone_strength(l: f32) -> f32 {
@@ -151,8 +155,8 @@ fn film_tone_strength(l: f32) -> f32 {
 fn film_noise(layer: FilmLayer, x: f32, y: f32) -> f32 {
     var sum = 0.0;
     let cell = layer.cell;
-    let s = p.film_sigma;
-    for (var k = 0u; k < FILM_CANDIDATES; k++) {
+    let s = layer.sigma;
+    for (var k = 0u; k < layer.count; k++) {
         let ox = fract(0.5 + f32(k) * FILM_R2.x) * cell;
         let oy = fract(0.5 + f32(k) * FILM_R2.y) * cell;
         let lx = x - ox;
@@ -207,18 +211,37 @@ fn film_delta(layer: FilmLayer, x: f32, y: f32, l: f32) -> f32 {
 // `FilmGrainLayers::delta`: the mono grain over the luminance, and with Color each dye
 // layer's grain over its own channel less what they add to the luminance.
 fn film_deltas(x: f32, y: f32, c: vec3<f32>) -> vec3<f32> {
-    let mono_layer = FilmLayer(p.film_radius, p.film_cell, p.film_max_radius, p.film_norm, p.film_seed);
+    let mono_layer = FilmLayer(p.film_radius, p.film_cell, p.film_max_radius, p.film_norm, p.film_seed, p.film_sigma, FILM_CANDIDATES);
     let mono = film_delta(mono_layer, x, y, luminance(c));
-    if p.film_color == 0.0 { return vec3(mono); }
-    let red = FilmLayer(p.film_red_radius, p.film_red_cell, p.film_red_max_radius, p.film_red_norm, p.film_red_seed);
+    if p.film_color == 0.0 {
+        if mono == 0.0 { return vec3(0.0); }
+        return vec3(mono * film_clumps(x, y));
+    }
+    let red = FilmLayer(
+        p.film_red_radius, p.film_red_cell, p.film_red_max_radius, p.film_red_norm, p.film_red_seed,
+        p.film_sigma, FILM_CANDIDATES,
+    );
     let green = FilmLayer(
         p.film_green_radius, p.film_green_cell, p.film_green_max_radius, p.film_green_norm, p.film_green_seed,
+        p.film_sigma, FILM_CANDIDATES,
     );
-    let blue = FilmLayer(p.film_blue_radius, p.film_blue_cell, p.film_blue_max_radius, p.film_blue_norm, p.film_blue_seed);
+    let blue = FilmLayer(
+        p.film_blue_radius, p.film_blue_cell, p.film_blue_max_radius, p.film_blue_norm, p.film_blue_seed,
+        p.film_sigma, FILM_CANDIDATES,
+    );
     let r = film_delta(red, x, y, c.r);
     let b = film_delta(blue, x, y, c.b);
     let dye = vec3(r + FILM_OUTER_COUPLING * b, film_delta(green, x, y, c.g), b + FILM_OUTER_COUPLING * r);
-    return vec3(mono) + FILM_COLOR_STRENGTH * p.film_color * (dye - vec3(luminance(dye)));
+    return (vec3(mono) + FILM_COLOR_STRENGTH * p.film_color * (dye - vec3(luminance(dye)))) * film_clumps(x, y);
+}
+// `FilmGrainLayers::clumps`.
+fn film_clumps(x: f32, y: f32) -> f32 {
+    let a = p.film_clumping;
+    let clump = FilmLayer(
+        p.film_clump_radius, p.film_clump_cell, p.film_clump_max_radius, p.film_clump_norm,
+        p.film_clump_seed, p.film_clump_sigma, FILM_CLUMP_COUNT,
+    );
+    return max(1.0 + a * film_noise(clump, x, y), 0.0) / sqrt(1.0 + a * a);
 }
 // Rust's `round`: halves away from zero (WGSL's `round` goes to even).
 fn round_away(v: f32) -> f32 {
