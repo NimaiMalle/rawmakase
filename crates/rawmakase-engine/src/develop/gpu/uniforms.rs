@@ -100,7 +100,7 @@ uniform! {
         film_area: f32,
         film_darkest: f32,
         film_seed: u32,
-        /// Film Grain's Color, and its red and blue layers as the mono (green) one.
+        /// Film Grain's Color, and its red, green and blue dye layers as the mono one.
         film_color: f32,
         film_red_radius: f32,
         film_red_cell: f32,
@@ -114,9 +114,13 @@ uniform! {
         film_blue_area: f32,
         film_blue_darkest: f32,
         film_blue_seed: u32,
+        film_green_radius: f32,
+        film_green_cell: f32,
+        film_green_max_radius: f32,
+        film_green_area: f32,
+        film_green_darkest: f32,
+        film_green_seed: u32,
         pad5: u32,
-        pad6: u32,
-        pad7: u32,
     }
 }
 

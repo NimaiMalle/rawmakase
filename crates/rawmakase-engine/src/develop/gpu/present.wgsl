@@ -21,11 +21,13 @@ struct Params {
     // `effects::FilmGrainField`; a zero amount has no film grain.
     film_amount: f32, film_radius: f32, film_sigma: f32, film_cell: f32,
     film_max_radius: f32, film_area: f32, film_darkest: f32, film_seed: u32,
-    // Film Grain's Color, and its red and blue layers as the mono (green) one above.
+    // Film Grain's Color, and its red, green and blue dye layers as the mono one above.
     film_color: f32, film_red_radius: f32, film_red_cell: f32, film_red_max_radius: f32,
     film_red_area: f32, film_red_darkest: f32, film_red_seed: u32, film_blue_radius: f32,
     film_blue_cell: f32, film_blue_max_radius: f32, film_blue_area: f32, film_blue_darkest: f32,
-    film_blue_seed: u32, pad5: u32, pad6: u32, pad7: u32,
+    film_blue_seed: u32, film_green_radius: f32, film_green_cell: f32,
+    film_green_max_radius: f32, film_green_area: f32, film_green_darkest: f32,
+    film_green_seed: u32, pad5: u32,
 };
 @group(0) @binding(0) var<storage, read_write> pixels: array<f32>;
 @group(0) @binding(1) var<storage, read_write> scratch: array<f32>;
@@ -139,6 +141,7 @@ const FILM_EDGE_SOFTNESS = 0.5;
 const FILM_EDGE_MIN = 0.6;
 const FILM_BLUR = 0.8;
 const FILM_STRENGTH = 0.4;
+const FILM_COLOR_STRENGTH = 0.5;
 const FILM_R2 = vec2(0.7548777, 0.5698403);
 const TAU = 6.2831855;
 // One `FilmGrainField`: a grain layer.
@@ -197,8 +200,8 @@ fn film_delta(layer: FilmLayer, x: f32, y: f32, l: f32) -> f32 {
     var n = 1u;
     var attenuation = 1.0;
     if p.scale < 1.0 {
-        n = clamp(u32(ceil(1.0 / p.scale - 1e-4)), 1u, 4u);
-        attenuation = min(f32(n) * p.scale * (2.0 * max(layer.radius, FILM_BLUR) + 0.5), 1.0);
+        n = select(1u, 2u, p.scale >= 0.5);
+        attenuation = min(f32(n) * p.scale * (1.5 * max(layer.radius, FILM_BLUR) + 0.4), 1.0);
     }
     let footprint = 1.0 / min(p.scale, 1.0);
     var sum = 0.0;
@@ -212,23 +215,26 @@ fn film_delta(layer: FilmLayer, x: f32, y: f32, l: f32) -> f32 {
     let grain = sum / f32(n * n);
     return FILM_STRENGTH * p.film_amount * fade * (grain - tone) * attenuation;
 }
-// `FilmGrainLayers::delta`: the mono grain over the luminance, blended towards each
-// layer's grain over its own channel as Color rises.
+// `FilmGrainLayers::delta`: the mono grain over the luminance, and with Color each dye
+// layer's grain over its own channel less what they add to the luminance.
 fn film_deltas(x: f32, y: f32, c: vec3<f32>) -> vec3<f32> {
-    let green = FilmLayer(p.film_radius, p.film_cell, p.film_max_radius, p.film_area, p.film_darkest, p.film_seed);
-    var mono = 0.0;
-    if p.film_color < 1.0 { mono = film_delta(green, x, y, luminance(c)); }
+    let mono_layer = FilmLayer(p.film_radius, p.film_cell, p.film_max_radius, p.film_area, p.film_darkest, p.film_seed);
+    let mono = film_delta(mono_layer, x, y, luminance(c));
     if p.film_color == 0.0 { return vec3(mono); }
     let red = FilmLayer(
         p.film_red_radius, p.film_red_cell, p.film_red_max_radius, p.film_red_area,
         p.film_red_darkest, p.film_red_seed,
     );
+    let green = FilmLayer(
+        p.film_green_radius, p.film_green_cell, p.film_green_max_radius, p.film_green_area,
+        p.film_green_darkest, p.film_green_seed,
+    );
     let blue = FilmLayer(
         p.film_blue_radius, p.film_blue_cell, p.film_blue_max_radius, p.film_blue_area,
         p.film_blue_darkest, p.film_blue_seed,
     );
-    let layers = vec3(film_delta(red, x, y, c.r), film_delta(green, x, y, c.g), film_delta(blue, x, y, c.b));
-    return (1.0 - p.film_color) * vec3(mono) + p.film_color * layers;
+    let dye = vec3(film_delta(red, x, y, c.r), film_delta(green, x, y, c.g), film_delta(blue, x, y, c.b));
+    return vec3(mono) + FILM_COLOR_STRENGTH * p.film_color * (dye - vec3(luminance(dye)));
 }
 // Rust's `round`: halves away from zero (WGSL's `round` goes to even).
 fn round_away(v: f32) -> f32 {

@@ -13,13 +13,17 @@
 //!
 //! The density follows the Poisson approximation `E[uncovered] = exp(−N·p·a/cell²)`
 //! for a finite pool of candidates, so the grain is mean-preserving only approximately
-//! (within 0.02 of Amount on flat tones). Previews at less than a quarter of full size
-//! average 16 samples a pixel and scale what is left: a statistical approximation of
-//! the resized export, as the measured Grain's.
+//! (within 0.02 of Amount on flat tones). Previews down to half size average exactly
+//! the full-resolution pixels under each pixel; smaller ones take one sample a pixel
+//! and scale what is left: a statistical approximation of the resized export, as the
+//! measured Grain's.
 //!
-//! Color gives each dye layer of colour film a grain of its own, over its own channel:
-//! the green layer is the mono grain, red's grains are a little larger and blue's,
-//! the fastest layer's, larger still.
+//! Color adds the colour of colour film's grain: each dye layer has a grain of its own,
+//! over its own channel, of dye clouds about three times the silver grains' size (blue's,
+//! the fastest layer's, the largest). Only the layers' differences from their
+//! luminance are added, so the grain's brightness stays the mono grain's and its
+//! colour varies more slowly: film's colour mottling rather than a sensor's colour
+//! noise.
 use crate::model::film_grain::FilmGrain;
 
 /// The long edge, in pixels, at which grain sizes below are given.
@@ -60,10 +64,14 @@ const SALT_RADIUS: u32 = 0xcc9e_2d51;
 const SALT_ANGLE: u32 = 0x27d4_eb2f;
 const CANDIDATE_STEP: u32 = 0x632b_e5ab;
 /// Colour grain: each dye layer's grain size relative to the mono grain, red, green,
-/// blue, and its seed's salt. The green layer is the mono grain, so Color shades the
-/// grain shown into colour; blue, the fastest layer, is the coarsest.
-const LAYER_SIZE: [f32; 3] = [1.15, 1., 1.35];
-const LAYER_SALT: [u32; 3] = [0x3c6e_f372, 0, 0xa54f_f53a];
+/// blue, and its seed's salt. Dye clouds are larger and softer than silver grains, so
+/// the colour varies more slowly than the grain's brightness; blue, the fastest layer,
+/// is the coarsest.
+const LAYER_SIZE: [f32; 3] = [3.2, 3., 3.8];
+/// How much of the dye layers' colour Color 1 adds: film's colour grain is subtler than
+/// its brightness grain.
+pub(crate) const COLOR_STRENGTH: f32 = 0.5;
+const LAYER_SALT: [u32; 3] = [0x3c6e_f372, 0x9b05_688c, 0xa54f_f53a];
 /// The R2 low-discrepancy sequence's steps, offsetting each candidate's grid.
 const R2: [f32; 2] = [0.754_877_7, 0.569_840_3];
 
@@ -113,42 +121,38 @@ fn effective_area(r: f32) -> f32 {
 }
 
 /// A recipe's Film Grain for an output whose full-resolution long edge is `edge`
-/// pixels: the mono grain, which is also the green layer's, and the red and blue
-/// layers' for Color. Shared by the CPU and the GPU preview.
+/// pixels: the mono grain, and the red, green and blue dye layers' for Color. Shared
+/// by the CPU and the GPU preview.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct FilmGrainLayers {
     pub(crate) color: f32,
-    /// Red, green (the mono grain) and blue.
+    pub(crate) mono: FilmGrainField,
+    /// Red, green and blue.
     pub(crate) layers: [FilmGrainField; 3],
 }
 impl FilmGrainLayers {
     pub(crate) fn new(g: &FilmGrain, edge: f32) -> Self {
         Self {
             color: g.color,
+            mono: FilmGrainField::layer(g, edge, 1., g.seed),
             layers: std::array::from_fn(|c| {
                 FilmGrainField::layer(g, edge, LAYER_SIZE[c], g.seed ^ LAYER_SALT[c])
             }),
         }
     }
-    pub(crate) fn mono(&self) -> &FilmGrainField {
-        &self.layers[1]
-    }
     /// What the grain adds to each channel of encoded `rgb` at full-resolution
     /// position `x`, `y`, for an output of `scale` pixels per full-resolution pixel:
-    /// the mono grain over the luminance, blended towards each layer's grain over its
-    /// own channel as Color rises.
+    /// the mono grain over the luminance, and with Color each dye layer's grain over its
+    /// own channel less what they add to the luminance, so Color changes the grain's
+    /// colour, not its brightness.
     pub(crate) fn delta(&self, x: f32, y: f32, scale: f32, rgb: [f32; 3]) -> [f32; 3] {
-        let mono = if self.color < 1. {
-            self.mono().delta(x, y, scale, crate::color::luminance(rgb))
-        } else {
-            0.
-        };
+        let mono = self.mono.delta(x, y, scale, crate::color::luminance(rgb));
         if self.color == 0. {
             return [mono; 3];
         }
-        std::array::from_fn(|c| {
-            (1. - self.color) * mono + self.color * self.layers[c].delta(x, y, scale, rgb[c])
-        })
+        let dye: [f32; 3] = std::array::from_fn(|c| self.layers[c].delta(x, y, scale, rgb[c]));
+        let neutral = crate::color::luminance(dye);
+        dye.map(|d| mono + COLOR_STRENGTH * self.color * (d - neutral))
     }
 }
 
@@ -268,13 +272,14 @@ impl FilmGrainField {
         let (n, attenuation) = if scale >= 1. {
             (1, 1.)
         } else {
-            // Below a quarter of full size the samples are further apart than a
-            // pixel; where they are also further apart than a grain, they average fewer
-            // grains than the pixel holds, so what is left is scaled down. A grain,
-            // drawn at least `BLUR` wide with its soft edge, is about
-            // `2·max(radius, BLUR) + 0.5` pixels across.
-            let n = ((1. / scale - 1e-4).ceil() as u32).clamp(1, 4);
-            let width = 2. * self.radius.max(BLUR) + 0.5;
+            // Down to half size, 2×2 samples: exactly the full-resolution pixels under
+            // the preview pixel. Smaller, one sample: further apart than a grain, it
+            // averages fewer grains than the pixel holds, so what is left is scaled
+            // down. A grain, drawn at least `BLUR` wide with its soft edge, stays
+            // correlated over about `1.5·max(radius, BLUR) + 0.4` pixels (fitted to the
+            // resized full render at Size 0 to 1).
+            let n = if scale >= 0.5 { 2 } else { 1 };
+            let width = 1.5 * self.radius.max(BLUR) + 0.4;
             (n, (n as f32 * scale * width).min(1.))
         };
         let mut sum = 0.;

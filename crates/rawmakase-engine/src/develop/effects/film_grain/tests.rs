@@ -221,13 +221,13 @@ fn brighter_tones_leave_more_uncovered_everywhere() {
     }
 }
 
-/// A preview at a half or a quarter of full size averages exactly the pixels the full
-/// render has there; smaller ones approximate the averaged grain's strength.
+/// A preview at half size averages exactly the pixels the full render has there;
+/// smaller ones approximate the averaged grain's strength.
 #[test]
 fn previews_average_the_full_resolution_grain() {
     let l = 0.4;
     let f = field(0.25, 0.5, 6000.);
-    for n in [2u32, 4] {
+    for n in [2u32] {
         let scale = 1. / n as f32;
         for origin in [0i32, 7, -3] {
             for py in 0..12 {
@@ -254,6 +254,9 @@ fn previews_average_the_full_resolution_grain() {
         }
     }
     for (size, scale) in [
+        (0., 1. / 4.),
+        (0.25, 1. / 4.),
+        (1., 1. / 4.),
         (0., 1. / 8.),
         (0.25, 1. / 8.),
         (1., 1. / 8.),
@@ -302,8 +305,21 @@ fn correlation(a: &[f32], b: &[f32]) -> f32 {
         / (sa * sb)
 }
 
+/// How far a grain stays correlated: its autocorrelation summed over lags of 1 to 6.
+fn extent(value: impl Fn(f32, f32) -> f32) -> f32 {
+    let base: Vec<f32> = spread(20_000).map(|(x, y)| value(x, y)).collect();
+    (1..=6)
+        .map(|lag| {
+            let shifted: Vec<f32> = spread(20_000)
+                .map(|(x, y)| value(x + lag as f32, y))
+                .collect();
+            correlation(&base, &shifted)
+        })
+        .sum()
+}
+
 /// At Color 0 every channel takes the mono grain over the luminance, exactly as before
-/// Color existed; the mono grain is the green layer's.
+/// Color existed.
 #[test]
 fn color_zero_is_the_mono_grain_on_every_channel() {
     let film = layers(0.);
@@ -314,7 +330,7 @@ fn color_zero_is_the_mono_grain_on_every_channel() {
         },
         6000.,
     );
-    assert_eq!(*film.mono(), mono);
+    assert_eq!(film.mono, mono);
     for (x, y) in spread(2000) {
         let rgb = [0.6, 0.4, 0.2];
         let l = crate::color::luminance(rgb);
@@ -322,70 +338,61 @@ fn color_zero_is_the_mono_grain_on_every_channel() {
     }
 }
 
-/// At Color 1 each channel has a grain of its own, about as strong as the mono grain
-/// and still about mean-preserving; a little Color shades the mono grain rather than
-/// replacing it.
+/// Color changes the grain's colour, not its brightness: the luminance of what it adds
+/// is the mono grain's at any Color, and its colour grows with Color, about
+/// mean-preserving in each channel.
 #[test]
-fn full_color_gives_each_channel_its_own_grain() {
-    let gray = [0.5; 3];
-    let channels = |film: &FilmGrainLayers| -> [Vec<f32>; 3] {
-        let deltas: Vec<[f32; 3]> = spread(20_000)
-            .map(|(x, y)| film.delta(x, y, 1., gray))
-            .collect();
-        std::array::from_fn(|c| deltas.iter().map(|d| d[c]).collect())
+fn color_changes_the_grains_colour_not_its_brightness() {
+    let rgb = [0.55, 0.45, 0.35];
+    let l = crate::color::luminance(rgb);
+    let mono = layers(0.).mono;
+    let chroma = |color: f32| {
+        let film = layers(color);
+        let (mut spread_rb, mut channels) = (Vec::new(), [Vec::new(), Vec::new(), Vec::new()]);
+        for (x, y) in spread(20_000) {
+            let d = film.delta(x, y, 1., rgb);
+            let brightness = crate::color::luminance(d);
+            let expected = mono.delta(x, y, 1., l);
+            assert!(
+                (brightness - expected).abs() < 1e-5,
+                "Color {color}: {brightness} {expected}"
+            );
+            spread_rb.push(d[0] - d[2]);
+            for c in 0..3 {
+                channels[c].push(d[c] - expected);
+            }
+        }
+        for (c, channel) in channels.iter().enumerate() {
+            let mean = mean_and_deviation(channel).0;
+            assert!(mean.abs() < 0.01, "Color {color}, channel {c}: mean {mean}");
+        }
+        mean_and_deviation(&spread_rb).1
     };
-    let [mono, ..] = channels(&layers(0.));
-    let color = channels(&layers(1.));
-    let (_, mono_deviation) = mean_and_deviation(&mono);
-    for (c, channel) in color.iter().enumerate() {
-        let (mean, deviation) = mean_and_deviation(channel);
-        assert!(mean.abs() < 0.01, "channel {c}: mean {mean}");
-        assert!(
-            (deviation / mono_deviation - 1.).abs() < 0.3,
-            "channel {c}: {deviation} against {mono_deviation}"
-        );
-    }
-    for (a, b) in [(0, 1), (1, 2), (0, 2)] {
-        let r = correlation(&color[a], &color[b]);
-        assert!(r.abs() < 0.15, "channels {a} and {b}: correlation {r}");
-    }
-    // Green follows the mono grain's grains, so a little Color keeps its pattern.
-    let [_, green, _] = channels(&layers(0.1));
-    assert!(correlation(&mono, &green) > 0.9);
+    let (half, full) = (chroma(0.5), chroma(1.));
+    eprintln!("red minus blue deviation: Color 0.5 {half}, Color 1 {full}");
+    assert!(full > 0.05 * STRENGTH * COLOR_STRENGTH, "{full}");
+    assert!((half / full - 0.5).abs() < 0.02, "{half} {full}");
 }
 
-/// Each layer's grain follows its own channel: none in a channel at black or white.
+/// The colour varies more slowly than the brightness, as film's larger dye clouds do,
+/// rather than pixel by pixel as a sensor's colour noise; blue's dye clouds, the
+/// fastest layer's, are the largest.
 #[test]
-fn each_layer_follows_its_own_channel() {
+fn colour_grain_is_coarser_than_its_brightness() {
     let film = layers(1.);
-    let mut green = Vec::new();
-    for (x, y) in spread(2000) {
-        let [r, g, b] = film.delta(x, y, 1., [0., 0.5, 1.]);
-        assert_eq!((r, b), (0., 0.));
-        green.push(g);
-    }
-    assert!(mean_and_deviation(&green).1 > 0.05 * STRENGTH);
-}
-
-/// Blue, the fastest layer, has the coarsest grain, red a little coarser than green.
-#[test]
-fn blue_layer_grain_is_coarsest() {
-    let film = layers(1.);
-    let extent = |f: &FilmGrainField| {
-        let base: Vec<f32> = spread(20_000)
-            .map(|(x, y)| f.delta(x, y, 1., 0.5))
-            .collect();
-        (1..=4)
-            .map(|lag| {
-                let shifted: Vec<f32> = spread(20_000)
-                    .map(|(x, y)| f.delta(x + lag as f32, y, 1., 0.5))
-                    .collect();
-                correlation(&base, &shifted)
-            })
-            .sum::<f32>()
-    };
-    let [red, green, blue] = film.layers.each_ref().map(extent);
-    eprintln!("correlation extent: red {red}, green {green}, blue {blue}");
+    let rgb = [0.5; 3];
+    let brightness = extent(|x, y| film.mono.delta(x, y, 1., 0.5));
+    let colour = extent(|x, y| {
+        let d = film.delta(x, y, 1., rgb);
+        d[0] - d[1]
+    });
+    eprintln!("correlation extent: brightness {brightness}, colour {colour}");
+    assert!(colour > 1.5 * brightness, "{brightness} {colour}");
+    let [red, green, blue] = film
+        .layers
+        .each_ref()
+        .map(|f| extent(|x, y| f.delta(x, y, 1., 0.5)));
+    eprintln!("dye layers: red {red}, green {green}, blue {blue}");
     assert!(blue > red && red > green, "{red} {green} {blue}");
 }
 

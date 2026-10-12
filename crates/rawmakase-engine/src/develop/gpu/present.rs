@@ -443,7 +443,7 @@ impl Processor {
             &recipe.film_grain,
             finish.full[0].max(finish.full[1]) as f32 / finish.scale,
         );
-        let [red, green, blue] = film.layers;
+        let (mono, [red, green, blue]) = (film.mono, film.layers);
         let parameters = |shown: bool| -> wgpu::Buffer {
             let values = PresentParams {
                 width,
@@ -491,14 +491,14 @@ impl Processor {
                 dark: sharpener.dark,
                 grain_fine: grain.fine,
                 grain_measured: (grain.model == GrainModel::Measured) as u32,
-                film_amount: green.amount,
-                film_radius: green.radius,
-                film_sigma: green.sigma,
-                film_cell: green.cell,
-                film_max_radius: green.max_radius,
-                film_area: green.area,
-                film_darkest: green.darkest,
-                film_seed: green.seed,
+                film_amount: mono.amount,
+                film_radius: mono.radius,
+                film_sigma: mono.sigma,
+                film_cell: mono.cell,
+                film_max_radius: mono.max_radius,
+                film_area: mono.area,
+                film_darkest: mono.darkest,
+                film_seed: mono.seed,
                 film_color: film.color,
                 film_red_radius: red.radius,
                 film_red_cell: red.cell,
@@ -512,6 +512,12 @@ impl Processor {
                 film_blue_area: blue.area,
                 film_blue_darkest: blue.darkest,
                 film_blue_seed: blue.seed,
+                film_green_radius: green.radius,
+                film_green_cell: green.cell,
+                film_green_max_radius: green.max_radius,
+                film_green_area: green.area,
+                film_green_darkest: green.darkest,
+                film_green_seed: green.seed,
                 ..Default::default()
             };
             device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
