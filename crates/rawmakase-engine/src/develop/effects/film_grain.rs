@@ -1,24 +1,21 @@
-//! Effects > Film Grain: a Boolean grain model after Newson, Delon & Galerne, "A
-//! Stochastic Film Grain Model for Resolution-Independent Rendering" (2017).
+//! Effects > Film Grain: the grain of film as a print shows it, after Newson, Delon &
+//! Galerne, "A Stochastic Film Grain Model for Resolution-Independent Rendering"
+//! (2017), in the limit their model takes when grains are much smaller than a pixel.
 //!
-//! Grains of lognormal radius lie at random positions in full-resolution pixels, so a
-//! preview, a region and the export show the same grains. Each of `CANDIDATES`
-//! staggered grids of square cells holds one grain a cell, of hashed centre, radius and
-//! threshold; a grain is present where the tone's density passes its threshold.
-//! Presence and the grains' soft edges are continuous, so neighbouring pixels at smooth
-//! gradients see the same grains and the GPU port stays within float rounding of this
-//! one. The grains are the negative's, as for a print: the density is chosen so the
-//! negative's uncovered share averages the opposite of the pixel's luminance. A bright
-//! tone is a dense negative, so highlights show the small, irregular gaps between
-//! overlapping grains, and only the deep shadows whole grains, light on dark; the grain
-//! is strongest in the midtones and nothing at black or white.
+//! Each pixel of a print averages many silver grains, so what shows is not single grains
+//! but how many fall where: a continuous, clumpy random texture. It is drawn here as
+//! sparse convolution noise: soft bumps of lognormal radius and random weight at random
+//! positions in full-resolution pixels, so a preview, a region and the export show the
+//! same grain. Each of `CANDIDATES` staggered grids of square cells holds one bump a
+//! cell, of hashed centre, radius and weight, so there is no lattice, and Roughness
+//! mixes bump sizes. The texture is scaled to unit deviation and by tone: for a negative
+//! of small grains, the share of light a pixel lets through, `t`, varies as
+//! `t·√(−ln t)`, so the grain is strongest in the lower midtones and fades smoothly into
+//! black and white, with no isolated grains at either end.
 //!
-//! The density follows the Poisson approximation `E[uncovered] = exp(−N·p·a/cell²)`
-//! for a finite pool of candidates, so the grain is mean-preserving only approximately
-//! (within 0.02 of Amount on flat tones). Previews down to half size average exactly
-//! the full-resolution pixels under each pixel; smaller ones take one sample a pixel
-//! and scale what is left: a statistical approximation of the resized export, as the
-//! measured Grain's.
+//! Previews down to half size average exactly the full-resolution pixels under each
+//! pixel; smaller ones take one sample a pixel and scale what is left: a statistical
+//! approximation of the resized export, as the measured Grain's.
 //!
 //! Color adds the colour of colour film's grain: each dye layer has a grain of its own,
 //! over its own channel, of dye clouds about three times the silver grains' size (blue's,
@@ -31,37 +28,27 @@ use crate::model::film_grain::FilmGrain;
 /// The long edge, in pixels, at which grain sizes below are given.
 const REFERENCE_EDGE: f32 = 6000.;
 /// Mean grain radius (pixels at the reference edge) at Size 0 and per unit of Size, and
-/// the smallest in pixels at any photo size: smaller grains would average away, and too
-/// faint to cover the shadows.
-const RADIUS_BASE: f32 = 0.35;
-const RADIUS_PER_SIZE: f32 = 1.2;
-const RADIUS_MIN: f32 = 0.35;
+/// the smallest in pixels at any photo size: smaller grain would be a pixel's noise.
+const RADIUS_BASE: f32 = 0.5;
+const RADIUS_PER_SIZE: f32 = 1.5;
+const RADIUS_MIN: f32 = 0.5;
 /// Lognormal log standard deviation at Roughness 0 and per unit of Roughness.
 const SIGMA_BASE: f32 = 0.1;
-const SIGMA_PER_ROUGHNESS: f32 = 0.5;
-/// A grain's soft edge (an enlarger's or scanner's blur): its half-width as a share of
-/// the radius, and at least `EDGE_MIN` pixels.
-const EDGE_SOFTNESS: f32 = 0.5;
-const EDGE_MIN: f32 = 0.6;
-/// The smallest radius a grain is drawn at, about a pixel's footprint: a smaller grain
-/// spreads over it, fainter, with its area kept, as a pixel averages it.
-const BLUR: f32 = 0.8;
+const SIGMA_PER_ROUGHNESS: f32 = 0.6;
+/// A bump reaches `KERNEL` times its radius.
+const KERNEL: f32 = 2.2;
 /// The largest radius, in mean radii: the lognormal's tail beyond is clamped.
-const TAIL: f32 = 2.5;
-/// What Amount 1 adds, as a share of the full grain render's deviation from the tone.
-pub(crate) const STRENGTH: f32 = 0.4;
-/// Candidate grains per cell.
-pub(crate) const CANDIDATES: u32 = 16;
-/// Half-width of a grain's presence window around its threshold.
-const PRESENCE: f32 = 0.02;
-/// The lightest and darkest tones the density is calibrated for: beyond them the grain
-/// fades out. The darkest also keeps the presence below `MAX_PRESENCE`.
-const TONE_LIMIT: f32 = 0.02;
-const MAX_PRESENCE: f32 = 0.95;
-/// Hash salts for a candidate's threshold, centre and radius.
-const SALT_THRESHOLD: u32 = 0x68e3_1da4;
+const TAIL: f32 = 2.;
+/// The grain's deviation at Amount 1 in the midtones, in encoded values.
+pub(crate) const STRENGTH: f32 = 0.12;
+/// Candidate bumps per cell.
+pub(crate) const CANDIDATES: u32 = 8;
+/// `t·√(−ln t)` at its peak, `t = e^(−1/2)`.
+const TONE_PEAK: f32 = 0.428_881;
+/// Hash salts for a candidate's centre, weight and radius.
 const SALT_X: u32 = 0xb5ad_4ece;
 const SALT_Y: u32 = 0x1b87_3593;
+const SALT_WEIGHT: u32 = 0x68e3_1da4;
 const SALT_RADIUS: u32 = 0xcc9e_2d51;
 const SALT_ANGLE: u32 = 0x27d4_eb2f;
 const CANDIDATE_STEP: u32 = 0x632b_e5ab;
@@ -88,38 +75,14 @@ pub(crate) fn unit_hash(x: i32, y: i32, seed: u32) -> f32 {
     v ^= v >> 16;
     (v >> 8) as f32 / 16_777_216.
 }
-fn smoothstep(e0: f32, e1: f32, x: f32) -> f32 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0., 1.);
-    t * t * (3. - 2. * t)
-}
-/// How a grain of radius `r` is drawn: the radius, soft-edge half-width (in
-/// full-resolution pixels) and opacity of its disc.
-fn grain_shape(r: f32) -> (f32, f32, f32) {
-    let drawn = r.max(BLUR);
-    let w = (EDGE_SOFTNESS * drawn).max(EDGE_MIN);
-    (drawn, w, (r / drawn).powi(2))
-}
-/// A grain's coverage at distance `d` from its centre.
-fn coverage(r: f32, d: f32) -> f32 {
-    let (drawn, w, opacity) = grain_shape(r);
-    opacity * (1. - smoothstep(drawn - w, drawn + w, d))
-}
-/// How far a grain of radius `r` reaches.
-fn reach(r: f32) -> f32 {
-    let (drawn, w, _) = grain_shape(r);
-    drawn + w
-}
-/// The area a grain of radius `r` covers, its soft edge counted by its coverage.
-fn effective_area(r: f32) -> f32 {
-    let outer = reach(r);
-    let steps = 64;
-    let step = outer / steps as f32;
-    (0..steps)
-        .map(|i| {
-            let d = (i as f32 + 0.5) * step;
-            coverage(r, d) * 2. * std::f32::consts::PI * d * step
-        })
-        .sum()
+/// The grain's strength over encoded tone `l`, 1 at its peak: `t·√(−ln t)` for the
+/// light a negative lets through, `t = 1 − l`.
+pub(crate) fn tone_strength(l: f32) -> f32 {
+    let t = (1. - l).clamp(0., 1.);
+    if t <= 0. || t >= 1. {
+        return 0.;
+    }
+    t * (-t.ln()).sqrt() / TONE_PEAK
 }
 
 /// A recipe's Film Grain for an output whose full-resolution long edge is `edge`
@@ -165,14 +128,11 @@ pub(crate) struct FilmGrainField {
     /// Mean radius and the radii's lognormal log standard deviation.
     pub(crate) radius: f32,
     pub(crate) sigma: f32,
-    /// Cell side; every grain lies, soft edge and all, within a cell of its own.
+    /// Cell side; every bump lies within a cell of its own.
     pub(crate) cell: f32,
     pub(crate) max_radius: f32,
-    /// Mean effective area of a grain.
-    pub(crate) area: f32,
-    /// The darkest tone the density is calibrated for, as a positive: on the negative,
-    /// the lightest print tone.
-    pub(crate) darkest: f32,
+    /// What scales the noise to unit deviation.
+    pub(crate) norm: f32,
     pub(crate) seed: u32,
 }
 impl FilmGrainField {
@@ -186,46 +146,39 @@ impl FilmGrainField {
         let radius = ((RADIUS_BASE + RADIUS_PER_SIZE * g.size) * size * edge / REFERENCE_EDGE)
             .max(RADIUS_MIN);
         let sigma = SIGMA_BASE + SIGMA_PER_ROUGHNESS * g.roughness;
-        // Every grain, soft edge and all, reaches at most a cell from its centre.
         let max_radius = TAIL * radius;
-        let cell = reach(max_radius);
+        let cell = KERNEL * max_radius;
         let mut field = Self {
             amount: g.amount,
             radius,
             sigma,
             cell,
             max_radius,
-            area: 0.,
-            darkest: TONE_LIMIT,
+            norm: 1.,
             seed,
         };
-        // The mean over the normal `z` of the radius each `z` gives, by the midpoint
-        // rule over ±5 standard deviations.
+        // A bump `(1 − (d/R)²)²` of reach `R` has `∫b² = πR²/5`; weights uniform in
+        // −1..1 have `E[w²] = 1/3`; there are `CANDIDATES` bumps per cell. The mean over
+        // the normal `z` of each radius's `R²`, by the midpoint rule over ±5.
         let nodes = 80;
-        let (mut area, mut weights) = (0., 0.);
+        let (mut reach2, mut weights) = (0., 0.);
         for i in 0..nodes {
             let z = -5. + (i as f32 + 0.5) * 10. / nodes as f32;
             let weight = (-0.5 * z * z).exp();
-            area += weight * effective_area(field.grain_radius(z));
+            reach2 += weight * (KERNEL * field.grain_radius(z)).powi(2);
             weights += weight;
         }
-        field.area = area / weights;
-        let full = (CANDIDATES as f32 * field.area / (cell * cell)).max(f32::MIN_POSITIVE);
-        // At most mid gray, whatever the grains: the calibrated tones stay a range.
-        field.darkest = TONE_LIMIT.max((-MAX_PRESENCE * full).exp()).min(0.5);
+        let variance =
+            CANDIDATES as f32 / (cell * cell) / 3. * std::f32::consts::PI * (reach2 / weights) / 5.;
+        field.norm = 1. / variance.sqrt();
         field
     }
     fn grain_radius(&self, z: f32) -> f32 {
         (self.radius * (self.sigma * z - 0.5 * self.sigma * self.sigma).exp()).min(self.max_radius)
     }
-    /// Each candidate's presence threshold for tone `l`, already limited to the
-    /// calibrated tones.
-    fn presence(&self, l: f32) -> f32 {
-        (-l.ln() * self.cell * self.cell / (CANDIDATES as f32 * self.area)).min(MAX_PRESENCE)
-    }
-    /// The share of full-resolution position `x`, `y` left uncovered at presence `p`.
-    pub(crate) fn uncovered(&self, x: f32, y: f32, p: f32) -> f32 {
-        let mut uncovered = 1.;
+    /// The grain texture at full-resolution position `x`, `y`: mean 0, deviation 1.
+    pub(crate) fn noise(&self, x: f32, y: f32) -> f32 {
+        let mut sum = 0.;
         for k in 0..CANDIDATES {
             // Each candidate's grid is offset by the R2 sequence, so a position's phase
             // within its cell differs between candidates and no cell pattern shows.
@@ -238,59 +191,47 @@ impl FilmGrainField {
             for j in -1..=1 {
                 for i in -1..=1 {
                     let (gx, gy) = (cx + i, cy + j);
-                    let threshold = unit_hash(gx, gy, key ^ SALT_THRESHOLD);
-                    if threshold - PRESENCE >= p {
-                        continue;
-                    }
                     let px = (gx as f32 + unit_hash(gx, gy, key ^ SALT_X)) * self.cell;
                     let py = (gy as f32 + unit_hash(gx, gy, key ^ SALT_Y)) * self.cell;
-                    // Grains reach at most `cell` from their centre.
-                    let d = (lx - px).hypot(ly - py);
-                    if d >= self.cell {
+                    let d2 = (lx - px).powi(2) + (ly - py).powi(2);
+                    if d2 >= self.cell * self.cell {
                         continue;
                     }
-                    let presence = smoothstep(threshold - PRESENCE, threshold + PRESENCE, p);
                     // Box–Muller.
                     let u = 1. - unit_hash(gx, gy, key ^ SALT_RADIUS);
                     let angle = unit_hash(gx, gy, key ^ SALT_ANGLE);
                     let z = (-2. * u.ln()).sqrt() * (2. * std::f32::consts::PI * angle).cos();
-                    uncovered *= 1. - presence * coverage(self.grain_radius(z), d);
+                    let reach = KERNEL * self.grain_radius(z);
+                    let b = 1. - d2 / (reach * reach);
+                    if b <= 0. {
+                        continue;
+                    }
+                    let weight = 2. * unit_hash(gx, gy, key ^ SALT_WEIGHT) - 1.;
+                    sum += weight * b * b;
                 }
             }
         }
-        uncovered
+        sum * self.norm
     }
     /// What the grain adds at full-resolution position `x`, `y` for an output of
-    /// `scale` pixels per full-resolution pixel over encoded luminance `l`. The grains
-    /// are the negative's: a bright tone is a dense negative, whose grain prints as the
-    /// small, irregular gaps between overlapping grains, and only the darkest tones show
-    /// whole grains, light on dark.
+    /// `scale` pixels per full-resolution pixel over encoded luminance `l`.
     pub(crate) fn delta(&self, x: f32, y: f32, scale: f32, l: f32) -> f32 {
-        -self.positive_delta(x, y, scale, 1. - l)
-    }
-    /// The grain as a positive's: dark grains over a light tone `l`, whole grains in
-    /// the highlights and gaps between them in the shadows.
-    pub(crate) fn positive_delta(&self, x: f32, y: f32, scale: f32, l: f32) -> f32 {
         if self.amount == 0. {
             return 0.;
         }
-        let fade = (l / self.darkest).min((1. - l) / TONE_LIMIT).clamp(0., 1.);
-        if fade == 0. {
+        let strength = tone_strength(l);
+        if strength == 0. {
             return 0.;
         }
-        let tone = l.clamp(self.darkest, 1. - TONE_LIMIT);
-        let p = self.presence(tone);
         let (n, attenuation) = if scale >= 1. {
             (1, 1.)
         } else {
             // Down to half size, 2×2 samples: exactly the full-resolution pixels under
             // the preview pixel. Smaller, one sample: further apart than a grain, it
             // averages fewer grains than the pixel holds, so what is left is scaled
-            // down. A grain, drawn at least `BLUR` wide with its soft edge, stays
-            // correlated over about `1.5·max(radius, BLUR) + 0.4` pixels (fitted to the
-            // resized full render at Size 0 to 1).
+            // down by the grain's correlation width.
             let n = if scale >= 0.5 { 2 } else { 1 };
-            let width = 1.5 * self.radius.max(BLUR) + 0.4;
+            let width = WIDTH_PER_RADIUS * self.radius + WIDTH_BASE;
             (n, (n as f32 * scale * width).min(1.))
         };
         let mut sum = 0.;
@@ -298,13 +239,16 @@ impl FilmGrainField {
             for i in 0..n {
                 let ox = ((i as f32 + 0.5) / n as f32 - 0.5) / scale.min(1.);
                 let oy = ((j as f32 + 0.5) / n as f32 - 0.5) / scale.min(1.);
-                sum += self.uncovered(x + ox, y + oy, p);
+                sum += self.noise(x + ox, y + oy);
             }
         }
-        let grain = sum / (n * n) as f32;
-        STRENGTH * self.amount * fade * (grain - tone) * attenuation
+        STRENGTH * self.amount * strength * sum / (n * n) as f32 * attenuation
     }
 }
+/// The grain's correlation width, in pixels, per mean radius and at none, for previews
+/// below half size (fitted to the resized full render).
+const WIDTH_PER_RADIUS: f32 = 2.;
+const WIDTH_BASE: f32 = 0.8;
 
 #[cfg(test)]
 mod tests;

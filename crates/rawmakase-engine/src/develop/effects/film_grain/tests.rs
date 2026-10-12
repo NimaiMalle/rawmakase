@@ -24,47 +24,73 @@ fn spread(count: usize) -> impl Iterator<Item = (f32, f32)> {
     (0..count).map(|i| ((i % 400) as f32 * 31.3, (i / 400) as f32 * 29.7))
 }
 
-/// On flat tones the grain adds about nothing on average, at every Size, Roughness and
-/// photo size; it is exactly nothing at black and white, and fades above the lightest
-/// tone it is calibrated for (the densest negative).
+/// The texture is scaled to mean 0 and deviation 1 at every Size, Roughness and photo
+/// size, so Amount means the same everywhere.
 #[test]
-fn film_grain_is_about_mean_preserving_and_fades_into_black_and_white() {
-    let mut worst: f32 = 0.;
+fn noise_has_zero_mean_and_unit_deviation() {
     for edge in [1500., 6000.] {
         for size in [0., 0.25, 1.] {
             for roughness in [0., 0.5, 1.] {
                 let f = field(size, roughness, edge);
-                assert!(f.presence(f.darkest) <= MAX_PRESENCE);
-                assert!(f.darkest < 0.05, "edge {edge} size {size}: {}", f.darkest);
-                let lightest = 1. - f.darkest;
-                for l in [0.05, 0.2, 0.5, 0.8, lightest] {
-                    let values: Vec<f32> =
-                        spread(20_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
-                    let (mean, _) = mean_and_deviation(&values);
-                    worst = worst.max(mean.abs());
-                    assert!(
-                        mean.abs() < 0.02,
-                        "edge {edge} size {size} roughness {roughness} l {l}: mean {mean}"
-                    );
-                }
-                for (x, y) in spread(200) {
-                    assert_eq!(f.delta(x, y, 1., 0.), 0.);
-                    assert_eq!(f.delta(x, y, 1., 1.), 0.);
-                }
-                let deviation = |l: f32| {
-                    let values: Vec<f32> =
-                        spread(20_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
-                    mean_and_deviation(&values).1
-                };
-                let ratio = deviation(1. - f.darkest / 2.) / deviation(lightest);
+                let values: Vec<f32> = spread(40_000).map(|(x, y)| f.noise(x, y)).collect();
+                let (mean, deviation) = mean_and_deviation(&values);
                 assert!(
-                    (ratio - 0.5).abs() < 0.1,
-                    "edge {edge} size {size} roughness {roughness}: faded to {ratio}"
+                    mean.abs() < 0.03 && (deviation - 1.).abs() < 0.1,
+                    "edge {edge} size {size} roughness {roughness}: {mean} {deviation}"
                 );
             }
         }
     }
-    eprintln!("largest mean: {worst}");
+}
+
+/// The grain follows the tone as a negative's small grains do: nothing at black and
+/// white, as strong as `tone_strength` says between, and about mean-preserving.
+#[test]
+fn grain_follows_the_tone_and_fades_into_black_and_white() {
+    let f = field(0.25, 0.5, 6000.);
+    for (x, y) in spread(500) {
+        assert_eq!(f.delta(x, y, 1., 0.), 0.);
+        assert_eq!(f.delta(x, y, 1., 1.), 0.);
+    }
+    for l in [0.05, 0.2, 0.4, 0.6, 0.8, 0.95] {
+        let values: Vec<f32> = spread(40_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
+        let (mean, deviation) = mean_and_deviation(&values);
+        let expected = STRENGTH * tone_strength(l);
+        assert!(mean.abs() < 0.003, "l {l}: mean {mean}");
+        assert!(
+            (deviation / expected - 1.).abs() < 0.1,
+            "l {l}: deviation {deviation} against {expected}"
+        );
+    }
+    let peak = (1..100)
+        .map(|i| i as f32 / 100.)
+        .max_by(|a, b| tone_strength(*a).total_cmp(&tone_strength(*b)))
+        .unwrap();
+    assert!((peak - 0.39).abs() < 0.02, "{peak}");
+}
+
+/// No isolated grains anywhere in the tone range: the grain's values stay about as
+/// spread as a normal distribution's (low excess kurtosis) in deep shadows and bright
+/// highlights, where sparse opaque grains made bright or dark specks.
+#[test]
+fn grain_has_no_isolated_specks_in_shadows_or_highlights() {
+    for size in [0., 0.25, 1.] {
+        let f = field(size, 0.5, 6000.);
+        for l in [0.03, 0.5, 0.9] {
+            let values: Vec<f32> = spread(40_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
+            let (mean, deviation) = mean_and_deviation(&values);
+            let kurtosis = values
+                .iter()
+                .map(|v| ((v - mean) / deviation).powi(4))
+                .sum::<f32>()
+                / values.len() as f32
+                - 3.;
+            assert!(
+                kurtosis.abs() < 1.,
+                "size {size} l {l}: excess kurtosis {kurtosis}"
+            );
+        }
+    }
 }
 
 #[test]
@@ -206,32 +232,6 @@ fn film_grain_grows_with_size_and_the_photo() {
         photo_large > photo_small * 1.5 + 0.1,
         "{photo_small} {photo_large}"
     );
-}
-
-/// The grain is the negative's: a tone's grain is the positive grain of the opposite
-/// tone, inverted, so a bright sky shows the gaps of a dense negative, not whole grains.
-#[test]
-fn grain_is_the_negatives() {
-    let f = field(1., 0.5, 6000.);
-    for (x, y) in spread(2000) {
-        for l in [0.1, 0.5, 0.85] {
-            assert_eq!(f.delta(x, y, 1., l), -f.positive_delta(x, y, 1., 1. - l));
-        }
-    }
-}
-
-/// A brighter tone shows a subset of a darker tone's grains.
-#[test]
-fn brighter_tones_leave_more_uncovered_everywhere() {
-    let f = field(0.25, 0.5, 6000.);
-    for (x, y) in spread(5000) {
-        let mut last = 0.;
-        for l in [0.05, 0.2, 0.4, 0.6, 0.8, 0.95] {
-            let u = f.uncovered(x, y, f.presence(l));
-            assert!(u >= last, "{x} {y} {l}");
-            last = u;
-        }
-    }
 }
 
 /// A preview at half size averages exactly the pixels the full render has there;
