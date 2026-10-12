@@ -18,11 +18,10 @@
 //! approximation of the resized export, as the measured Grain's.
 //!
 //! Color adds the colour of colour film's grain: each dye layer has a grain of its own,
-//! over its own channel, of dye clouds about three times the silver grains' size (blue's,
-//! the fastest layer's, the largest). Only the layers' differences from their
-//! luminance are added, so the grain's brightness stays the mono grain's and its
-//! colour varies more slowly: film's colour mottling rather than a sensor's colour
-//! noise.
+//! as fine as the brightness grain, over its own channel. Only the layers' differences
+//! from their luminance are added, so the grain's brightness stays the mono grain's,
+//! and at Color 1 the channels' grain correlates and varies as in scans of colour
+//! negatives.
 use crate::model::film_grain::FilmGrain;
 
 /// The long edge, in pixels, at which grain sizes below are given.
@@ -53,13 +52,17 @@ const SALT_RADIUS: u32 = 0xcc9e_2d51;
 const SALT_ANGLE: u32 = 0x27d4_eb2f;
 const CANDIDATE_STEP: u32 = 0x632b_e5ab;
 /// Colour grain: each dye layer's grain size relative to the mono grain, red, green,
-/// blue, and its seed's salt. Dye clouds are larger and softer than silver grains, so
-/// the colour varies more slowly than the grain's brightness; blue, the fastest layer,
-/// is the coarsest.
-const LAYER_SIZE: [f32; 3] = [3.2, 3., 3.8];
-/// How much of the dye layers' colour Color 1 adds: film's colour grain is subtler than
-/// its brightness grain.
-pub(crate) const COLOR_STRENGTH: f32 = 0.5;
+/// blue, and its seed's salt. In scans of colour negatives (Kodak Ektar 100 and
+/// Ultramax 400, Nikon Coolscan V, 4000 dpi) every layer's grain is as fine as the
+/// grain's brightness.
+const LAYER_SIZE: [f32; 3] = [1., 1., 1.];
+/// How much of the dye layers' colour Color 1 adds, and how much of the red and blue
+/// layers' grain each takes, negated, from the other. Fitted to those scans, where the
+/// channels' grain correlates by 0.31–0.51 (red–green), 0.35–0.44 (green–blue) and
+/// 0.14–0.20 (red–blue), and its colour varies 1.2–1.35 times as much as its
+/// brightness: these give 0.33, 0.47, 0.18 and 1.17.
+pub(crate) const COLOR_STRENGTH: f32 = 1.1;
+const OUTER_COUPLING: f32 = -0.425;
 const LAYER_SALT: [u32; 3] = [0x3c6e_f372, 0x9b05_688c, 0xa54f_f53a];
 /// The R2 low-discrepancy sequence's steps, offsetting each candidate's grid.
 const R2: [f32; 2] = [0.754_877_7, 0.569_840_3];
@@ -115,7 +118,8 @@ impl FilmGrainLayers {
         if self.color == 0. {
             return [mono; 3];
         }
-        let dye: [f32; 3] = std::array::from_fn(|c| self.layers[c].delta(x, y, scale, rgb[c]));
+        let [r, g, b] = std::array::from_fn(|c| self.layers[c].delta(x, y, scale, rgb[c]));
+        let dye = [r + OUTER_COUPLING * b, g, b + OUTER_COUPLING * r];
         let neutral = crate::color::luminance(dye);
         dye.map(|d| mono + COLOR_STRENGTH * self.color * (d - neutral))
     }

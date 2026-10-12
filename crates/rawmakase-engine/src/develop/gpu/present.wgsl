@@ -130,7 +130,8 @@ fn unit_hash(x: i32, y: i32, seed: u32) -> f32 {
 const FILM_CANDIDATES = 8u;
 const FILM_KERNEL = 2.2;
 const FILM_STRENGTH = 0.12;
-const FILM_COLOR_STRENGTH = 0.5;
+const FILM_COLOR_STRENGTH = 1.1;
+const FILM_OUTER_COUPLING = -0.425;
 const FILM_TONE_PEAK = 0.428881;
 const FILM_WIDTH_PER_RADIUS = 2.0;
 const FILM_WIDTH_BASE = 0.8;
@@ -214,7 +215,9 @@ fn film_deltas(x: f32, y: f32, c: vec3<f32>) -> vec3<f32> {
         p.film_green_radius, p.film_green_cell, p.film_green_max_radius, p.film_green_norm, p.film_green_seed,
     );
     let blue = FilmLayer(p.film_blue_radius, p.film_blue_cell, p.film_blue_max_radius, p.film_blue_norm, p.film_blue_seed);
-    let dye = vec3(film_delta(red, x, y, c.r), film_delta(green, x, y, c.g), film_delta(blue, x, y, c.b));
+    let r = film_delta(red, x, y, c.r);
+    let b = film_delta(blue, x, y, c.b);
+    let dye = vec3(r + FILM_OUTER_COUPLING * b, film_delta(green, x, y, c.g), b + FILM_OUTER_COUPLING * r);
     return vec3(mono) + FILM_COLOR_STRENGTH * p.film_color * (dye - vec3(luminance(dye)));
 }
 // Rust's `round`: halves away from zero (WGSL's `round` goes to even).

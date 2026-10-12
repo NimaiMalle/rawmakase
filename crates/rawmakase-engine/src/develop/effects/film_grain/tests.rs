@@ -383,30 +383,50 @@ fn color_changes_the_grains_colour_not_its_brightness() {
     };
     let (half, full) = (chroma(0.5), chroma(1.));
     eprintln!("red minus blue deviation: Color 0.5 {half}, Color 1 {full}");
-    assert!(full > 0.05 * STRENGTH * COLOR_STRENGTH, "{full}");
+    assert!(full > 0.05 * STRENGTH, "{full}");
     assert!((half / full - 0.5).abs() < 0.02, "{half} {full}");
 }
 
-/// The colour varies more slowly than the brightness, as film's larger dye clouds do,
-/// rather than pixel by pixel as a sensor's colour noise; blue's dye clouds, the
-/// fastest layer's, are the largest.
+/// At Color 1 the grain's colour is as in scans of colour negatives (Kodak Ektar 100
+/// and Ultramax 400 at 4000 dpi): as fine as its brightness, the channels' grain
+/// correlated by 0.31–0.51 (red–green), 0.35–0.44 (green–blue) and 0.14–0.20
+/// (red–blue), its colour varying 1.2–1.35 times as much as its brightness.
 #[test]
-fn colour_grain_is_coarser_than_its_brightness() {
+fn colour_grain_is_as_in_scans_of_colour_negatives() {
     let film = layers(1.);
     let rgb = [0.5; 3];
+    let deltas: Vec<[f32; 3]> = spread(40_000)
+        .map(|(x, y)| film.delta(x, y, 1., rgb))
+        .collect();
+    let channel = |c: usize| deltas.iter().map(|d| d[c]).collect::<Vec<f32>>();
+    let [r, g, b] = [channel(0), channel(1), channel(2)];
+    let (rg, gb, rb) = (
+        correlation(&r, &g),
+        correlation(&g, &b),
+        correlation(&r, &b),
+    );
+    eprintln!("correlation red–green {rg}, green–blue {gb}, red–blue {rb}");
+    assert!((0.25..0.55).contains(&rg) && (0.3..0.55).contains(&gb) && (0.1..0.25).contains(&rb));
+    let luma: Vec<f32> = deltas.iter().map(|d| crate::color::luminance(*d)).collect();
+    let chroma: Vec<f32> = deltas
+        .iter()
+        .map(|d| d[0] - crate::color::luminance(*d))
+        .collect();
+    let ratio = mean_and_deviation(&chroma).1 / mean_and_deviation(&luma).1;
+    assert!(
+        (0.9..1.6).contains(&ratio),
+        "red's colour over brightness: {ratio}"
+    );
     let brightness = extent(|x, y| film.mono.delta(x, y, 1., 0.5));
     let colour = extent(|x, y| {
         let d = film.delta(x, y, 1., rgb);
-        d[0] - d[1]
+        d[0] - crate::color::luminance(d)
     });
     eprintln!("correlation extent: brightness {brightness}, colour {colour}");
-    assert!(colour > 1.5 * brightness, "{brightness} {colour}");
-    let [red, green, blue] = film
-        .layers
-        .each_ref()
-        .map(|f| extent(|x, y| f.delta(x, y, 1., 0.5)));
-    eprintln!("dye layers: red {red}, green {green}, blue {blue}");
-    assert!(blue > red && red > green, "{red} {green} {blue}");
+    assert!(
+        (colour / brightness - 1.).abs() < 0.15,
+        "{brightness} {colour}"
+    );
 }
 
 /// Off, Film Grain leaves the finished photo exactly as it was; on, it changes it.
