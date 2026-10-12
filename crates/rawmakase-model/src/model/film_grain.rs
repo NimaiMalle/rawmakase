@@ -14,6 +14,8 @@ pub struct FilmGrain {
     pub size: f32,
     /// How much grain sizes vary, 0..1.
     pub roughness: f32,
+    /// From monochrome grain (0) to a grain of its own in each dye layer (1).
+    pub color: f32,
     pub seed: u32,
 }
 impl Default for FilmGrain {
@@ -22,6 +24,7 @@ impl Default for FilmGrain {
             amount: 0.,
             size: 0.25,
             roughness: 0.5,
+            color: 0.,
             seed: 42,
         }
     }
@@ -45,7 +48,7 @@ impl FilmGrain {
     }
     pub fn validate(&self) -> Result<()> {
         ensure!(
-            [self.amount, self.size, self.roughness]
+            [self.amount, self.size, self.roughness, self.color]
                 .iter()
                 .all(|v| v.is_finite() && (0. ..=1.).contains(v)),
             "Invalid film grain"
@@ -64,6 +67,7 @@ mod tests {
             amount: 0.4,
             size: 0.8,
             roughness: 0.1,
+            color: 0.6,
             seed: 7,
         };
         g.validate().unwrap();
@@ -78,6 +82,7 @@ mod tests {
         for bad in [
             FilmGrain { amount: 1.5, ..g },
             FilmGrain { size: -0.1, ..g },
+            FilmGrain { color: 1.2, ..g },
             FilmGrain {
                 roughness: f32::NAN,
                 ..g

@@ -282,6 +282,113 @@ fn previews_average_the_full_resolution_grain() {
     }
 }
 
+fn layers(color: f32) -> FilmGrainLayers {
+    FilmGrainLayers::new(
+        &FilmGrain {
+            amount: 1.,
+            color,
+            ..FilmGrain::default()
+        },
+        6000.,
+    )
+}
+fn correlation(a: &[f32], b: &[f32]) -> f32 {
+    let ((ma, sa), (mb, sb)) = (mean_and_deviation(a), mean_and_deviation(b));
+    a.iter()
+        .zip(b)
+        .map(|(x, y)| (x - ma) * (y - mb))
+        .sum::<f32>()
+        / a.len() as f32
+        / (sa * sb)
+}
+
+/// At Color 0 every channel takes the mono grain over the luminance, exactly as before
+/// Color existed; the mono grain is the green layer's.
+#[test]
+fn color_zero_is_the_mono_grain_on_every_channel() {
+    let film = layers(0.);
+    let mono = FilmGrainField::new(
+        &FilmGrain {
+            amount: 1.,
+            ..FilmGrain::default()
+        },
+        6000.,
+    );
+    assert_eq!(*film.mono(), mono);
+    for (x, y) in spread(2000) {
+        let rgb = [0.6, 0.4, 0.2];
+        let l = crate::color::luminance(rgb);
+        assert_eq!(film.delta(x, y, 1., rgb), [mono.delta(x, y, 1., l); 3]);
+    }
+}
+
+/// At Color 1 each channel has a grain of its own, about as strong as the mono grain
+/// and still about mean-preserving; a little Color shades the mono grain rather than
+/// replacing it.
+#[test]
+fn full_color_gives_each_channel_its_own_grain() {
+    let gray = [0.5; 3];
+    let channels = |film: &FilmGrainLayers| -> [Vec<f32>; 3] {
+        let deltas: Vec<[f32; 3]> = spread(20_000)
+            .map(|(x, y)| film.delta(x, y, 1., gray))
+            .collect();
+        std::array::from_fn(|c| deltas.iter().map(|d| d[c]).collect())
+    };
+    let [mono, ..] = channels(&layers(0.));
+    let color = channels(&layers(1.));
+    let (_, mono_deviation) = mean_and_deviation(&mono);
+    for (c, channel) in color.iter().enumerate() {
+        let (mean, deviation) = mean_and_deviation(channel);
+        assert!(mean.abs() < 0.01, "channel {c}: mean {mean}");
+        assert!(
+            (deviation / mono_deviation - 1.).abs() < 0.3,
+            "channel {c}: {deviation} against {mono_deviation}"
+        );
+    }
+    for (a, b) in [(0, 1), (1, 2), (0, 2)] {
+        let r = correlation(&color[a], &color[b]);
+        assert!(r.abs() < 0.15, "channels {a} and {b}: correlation {r}");
+    }
+    // Green follows the mono grain's grains, so a little Color keeps its pattern.
+    let [_, green, _] = channels(&layers(0.1));
+    assert!(correlation(&mono, &green) > 0.9);
+}
+
+/// Each layer's grain follows its own channel: none in a channel at black or white.
+#[test]
+fn each_layer_follows_its_own_channel() {
+    let film = layers(1.);
+    let mut green = Vec::new();
+    for (x, y) in spread(2000) {
+        let [r, g, b] = film.delta(x, y, 1., [0., 0.5, 1.]);
+        assert_eq!((r, b), (0., 0.));
+        green.push(g);
+    }
+    assert!(mean_and_deviation(&green).1 > 0.05 * STRENGTH);
+}
+
+/// Blue, the fastest layer, has the coarsest grain, red a little coarser than green.
+#[test]
+fn blue_layer_grain_is_coarsest() {
+    let film = layers(1.);
+    let extent = |f: &FilmGrainField| {
+        let base: Vec<f32> = spread(20_000)
+            .map(|(x, y)| f.delta(x, y, 1., 0.5))
+            .collect();
+        (1..=4)
+            .map(|lag| {
+                let shifted: Vec<f32> = spread(20_000)
+                    .map(|(x, y)| f.delta(x + lag as f32, y, 1., 0.5))
+                    .collect();
+                correlation(&base, &shifted)
+            })
+            .sum::<f32>()
+    };
+    let [red, green, blue] = film.layers.each_ref().map(extent);
+    eprintln!("correlation extent: red {red}, green {green}, blue {blue}");
+    assert!(blue > red && red > green, "{red} {green} {blue}");
+}
+
 /// Off, Film Grain leaves the finished photo exactly as it was; on, it changes it.
 #[test]
 fn spatial_finish_adds_film_grain_only_when_on() {
@@ -315,14 +422,18 @@ fn film_grain_export_time() {
     use crate::model::recipe::Recipe;
     use crate::rendered::Rendered;
     let (w, h) = (6000u32, 4000u32);
-    let mut image = Rendered {
+    let image = Rendered {
         width: w,
         height: h,
         pixels: vec![[0.46; 3]; (w * h) as usize],
     };
-    let mut r = Recipe::default();
-    r.film_grain.amount = 0.3;
-    let start = std::time::Instant::now();
-    crate::develop::effects::spatial_finish(&mut image, &r, [0, 0], [w, h]);
-    eprintln!("24 MP Film Grain: {:?}", start.elapsed());
+    for color in [0., 0.5, 1.] {
+        let mut image = image.clone();
+        let mut r = Recipe::default();
+        r.film_grain.amount = 0.3;
+        r.film_grain.color = color;
+        let start = std::time::Instant::now();
+        crate::develop::effects::spatial_finish(&mut image, &r, [0, 0], [w, h]);
+        eprintln!("24 MP Film Grain, Color {color}: {:?}", start.elapsed());
+    }
 }

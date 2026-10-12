@@ -534,6 +534,8 @@ fn presented_previews_match_the_cpu_render() -> Result<()> {
                 amount: 0.35,
                 size: [0.25, 0., 1.][style as usize],
                 roughness: [0.5, 1., 0.][style as usize],
+                // Mono, half and full colour grain.
+                color: [0., 0.5, 1.][style as usize],
                 seed: [42, 7, 123][style as usize],
             };
             // The measured Clarity, in the map, on Paint Overlay cases.
@@ -975,8 +977,8 @@ fn previews_submit_only_once_the_window_surface_is_reconfigured() {
 }
 
 /// Film Grain's cost in presented previews, for the benchmark gate: a 3000×2000 photo
-/// at a half and at a ninth of full size (16 samples a pixel), with Film Grain off and
-/// on. (A 6000×4000 photo is beyond the device's buffer limits here, so its preview
+/// at a half and at a ninth of full size (16 samples a pixel), with Film Grain off,
+/// mono and in colour. (A 6000×4000 photo is beyond the device's buffer limits here, so its preview
 /// falls back to the CPU.) `cargo test --release -p rawmakase-engine -p rawmakase --lib film_grain_preview_time
 /// -- --ignored --nocapture`.
 #[test]
@@ -1039,9 +1041,10 @@ fn film_grain_preview_time() -> Result<()> {
         drawn: Vec::new(),
     };
     for max_edge in [1500, 330] {
-        for amount in [0., 0.3, 0.] {
+        for (amount, color) in [(0., 0.), (0.3, 0.), (0.3, 0.5), (0.3, 1.)] {
             let mut recipe = base.clone();
             recipe.film_grain.amount = amount;
+            recipe.film_grain.color = color;
             let mut best = std::time::Duration::MAX;
             for _ in 0..4 {
                 let start = std::time::Instant::now();
@@ -1052,7 +1055,7 @@ fn film_grain_preview_time() -> Result<()> {
                 };
                 best = best.min(start.elapsed());
             }
-            eprintln!("edge {max_edge}, Film Grain {amount}: {best:?}");
+            eprintln!("edge {max_edge}, Film Grain {amount}, Color {color}: {best:?}");
         }
     }
     Ok(())

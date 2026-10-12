@@ -56,6 +56,7 @@ pub enum ParameterId {
     FilmGrainAmount,
     FilmGrainSize,
     FilmGrainRoughness,
+    FilmGrainColor,
     /// Transform, stored along the photo's own axes; the panel shows them along the
     /// displayed photo's.
     TransformVertical,
@@ -186,7 +187,7 @@ const fn percent<Id: Copy>(id: Id, label: &'static str) -> Descriptor<Id> {
     }
 }
 
-const DESCRIPTORS: [Descriptor; 60] = [
+const DESCRIPTORS: [Descriptor; 61] = [
     Descriptor {
         id: ParameterId::Exposure,
         label: "Exposure",
@@ -281,6 +282,7 @@ const DESCRIPTORS: [Descriptor; 60] = [
     amount(ParameterId::FilmGrainAmount, "Amount"),
     amount(ParameterId::FilmGrainSize, "Size"),
     amount(ParameterId::FilmGrainRoughness, "Roughness"),
+    amount(ParameterId::FilmGrainColor, "Color"),
     percent(ParameterId::TransformVertical, "Vertical"),
     percent(ParameterId::TransformHorizontal, "Horizontal"),
     Descriptor {
@@ -364,7 +366,7 @@ impl ParameterId {
         [Self::BluePrimaryHue, Self::BluePrimarySaturation],
     ];
     #[cfg(test)]
-    pub const ALL: [Self; 60] = [
+    pub const ALL: [Self; 61] = [
         Self::Exposure,
         Self::Contrast,
         Self::Highlights,
@@ -398,6 +400,7 @@ impl ParameterId {
         Self::FilmGrainAmount,
         Self::FilmGrainSize,
         Self::FilmGrainRoughness,
+        Self::FilmGrainColor,
         Self::TransformVertical,
         Self::TransformHorizontal,
         Self::TransformRotate,
@@ -465,6 +468,7 @@ impl ParameterId {
             Self::FilmGrainAmount => &mut r.film_grain.amount,
             Self::FilmGrainSize => &mut r.film_grain.size,
             Self::FilmGrainRoughness => &mut r.film_grain.roughness,
+            Self::FilmGrainColor => &mut r.film_grain.color,
             Self::TransformVertical => &mut r.transform.vertical,
             Self::TransformHorizontal => &mut r.transform.horizontal,
             Self::TransformRotate => &mut r.transform.rotate,

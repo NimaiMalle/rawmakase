@@ -16,6 +16,10 @@
 //! (within 0.02 of Amount on flat tones). Previews at less than a quarter of full size
 //! average 16 samples a pixel and scale what is left: a statistical approximation of
 //! the resized export, as the measured Grain's.
+//!
+//! Color gives each dye layer of colour film a grain of its own, over its own channel:
+//! the green layer is the mono grain, red's grains are a little larger and blue's,
+//! the fastest layer's, larger still.
 use crate::model::film_grain::FilmGrain;
 
 /// The long edge, in pixels, at which grain sizes below are given.
@@ -55,6 +59,11 @@ const SALT_Y: u32 = 0x1b87_3593;
 const SALT_RADIUS: u32 = 0xcc9e_2d51;
 const SALT_ANGLE: u32 = 0x27d4_eb2f;
 const CANDIDATE_STEP: u32 = 0x632b_e5ab;
+/// Colour grain: each dye layer's grain size relative to the mono grain, red, green,
+/// blue, and its seed's salt. The green layer is the mono grain, so Color shades the
+/// grain shown into colour; blue, the fastest layer, is the coarsest.
+const LAYER_SIZE: [f32; 3] = [1.15, 1., 1.35];
+const LAYER_SALT: [u32; 3] = [0x3c6e_f372, 0, 0xa54f_f53a];
 /// The R2 low-discrepancy sequence's steps, offsetting each candidate's grid.
 const R2: [f32; 2] = [0.754_877_7, 0.569_840_3];
 
@@ -104,7 +113,46 @@ fn effective_area(r: f32) -> f32 {
 }
 
 /// A recipe's Film Grain for an output whose full-resolution long edge is `edge`
-/// pixels; shared by the CPU and the GPU preview, which takes these values as they are.
+/// pixels: the mono grain, which is also the green layer's, and the red and blue
+/// layers' for Color. Shared by the CPU and the GPU preview.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) struct FilmGrainLayers {
+    pub(crate) color: f32,
+    /// Red, green (the mono grain) and blue.
+    pub(crate) layers: [FilmGrainField; 3],
+}
+impl FilmGrainLayers {
+    pub(crate) fn new(g: &FilmGrain, edge: f32) -> Self {
+        Self {
+            color: g.color,
+            layers: std::array::from_fn(|c| {
+                FilmGrainField::layer(g, edge, LAYER_SIZE[c], g.seed ^ LAYER_SALT[c])
+            }),
+        }
+    }
+    pub(crate) fn mono(&self) -> &FilmGrainField {
+        &self.layers[1]
+    }
+    /// What the grain adds to each channel of encoded `rgb` at full-resolution
+    /// position `x`, `y`, for an output of `scale` pixels per full-resolution pixel:
+    /// the mono grain over the luminance, blended towards each layer's grain over its
+    /// own channel as Color rises.
+    pub(crate) fn delta(&self, x: f32, y: f32, scale: f32, rgb: [f32; 3]) -> [f32; 3] {
+        let mono = if self.color < 1. {
+            self.mono().delta(x, y, scale, crate::color::luminance(rgb))
+        } else {
+            0.
+        };
+        if self.color == 0. {
+            return [mono; 3];
+        }
+        std::array::from_fn(|c| {
+            (1. - self.color) * mono + self.color * self.layers[c].delta(x, y, scale, rgb[c])
+        })
+    }
+}
+
+/// One grain layer.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct FilmGrainField {
     pub(crate) amount: f32,
@@ -121,9 +169,15 @@ pub(crate) struct FilmGrainField {
     pub(crate) seed: u32,
 }
 impl FilmGrainField {
+    /// The mono grain.
+    #[cfg(test)]
     pub(crate) fn new(g: &FilmGrain, edge: f32) -> Self {
-        let radius =
-            ((RADIUS_BASE + RADIUS_PER_SIZE * g.size) * edge / REFERENCE_EDGE).max(RADIUS_MIN);
+        Self::layer(g, edge, 1., g.seed)
+    }
+    /// A layer whose grains are `size` times the mono grain's, with `seed`.
+    fn layer(g: &FilmGrain, edge: f32, size: f32, seed: u32) -> Self {
+        let radius = ((RADIUS_BASE + RADIUS_PER_SIZE * g.size) * size * edge / REFERENCE_EDGE)
+            .max(RADIUS_MIN);
         let sigma = SIGMA_BASE + SIGMA_PER_ROUGHNESS * g.roughness;
         // Every grain, soft edge and all, reaches at most a cell from its centre.
         let max_radius = TAIL * radius;
@@ -136,7 +190,7 @@ impl FilmGrainField {
             max_radius,
             area: 0.,
             darkest: TONE_LIMIT,
-            seed: g.seed,
+            seed,
         };
         // The mean over the normal `z` of the radius each `z` gives, by the midpoint
         // rule over ±5 standard deviations.

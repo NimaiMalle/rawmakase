@@ -7,7 +7,7 @@ mod film_grain;
 mod grain;
 mod lens_vignette;
 mod vignette;
-pub(crate) use film_grain::FilmGrainField;
+pub(crate) use film_grain::FilmGrainLayers;
 pub(crate) use grain::GrainField;
 pub(crate) use lens_vignette::{ManualVignette, combined_table};
 pub(crate) use vignette::PostCropVignette;
@@ -179,7 +179,7 @@ pub(crate) fn spatial_finish_scaled(
     // `full` is the whole output, `scale` its pixels per full-resolution pixel.
     let edge = full[0].max(full[1]) as f32 / scale;
     let grain = GrainField::new(e, r.grain_model, edge);
-    let film = (!r.film_grain.is_off()).then(|| FilmGrainField::new(&r.film_grain, edge));
+    let film = (!r.film_grain.is_off()).then(|| FilmGrainLayers::new(&r.film_grain, edge));
     im.pixels.par_iter_mut().enumerate().for_each(|(i, p)| {
         let x = origin[0] + i as u32 % im.width;
         let y = origin[1] + i as u32 / im.width;
@@ -206,9 +206,9 @@ pub(crate) fn spatial_finish_scaled(
             *v = (*v * gain + noise).clamp(0., 1.);
         }
         if let Some(film) = &film {
-            let delta = film.delta(gx, gy, scale, crate::color::luminance(*p));
-            for v in p {
-                *v = (*v + delta).clamp(0., 1.);
+            let delta = film.delta(gx, gy, scale, *p);
+            for (v, d) in p.iter_mut().zip(delta) {
+                *v = (*v + d).clamp(0., 1.);
             }
         }
     });

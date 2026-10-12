@@ -1206,7 +1206,7 @@ mod tests {
             "grain_model": "Measured",
             "clarity_model": "Measured",
             "texture_model": "Measured",
-            "film_grain": {"amount": 0.0, "size": 0.5, "roughness": 0.25, "seed": 42},
+            "film_grain": {"amount": 0.0, "size": 0.5, "roughness": 0.25, "color": 0.5, "seed": 42},
             "profile_amount": 0.5,
             "sharpening_model": "Measured",
             "parametric_model": "Layered",

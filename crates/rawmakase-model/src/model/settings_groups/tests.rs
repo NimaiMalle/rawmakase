@@ -60,6 +60,7 @@ fn everything_changed() -> Recipe {
             amount: 0.3,
             size: 0.5,
             roughness: 0.75,
+            color: 0.5,
             seed: 9,
         },
         contrast_model: crate::model::operators::ContrastModel::Adaptive,

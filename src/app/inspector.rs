@@ -1446,6 +1446,7 @@ impl Editor {
                 setting_control(ui, r, ParameterId::FilmGrainAmount, 0., photo);
                 setting_control(ui, r, ParameterId::FilmGrainSize, 0.25, photo);
                 setting_control(ui, r, ParameterId::FilmGrainRoughness, 0.5, photo);
+                setting_control(ui, r, ParameterId::FilmGrainColor, 0., photo);
             });
         }) {
             r.reset_post_crop();
