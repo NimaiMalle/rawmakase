@@ -1,15 +1,17 @@
 //! Effects > Film Grain: a Boolean grain model after Newson, Delon & Galerne, "A
 //! Stochastic Film Grain Model for Resolution-Independent Rendering" (2017).
 //!
-//! Dark grains (silver on the print) of lognormal radius lie at random positions in
-//! full-resolution pixels, so a preview, a region and the export show the same grains.
-//! Each of `CANDIDATES` staggered grids of square cells holds one grain a cell, of
-//! hashed centre, radius and threshold; a grain is present where the tone's density passes its
-//! threshold. Presence and the grains' soft edges are continuous, so neighbouring
-//! pixels at smooth gradients see the same grains and the GPU port stays within float
-//! rounding of this one. The density is chosen so the share left uncovered averages the
-//! pixel's luminance: isolated grains in highlights, small gaps between overlapping ones
-//! in shadows, strongest in the midtones and nothing at black or white.
+//! Grains of lognormal radius lie at random positions in full-resolution pixels, so a
+//! preview, a region and the export show the same grains. Each of `CANDIDATES`
+//! staggered grids of square cells holds one grain a cell, of hashed centre, radius and
+//! threshold; a grain is present where the tone's density passes its threshold.
+//! Presence and the grains' soft edges are continuous, so neighbouring pixels at smooth
+//! gradients see the same grains and the GPU port stays within float rounding of this
+//! one. The grains are the negative's, as for a print: the density is chosen so the
+//! negative's uncovered share averages the opposite of the pixel's luminance. A bright
+//! tone is a dense negative, so highlights show the small, irregular gaps between
+//! overlapping grains, and only the deep shadows whole grains, light on dark; the grain
+//! is strongest in the midtones and nothing at black or white.
 //!
 //! The density follows the Poisson approximation `E[uncovered] = exp(−N·p·a/cell²)`
 //! for a finite pool of candidates, so the grain is mean-preserving only approximately
@@ -168,7 +170,8 @@ pub(crate) struct FilmGrainField {
     pub(crate) max_radius: f32,
     /// Mean effective area of a grain.
     pub(crate) area: f32,
-    /// The darkest tone the density is calibrated for.
+    /// The darkest tone the density is calibrated for, as a positive: on the negative,
+    /// the lightest print tone.
     pub(crate) darkest: f32,
     pub(crate) seed: u32,
 }
@@ -258,8 +261,16 @@ impl FilmGrainField {
         uncovered
     }
     /// What the grain adds at full-resolution position `x`, `y` for an output of
-    /// `scale` pixels per full-resolution pixel over encoded luminance `l`.
+    /// `scale` pixels per full-resolution pixel over encoded luminance `l`. The grains
+    /// are the negative's: a bright tone is a dense negative, whose grain prints as the
+    /// small, irregular gaps between overlapping grains, and only the darkest tones show
+    /// whole grains, light on dark.
     pub(crate) fn delta(&self, x: f32, y: f32, scale: f32, l: f32) -> f32 {
+        -self.positive_delta(x, y, scale, 1. - l)
+    }
+    /// The grain as a positive's: dark grains over a light tone `l`, whole grains in
+    /// the highlights and gaps between them in the shadows.
+    pub(crate) fn positive_delta(&self, x: f32, y: f32, scale: f32, l: f32) -> f32 {
         if self.amount == 0. {
             return 0.;
         }

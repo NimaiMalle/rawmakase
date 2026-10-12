@@ -187,8 +187,12 @@ fn film_uncovered(layer: FilmLayer, x: f32, y: f32, presence: f32) -> f32 {
     }
     return uncovered;
 }
-// `FilmGrainField::delta`.
-fn film_delta(layer: FilmLayer, x: f32, y: f32, l: f32) -> f32 {
+// `FilmGrainField::delta`: the negative's grain.
+fn film_delta(layer: FilmLayer, x: f32, y: f32, tone: f32) -> f32 {
+    return -film_positive_delta(layer, x, y, 1.0 - tone);
+}
+// `FilmGrainField::positive_delta`.
+fn film_positive_delta(layer: FilmLayer, x: f32, y: f32, l: f32) -> f32 {
     let fade = clamp(min(l / layer.darkest, (1.0 - l) / FILM_TONE_LIMIT), 0.0, 1.0);
     if fade == 0.0 { return 0.0; }
     let tone = clamp(l, layer.darkest, 1.0 - FILM_TONE_LIMIT);

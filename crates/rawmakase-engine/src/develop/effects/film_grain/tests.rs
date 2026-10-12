@@ -25,8 +25,8 @@ fn spread(count: usize) -> impl Iterator<Item = (f32, f32)> {
 }
 
 /// On flat tones the grain adds about nothing on average, at every Size, Roughness and
-/// photo size; it is exactly nothing at black and white, and fades below the darkest
-/// tone it is calibrated for.
+/// photo size; it is exactly nothing at black and white, and fades above the lightest
+/// tone it is calibrated for (the densest negative).
 #[test]
 fn film_grain_is_about_mean_preserving_and_fades_into_black_and_white() {
     let mut worst: f32 = 0.;
@@ -36,7 +36,8 @@ fn film_grain_is_about_mean_preserving_and_fades_into_black_and_white() {
                 let f = field(size, roughness, edge);
                 assert!(f.presence(f.darkest) <= MAX_PRESENCE);
                 assert!(f.darkest < 0.05, "edge {edge} size {size}: {}", f.darkest);
-                for l in [f.darkest, 0.2, 0.5, 0.8, 0.95] {
+                let lightest = 1. - f.darkest;
+                for l in [0.05, 0.2, 0.5, 0.8, lightest] {
                     let values: Vec<f32> =
                         spread(20_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
                     let (mean, _) = mean_and_deviation(&values);
@@ -55,7 +56,7 @@ fn film_grain_is_about_mean_preserving_and_fades_into_black_and_white() {
                         spread(20_000).map(|(x, y)| f.delta(x, y, 1., l)).collect();
                     mean_and_deviation(&values).1
                 };
-                let ratio = deviation(f.darkest / 2.) / deviation(f.darkest);
+                let ratio = deviation(1. - f.darkest / 2.) / deviation(lightest);
                 assert!(
                     (ratio - 0.5).abs() < 0.1,
                     "edge {edge} size {size} roughness {roughness}: faded to {ratio}"
@@ -205,6 +206,18 @@ fn film_grain_grows_with_size_and_the_photo() {
         photo_large > photo_small * 1.5 + 0.1,
         "{photo_small} {photo_large}"
     );
+}
+
+/// The grain is the negative's: a tone's grain is the positive grain of the opposite
+/// tone, inverted, so a bright sky shows the gaps of a dense negative, not whole grains.
+#[test]
+fn grain_is_the_negatives() {
+    let f = field(1., 0.5, 6000.);
+    for (x, y) in spread(2000) {
+        for l in [0.1, 0.5, 0.85] {
+            assert_eq!(f.delta(x, y, 1., l), -f.positive_delta(x, y, 1., 1. - l));
+        }
+    }
 }
 
 /// A brighter tone shows a subset of a darker tone's grains.
