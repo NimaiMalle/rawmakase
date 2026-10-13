@@ -505,6 +505,8 @@ sample = "raw.pixls.us, 1 photo at ISO 160"
 [[camera]]
 make = "Fujifilm"
 model = "X-T5"
+# Per-file WB, verified with public ISO 125 and ISO 400 samples; see calibration facts.
+fujifilm_daylight_reference = [615, 302, 499]
 baseline_exposure = -0.1
 source = "fitted"
 checked = "2026-10-05"

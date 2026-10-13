@@ -42,7 +42,16 @@ the previous fitted +0.30 left the current default render too dark.
 Fresh Camera Raw 18.7 comparisons of these two A7CR samples pass both defaults
 and all eight custom-WB cases (median ΔE00 .45–1.01 for custom WB).
 
-Non-Sony converter facts remain diagnostic evidence; they are not installed as
+The Fujifilm X-T5 now uses the native D65 standard preset from LibRaw's
+`WB_Coeffs[D65]` (ExifTool's `WB_GRBLevelsStandard`, reordered from GRB to RGB).
+A model reference `[615, 302, 499]`, divided by the normalized per-file preset,
+reproduces the Converter's four-decimal correction at ISO 125 and ISO 400.
+This does not use LibRaw's matrix-derived `pre_mul`. Missing/invalid metadata
+retains identity. No other Fujifilm model inherits this reference.
+See the [systematic audit](camera-calibration-audit.md) for independent numerical
+validation, rendered results and the remaining framing limitation.
+
+Other non-Sony converter facts remain diagnostic evidence; they are not installed as
 fixed corrections for native RAWs. One sample cannot establish that a correction
 applies to every unit, firmware or recording mode. The existing X100F correction,
 previously measured from two DNG exports, is retained. DNG files use their own
@@ -56,9 +65,9 @@ full matrix implementation and are reported as unsupported. Do not flatten them
 into gains or copy another body's values.
 
 `data/camera-calibration-facts.json` records the converter version, public source
-URLs and SHA-256 hashes, and numerical tags for 142 public samples plus seven
+URLs and SHA-256 hashes, and numerical tags for 152 public samples plus seven
 anonymous local samples (two A7CR, one A7R IV, one A7R VI, three A7 II). Local entries contain no filenames or paths. CI validates
-all measured tags and checks supported Sony/X100F native calibration against the
+all measured tags and checks supported Sony/X100F/X-T5 native calibration against the
 camera table without requiring Adobe software. Other native makes with non-identity
 converter calibration remain reported mismatches. RAWs and
 Adobe profiles are not committed. The existing `source` and `checked` fields in
@@ -126,11 +135,11 @@ matrix-only embedded profile retains its signature through the fallback profile;
 matching signatures enable the supported correction, and mismatches keep identity.
 This includes RAWmakase Standard and Color, which use that same camera matrix.
 The fallback signature is stored separately so legacy WB conversion stays unsigned.
-Recipes carrying it save as version 10 so older releases refuse them as newer
-instead of failing on an unknown profile field. Existing recipes keep their version.
-`WhiteBalanceModel` preserves the previous calibration for saved edits and old
-RAWmakase XMP; new edits and Adobe WB imports use `Calibrated`. This keeps old
-gains and the next Temperature/Tint change continuous. The original X100F
-correction remains part of the legacy conversion. Choosing As Shot also retains
-the edit’s version; resetting the whole photo or pasting calibrated White Balance
-settings selects the new conversion.
+Saved recipes now use the one-engine schema (version 11); the old
+`white_balance_model` selector is an obsolete setting removed on load, as
+[the architecture contract](architecture.md#compatibility) describes. Existing
+recipes retain their saved Temperature/Tint, WB gains, baseline exposure and
+unrecognized settings. Reading new calibration metadata does not rewrite them.
+An explicit WB adjustment uses the current calibration; As Shot uses the current
+metadata and resets WB gains. Applying the camera baseline changes only the
+saved baseline, not Exposure or WB. No legacy rendering operator is restored.

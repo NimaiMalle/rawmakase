@@ -1,5 +1,5 @@
 {
-  "about": "CameraCalibration facts from Adobe DNG Converter, not profile content. Public sample hashes and URLs refer to tests/corpus/pixls.json. Non-diagonal, illuminant-dependent and non-identity AnalogBalance cases require separate handling. Local sample entries contain only anonymous hashes and numerical calibration facts. NativeDaylightWB is read from the original Sony RAW, not its converted DNG.",
+  "about": "CameraCalibration facts from Adobe DNG Converter, not profile content. Public sample hashes and URLs refer to tests/corpus/pixls.json. Non-diagonal, illuminant-dependent and non-identity AnalogBalance cases require separate handling. Local sample entries contain only anonymous hashes and numerical calibration facts. NativeDaylightWB is read from the original Sony RAW, not its converted DNG. Public tags were recaptured on the recorded capture_revision; native_metadata contains only recording and WB facts. evidence_role refers to the current calibration investigation, not membership in tone-engine training sets.",
   "converter": "18.7 (2743)",
   "checked": "2026-10-13",
   "samples": [
@@ -26,8 +26,28 @@
           2324.0,
           1024.0,
           1892.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.25,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16300,
+        "ISO": 125,
+        "AsShotNeutral": "0.454707 1 0.525667",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGBLevelsDaylight": "2324 1024 1892",
+        "WB_RGBLevels": "566 256 490",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -52,8 +72,28 @@
           2288.0,
           1024.0,
           1920.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.25,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16300,
+        "ISO": 125,
+        "AsShotNeutral": "0.441379 1 0.543524",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGBLevelsDaylight": "2288 1024 1920",
+        "WB_RGBLevels": "581 256 473",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -78,8 +118,28 @@
           2248.0,
           1024.0,
           1688.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.25,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.455516 1 0.606635",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2248 1024 1688",
+        "WB_RGBLevels": "557 256 428",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -104,8 +164,28 @@
           2336.0,
           1024.0,
           1896.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.25,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16380,
+        "ISO": 100,
+        "AsShotNeutral": "0.422442 1 0.562637",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2336 1024 1896",
+        "WB_RGBLevels": "609 256 456",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -130,8 +210,28 @@
           2500.0,
           1024.0,
           1760.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.367816 1 0.663212",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2500 1024 1760",
+        "WB_RGBLevels": "695 256 385",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -147,8 +247,32 @@
         "CameraCalibration2": "0.9785 0 0 0 1 0 0 0 1.0032",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "2.389648 1 1.739258"
-      }
+        "AnalogBalance": "2.389648 1 1.739258",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "1024 1024 1024",
+        "WhiteLevel": "16383 16383 16383",
+        "ISO": 100,
+        "AsShotNeutral": "1 1 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16",
+        "NativeDaylightWB": [
+          2321.0,
+          1024.0,
+          1880.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2321 1024 1880",
+        "Compression": 7,
+        "BitsPerSample": "15 15 15",
+        "RAWFileType": 2
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -173,8 +297,28 @@
           2476.0,
           1024.0,
           1680.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.411576 1 0.613909",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2476 1024 1680",
+        "WB_RGBLevels": "622 256 415",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -199,8 +343,27 @@
           2455.0,
           1024.0,
           1655.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 500,
+        "AsShotNeutral": "0.421399 1 0.614277",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 500,
+        "WB_RGBLevelsDaylight": "2455 1024 1655",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -216,8 +379,32 @@
         "CameraCalibration2": "0.9847 0 0 0 1 0 0 0 0.9408",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "2.275391 1 1.575195"
-      }
+        "AnalogBalance": "2.275391 1 1.575195",
+        "BaselineExposure": 0.05,
+        "BlackLevel": "1024 1024 1024",
+        "WhiteLevel": "16383 16383 16383",
+        "ISO": 100,
+        "AsShotNeutral": "1 1 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16",
+        "NativeDaylightWB": [
+          2160.0,
+          1024.0,
+          1757.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2160 1024 1757",
+        "Compression": 7,
+        "BitsPerSample": "15 15 15",
+        "RAWFileType": 2
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -242,8 +429,27 @@
           2744.0,
           1024.0,
           1792.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.364154 1 0.589862",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2744 1024 1792",
+        "WB_RGBLevels": "701 256 434",
+        "Compression": 32767,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -268,8 +474,28 @@
           2760.0,
           1024.0,
           1884.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.372093 1 0.543524",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2760 1024 1884",
+        "WB_RGBLevels": "687 256 470",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -294,8 +520,27 @@
           2580.0,
           1024.0,
           1848.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.396899 1 0.556522",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2580 1024 1848",
+        "WB_RGBLevels": "645 256 460",
+        "Compression": 32767,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -320,8 +565,28 @@
           2616.0,
           1024.0,
           1900.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 250,
+        "AsShotNeutral": "0.363636 1 0.589862",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_RGBLevelsDaylight": "2616 1024 1900",
+        "WB_RGBLevels": "685 256 452",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -346,8 +611,28 @@
           2680.0,
           1024.0,
           1792.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.38209 1 0.571429",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2680 1024 1792",
+        "WB_RGBLevels": "670 256 446",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -372,8 +657,28 @@
           2760.0,
           1024.0,
           1908.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.364154 1 0.550538",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2760 1024 1908",
+        "WB_RGBLevels": "699 256 467",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -398,8 +703,27 @@
           2579.0,
           1024.0,
           1705.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.1,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.409764 1 0.583144",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGBLevelsDaylight": "2579 1024 1705",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -424,8 +748,28 @@
           2352.0,
           1024.0,
           1708.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 2000,
+        "AsShotNeutral": "0.408946 1 0.54818",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 2000,
+        "WB_RGBLevelsDaylight": "2352 1024 1708",
+        "WB_RGBLevels": "628 256 467",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -450,8 +794,27 @@
           2389.0,
           1024.0,
           1684.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.433164 1 0.603418",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2389 1024 1684",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -476,8 +839,28 @@
           2352.0,
           1024.0,
           1656.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 400,
+        "AsShotNeutral": "0.456328 1 0.561404",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RGBLevelsDaylight": "2352 1024 1656",
+        "WB_RGBLevels": "562 256 455",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -502,8 +885,27 @@
           2456.0,
           1024.0,
           1691.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 640,
+        "AsShotNeutral": "0.430252 1 0.533333",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_RGBLevelsDaylight": "2456 1024 1691",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -528,8 +930,27 @@
           2362.0,
           1024.0,
           1735.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "1024 1024 1024 1024",
+        "WhiteLevel": 32800,
+        "ISO": 100,
+        "AsShotNeutral": "0.352617 1 0.754606",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2362 1024 1735",
+        "Compression": 32766,
+        "BitsPerSample": 14,
+        "RAWFileType": 3
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -554,8 +975,28 @@
           2368.0,
           1024.0,
           1664.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.387879 1 0.690027",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2368 1024 1664",
+        "WB_RGBLevels": "658 255 372",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -580,8 +1021,28 @@
           2384.0,
           1024.0,
           1620.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.501961 1 0.442142",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2384 1024 1620",
+        "WB_RGBLevels": "510 256 579",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -606,8 +1067,28 @@
           2508.0,
           1024.0,
           1704.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.65,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 50,
+        "AsShotNeutral": "0.3257 1 0.666667",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 50,
+        "WB_RGBLevelsDaylight": "2508 1024 1704",
+        "WB_RGBLevels": "786 256 382",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -632,8 +1113,27 @@
           2515.0,
           1024.0,
           1800.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.403785 1 0.575928",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2515 1024 1800",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -658,8 +1158,28 @@
           2528.0,
           1024.0,
           1644.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16300,
+        "ISO": 100,
+        "AsShotNeutral": "0.39084 1 0.653061",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2528 1024 1644",
+        "WB_RGBLevels": "655 255 391",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -684,8 +1204,27 @@
           2382.0,
           1024.0,
           1608.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 80,
+        "AsShotNeutral": "0.398909 1 0.70041",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 80,
+        "WB_RGBLevelsDaylight": "2382 1024 1608",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -710,8 +1249,28 @@
           2492.0,
           1024.0,
           1624.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.408946 1 0.636816",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2492 1024 1624",
+        "WB_RGBLevels": "628 256 401",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -736,8 +1295,28 @@
           2468.0,
           1024.0,
           1532.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 640,
+        "AsShotNeutral": "0.414911 1 0.615385",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_RGBLevelsDaylight": "2468 1024 1532",
+        "WB_RGBLevels": "617 255 415",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -762,8 +1341,27 @@
           2174.0,
           1024.0,
           1744.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.25,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 1000,
+        "AsShotNeutral": "0.467366 1 0.593968",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 1000,
+        "WB_RGBLevelsDaylight": "2174 1024 1744",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -788,8 +1386,27 @@
           2102.0,
           1024.0,
           1881.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 100,
+        "AsShotNeutral": "0.487155 1 0.544391",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2102 1024 1881",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -814,8 +1431,27 @@
           2466.0,
           1024.0,
           1535.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 20000,
+        "AsShotNeutral": "0.409436 1 0.689098",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 20000,
+        "WB_RGBLevelsDaylight": "2466 1024 1535",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -840,8 +1476,27 @@
           2703.0,
           1024.0,
           1674.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.1,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 125,
+        "AsShotNeutral": "0.393695 1 0.588506",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGBLevelsDaylight": "2703 1024 1674",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -866,8 +1521,28 @@
           2412.0,
           1024.0,
           1848.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.2,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16300,
+        "ISO": 125,
+        "AsShotNeutral": "0.405063 1 0.583144",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGBLevelsDaylight": "2412 1024 1848",
+        "WB_RGBLevels": "635 256 440",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -892,8 +1567,28 @@
           2372.0,
           1024.0,
           1888.0
-        ]
-      }
+        ],
+        "BaselineExposure": -0.2,
+        "BlackLevel": "800 800 800 800",
+        "WhiteLevel": 16300,
+        "ISO": 160,
+        "AsShotNeutral": "0.444444 1 0.527835",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_RGBLevelsDaylight": "2372 1024 1888",
+        "WB_RGBLevels": "579 256 485",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -918,8 +1613,27 @@
           2439.0,
           1024.0,
           1586.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 200,
+        "AsShotNeutral": "0.401884 1 0.678595",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_RGBLevelsDaylight": "2439 1024 1586",
+        "Compression": 7,
+        "BitsPerSample": 14,
+        "RAWFileType": 2
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -944,8 +1658,28 @@
           2716.0,
           1024.0,
           1912.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 400,
+        "AsShotNeutral": "0.3196 1 0.587156",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RGBLevelsDaylight": "2716 1024 1912",
+        "WB_RGBLevels": "804 256 435",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -970,8 +1704,27 @@
           2394.0,
           1024.0,
           1826.0
-        ]
-      }
+        ],
+        "BaselineExposure": 0.1,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16380,
+        "ISO": 250,
+        "AsShotNeutral": "0.497812 1 0.368081",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_RGBLevelsDaylight": "2394 1024 1826",
+        "Compression": 32767,
+        "BitsPerSample": 12,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -991,8 +1744,33 @@
         "CameraCalibration2": "1.0307 0 0 0 1 0 0 0 0.9676",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "62 62 63 63",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.543165 1 0.583012",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          587.0,
+          302.0,
+          494.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 556 518",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 336 842 17 302 587 494 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1009,8 +1787,33 @@
         "Model": "GFX 50R",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "65 65 65 65",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.611336 1 0.581888",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          567.0,
+          302.0,
+          450.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 494 519",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 329 776 17 302 567 450 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1030,8 +1833,33 @@
         "CameraCalibration2": "1.0089 0 0 0 1 0 0 0 0.9503",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "65 65 65 65",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.588694 1 0.583012",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          562.0,
+          302.0,
+          463.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 513 518",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 325 795 17 302 562 463 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1051,8 +1879,33 @@
         "CameraCalibration2": "1.0099 0 0 0 1 0 0 0 1.0147",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.22,
+        "BlackLevel": "1024 1024 1024 1024",
+        "WhiteLevel": 16383,
+        "ISO": 250,
+        "AsShotNeutral": "0.533569 1 0.615071",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          607.0,
+          302.0,
+          475.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_GRBLevels": "302 566 491",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 353 830 17 302 607 475 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1072,8 +1925,33 @@
         "CameraCalibration2": "0.9967 0 0 0 1 0 0 0 0.9959",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16383,
+        "ISO": 80,
+        "AsShotNeutral": "0.561338 1 0.551095",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          615.0,
+          302.0,
+          484.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 80,
+        "WB_GRBLevels": "302 538 548",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 358 854 17 302 615 484 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1093,8 +1971,33 @@
         "CameraCalibration2": "1.0395 0 0 0 1 0 0 0 0.9637",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "62 62 62 62",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.590998 1 0.534513",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          582.0,
+          302.0,
+          496.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 511 565",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 340 885 17 302 582 496 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1114,8 +2017,33 @@
         "CameraCalibration2": "1.0132 0 0 0 1 0 0 0 0.9043",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16383,
+        "ISO": 80,
+        "AsShotNeutral": "0.49026 1 0.527051",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          605.0,
+          302.0,
+          533.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 80,
+        "WB_GRBLevels": "302 616 573",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 354 924 17 302 605 533 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1135,8 +2063,33 @@
         "CameraCalibration2": "0.993 0 0 0 1 0 0 0 0.9053",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.01,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.568738 1 0.49835",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          571.0,
+          302.0,
+          486.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 531 606",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 332 814 17 302 571 486 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1156,8 +2109,33 @@
         "CameraCalibration2": "1.0148 0 0 0 1 0 0 0 0.9318",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.15,
+        "BlackLevel": 1024,
+        "WhiteLevel": 16383,
+        "ISO": 200,
+        "AsShotNeutral": "0.595349 1 0.52459",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          542.0,
+          256.0,
+          425.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_GRBLevels": "256 430 488",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "256 283 832 17 256 542 425 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1177,8 +2155,33 @@
         "CameraCalibration2": "1.0196 0 0 0 1 0 0 0 1.0377",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 250,
+        "AsShotNeutral": "0.63048 1 0.425952",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          663.0,
+          302.0,
+          477.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_GRBLevels": "302 479 709",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 369 841 17 302 663 477 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1198,8 +2201,33 @@
         "CameraCalibration2": "0.9812 0 0 0 1 0 0 0 0.9538",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.507563 1 0.561338",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          639.0,
+          302.0,
+          498.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 595 538",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 379 861 17 302 639 498 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1216,8 +2244,33 @@
         "Model": "X-E5",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.02,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 250,
+        "AsShotNeutral": "0.509275 1 0.550091",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          653.0,
+          302.0,
+          490.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_GRBLevels": "302 593 549",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 376 858 17 302 653 490 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1237,8 +2290,33 @@
         "CameraCalibration2": "0.9792 0 0 0 1 0 0 0 1.043",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.22,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 800,
+        "AsShotNeutral": "0.510135 1 0.543165",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          673.0,
+          302.0,
+          488.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 800,
+        "WB_GRBLevels": "302 592 556",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 397 838 17 302 673 488 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1258,8 +2336,33 @@
         "CameraCalibration2": "0.9639 0 0 0 1 0 0 0 0.9671",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.493464 1 0.471139",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          638.0,
+          302.0,
+          516.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_GRBLevels": "302 612 641",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 378 884 17 302 638 516 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1279,8 +2382,33 @@
         "CameraCalibration2": "0.9685 0 0 0 1 0 0 0 1.0142",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.07,
+        "BlackLevel": "1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024 1024",
+        "WhiteLevel": 16383,
+        "ISO": 320,
+        "AsShotNeutral": "0.534513 1 0.543165",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          635.0,
+          302.0,
+          492.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 320,
+        "WB_GRBLevels": "302 565 556",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 378 848 17 302 635 492 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1300,8 +2428,33 @@
         "CameraCalibration2": "0.9872 0 0 0 1 0 0 0 0.9862",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 640,
+        "AsShotNeutral": "0.487884 1 0.629167",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          623.0,
+          302.0,
+          506.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_GRBLevels": "302 619 480",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 373 871 17 302 623 506 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1321,8 +2474,33 @@
         "CameraCalibration2": "0.988 0 0 0 1 0 0 0 1.0241",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 500,
+        "AsShotNeutral": "0.548094 1 0.449405",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          667.0,
+          302.0,
+          497.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 500,
+        "WB_GRBLevels": "302 551 672",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 376 831 17 302 667 497 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1342,8 +2520,33 @@
         "CameraCalibration2": "0.9921 0 0 0 1 0 0 0 0.9834",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 640,
+        "AsShotNeutral": "0.448737 1 0.54025",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          632.0,
+          302.0,
+          483.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_GRBLevels": "302 673 559",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 372 843 17 302 632 483 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1363,8 +2566,33 @@
         "CameraCalibration2": "0.9812 0 0 0 1 0 0 0 0.9425",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.589844 1 0.425352",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          639.0,
+          302.0,
+          504.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 512 710",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 377 866 17 302 639 504 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1384,8 +2612,33 @@
         "CameraCalibration2": "0.984 0 0 0 1 0 0 0 1.0246",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019 1019",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.549091 1 0.546112",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          625.0,
+          302.0,
+          487.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 550 553",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 374 851 17 302 625 487 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1405,8 +2658,33 @@
         "CameraCalibration2": "1.0362 0 0 0 1 0 0 0 1.043",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020",
+        "WhiteLevel": 16383,
+        "ISO": 400,
+        "AsShotNeutral": "0.371464 1 0.722488",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          636.0,
+          302.0,
+          488.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_GRBLevels": "302 813 418",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 371 842 17 302 636 488 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1426,8 +2704,33 @@
         "CameraCalibration2": "1.0681 0 0 0 1 0 0 0 1.006",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 200,
+        "AsShotNeutral": "0.508418 1 0.54219",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          646.0,
+          302.0,
+          498.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_GRBLevels": "302 594 557",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 366 866 17 302 646 498 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1447,8 +2750,33 @@
         "CameraCalibration2": "0.9338 0 0 0 1 0 0 0 0.9695",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.15,
+        "BlackLevel": 1024,
+        "WhiteLevel": 16383,
+        "ISO": 200,
+        "AsShotNeutral": "0.585812 1 0.534447",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          559.0,
+          256.0,
+          426.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_GRBLevels": "256 437 479",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "256 292 835 17 256 559 426 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1468,8 +2796,33 @@
         "CameraCalibration2": "1.0129 0 0 0 1 0 0 0 0.9855",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.512733 1 0.517123",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          619.0,
+          302.0,
+          482.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 589 584",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 367 823 17 302 619 482 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1489,8 +2842,33 @@
         "CameraCalibration2": "1.0032 0 0 0 1 0 0 0 0.9814",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.88,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.530756 1 0.574144",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          625.0,
+          302.0,
+          484.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_GRBLevels": "302 569 526",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 370 827 17 302 625 484 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1510,8 +2888,33 @@
         "CameraCalibration2": "0.9905 0 0 0 1 0 0 0 0.9635",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.12,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.545126 1 0.537367",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          633.0,
+          302.0,
+          493.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 554 562",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 373 850 17 302 633 493 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1531,8 +2934,33 @@
         "CameraCalibration2": "0.9824 0 0 0 1 0 0 0 1.0081",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 320,
+        "AsShotNeutral": "0.544144 1 0.539286",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          626.0,
+          302.0,
+          495.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 320,
+        "WB_GRBLevels": "302 555 560",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 369 857 17 302 626 495 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1552,8 +2980,33 @@
         "CameraCalibration2": "0.9921 0 0 0 1 0 0 0 0.9387",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.51801 1 0.471875",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          632.0,
+          302.0,
+          506.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 583 640",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 375 878 17 302 632 506 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1573,8 +3026,33 @@
         "CameraCalibration2": "0.9347 0 0 0 1 0 0 0 1.055",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.4832 1 0.607646",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          658.0,
+          302.0,
+          473.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_GRBLevels": "302 625 497",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 390 810 17 302 658 473 21"
+      },
+      "evidence_role": "calibration",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1591,8 +3069,33 @@
         "Model": "X-T50",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.02,
+        "BlackLevel": "1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020",
+        "WhiteLevel": 16383,
+        "ISO": 250,
+        "AsShotNeutral": "0.519793 1 0.54025",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          644.0,
+          302.0,
+          498.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_GRBLevels": "302 581 559",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 379 860 17 302 644 498 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1612,8 +3115,33 @@
         "CameraCalibration2": "1.0415 0 0 0 1 0 0 0 1.0128",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.57197 1 0.560297",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          602.0,
+          302.0,
+          469.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 528 539",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 353 828 17 302 602 469 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1633,8 +3161,33 @@
         "CameraCalibration2": "0.9762 0 0 0 1 0 0 0 1.0439",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.442815 1 0.674107",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          630.0,
+          302.0,
+          478.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_GRBLevels": "302 682 448",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 372 822 17 302 630 478 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "FUJIFILM",
@@ -1654,8 +3207,33 @@
         "CameraCalibration2": "1.0282 0 0 0 1 0 0 0 0.9697",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.25,
+        "BlackLevel": 1024,
+        "WhiteLevel": 16383,
+        "ISO": 200,
+        "AsShotNeutral": "0.600939 1 0.526749",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          532.0,
+          256.0,
+          396.0
+        ]
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_GRBLevels": "256 426 486",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "256 273 771 17 256 532 396 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1675,8 +3253,28 @@
         "CameraCalibration2": "1.0247 0 0 0 1 0 0 0 1.026",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0,
+        "BlackLevel": "511 511 511 511",
+        "WhiteLevel": 11892,
+        "ISO": 100,
+        "AsShotNeutral": "0.533333 1 0.641604",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1827 1024 1024 1686",
+        "WB_RGGBLevelsAsShot": "1920 1024 1024 1596",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1696,8 +3294,28 @@
         "CameraCalibration2": "0.991 0 0 0 1 0 0 0 0.9922",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.12,
+        "BlackLevel": "511 511 511 511",
+        "WhiteLevel": 11606,
+        "ISO": 100,
+        "AsShotNeutral": "0.542948 1 0.611343",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1886 1024 1024 1675",
+        "WB_RGGBLevelsAsShot": "1886 1024 1024 1675",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1713,8 +3331,28 @@
         "CameraCalibration2": "1.0022 0 0 0 1 0 0 0 0.9836",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1.989796 1 1.473552"
-      }
+        "AnalogBalance": "1.989796 1 1.473552",
+        "BaselineExposure": 0.36,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "14008 14008 14008",
+        "ISO": 100,
+        "AsShotNeutral": "1 0.999239 0.999184",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2013 1024 1024 1479",
+        "WB_RGGBLevelsAsShot": "2036 1024 1024 1509",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1730,8 +3368,28 @@
         "CameraCalibration2": "0.9637 0 0 0 1 0 0 0 0.9913",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1.578947 1 2.888889"
-      }
+        "AnalogBalance": "1.578947 1 2.888889",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "13000 13000 13000",
+        "ISO": 100,
+        "AsShotNeutral": "0.867614 0.920823 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2280 1024 1024 1742",
+        "WB_RGGBLevelsAsShot": "1716 1024 1024 2724",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1747,8 +3405,28 @@
         "CameraCalibration2": "0.9907 0 0 0 1 0 0 0 1.007",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1.933884 1 1.881029"
-      }
+        "AnalogBalance": "1.933884 1 1.881029",
+        "BaselineExposure": 0,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "10000 10000 10000",
+        "ISO": 100,
+        "AsShotNeutral": "0.897672 0.943321 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2131 1024 1024 1683",
+        "WB_RGGBLevelsAsShot": "2081 1024 1024 1817",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1768,8 +3446,28 @@
         "CameraCalibration2": "1.0181 0 0 0 1 0 0 0 0.9692",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.32,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 14338,
+        "ISO": 3200,
+        "AsShotNeutral": "0.518481 1 0.611343",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 3200,
+        "WB_RGGBLevelsDaylight": "1820 1024 1024 1756",
+        "WB_RGGBLevelsAsShot": "1975 1024 1024 1675",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1785,8 +3483,28 @@
         "CameraCalibration2": "1.0307 0 0 0 1 0 0 0 0.9627",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "2.111913 1 1.568365"
-      }
+        "AnalogBalance": "2.111913 1 1.568365",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "11700 11700 11700",
+        "ISO": 100,
+        "AsShotNeutral": "1 0.999723 0.999726",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1956 1024 1024 1691",
+        "WB_RGGBLevelsAsShot": "2162 1024 1024 1606",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1806,8 +3524,28 @@
         "CameraCalibration2": "0.9963 0 0 0 1 0 0 0 1.0229",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0,
+        "BlackLevel": "511 511 511 511",
+        "WhiteLevel": 11892,
+        "ISO": 100,
+        "AsShotNeutral": "0.513798 1 0.653478",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1900 1024 1024 1659",
+        "WB_RGGBLevelsAsShot": "1993 1024 1024 1567",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1823,8 +3561,29 @@
         "CameraCalibration2": "0.9742 0 0 0 1 0 0 0 0.9804",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1.890145 1 1.616022"
-      }
+        "AnalogBalance": "1.890145 1 1.616022",
+        "BaselineExposure": 0,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "11892 11892 11892",
+        "ISO": 100,
+        "AsShotNeutral": "1 0.999737 0.998414",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1859 1024 1024 1739",
+        "WB_RGGBLevelsAsShot": "1935 1024 1024 1657",
+        "FirmwareVersion": "1.0.1",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1844,8 +3603,28 @@
         "CameraCalibration2": "0.9984 0 0 0 1 0 0 0 0.994",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.46,
+        "BlackLevel": "511 511 511 511",
+        "WhiteLevel": 11606,
+        "ISO": 100,
+        "AsShotNeutral": "0.487387 1 0.668844",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1872 1024 1024 1672",
+        "WB_RGGBLevelsAsShot": "2101 1024 1024 1531",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1865,8 +3644,28 @@
         "CameraCalibration2": "0.9983 0 0 0 1 0 0 0 1.0341",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.16,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 13036,
+        "ISO": 100,
+        "AsShotNeutral": "0.492071 1 0.729345",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1802 1024 1024 1584",
+        "WB_RGGBLevelsAsShot": "2081 1024 1024 1404",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1886,8 +3685,28 @@
         "CameraCalibration2": "1.0263 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.12,
+        "BlackLevel": "511 511 511 511",
+        "WhiteLevel": 11606,
+        "ISO": 100,
+        "AsShotNeutral": "0.634842 1 0.815287",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1520 1024 1024 1327",
+        "WB_RGGBLevelsAsShot": "1613 1024 1024 1256",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1907,8 +3726,28 @@
         "CameraCalibration2": "0.9924 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16000,
+        "ISO": 100,
+        "AsShotNeutral": "0.644836 1 0.762472",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1573 1024 1024 1359",
+        "WB_RGGBLevelsAsShot": "1588 1024 1024 1343",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1928,8 +3767,28 @@
         "CameraCalibration2": "0.9884 0 0 0 1 0 0 0 0.9865",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": 510.9492188,
+        "WhiteLevel": 11892,
+        "ISO": 100,
+        "AsShotNeutral": "0.927536 1 0.526478",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1558 1024 1024 1332",
+        "WB_RGGBLevelsAsShot": "1104 1024 1024 1945",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1949,8 +3808,28 @@
         "CameraCalibration2": "0.9861 0 0 0 1 0 0 0 1.0084",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.35,
+        "BlackLevel": "2049 2049 2049 2049",
+        "WhiteLevel": 10439,
+        "ISO": 5000,
+        "AsShotNeutral": "0.767616 1 0.657253",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 5000,
+        "WB_RGGBLevelsDaylight": "1582 1024 1024 1316",
+        "WB_RGGBLevelsAsShot": "1334 1024 1024 1558",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1970,8 +3849,28 @@
         "CameraCalibration2": "0.9815 0 0 0 1 0 0 0 1.048",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.2,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 10852,
+        "ISO": 640,
+        "AsShotNeutral": "0.636816 1 0.502947",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_RGGBLevelsDaylight": "1833 1024 1024 1563",
+        "WB_RGGBLevelsAsShot": "1608 1024 1024 2036",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -1991,8 +3890,28 @@
         "CameraCalibration2": "0.9807 0 0 0 1 0 0 0 1.0274",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.38,
+        "BlackLevel": "511 510 511 510",
+        "WhiteLevel": 14008,
+        "ISO": 100,
+        "AsShotNeutral": "0.506931 1 0.647282",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2072 1024 1024 1458",
+        "WB_RGGBLevelsAsShot": "2020 1024 1024 1582",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2012,8 +3931,28 @@
         "CameraCalibration2": "0.9836 0 0 0 1 0 0 0 1.0166",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.41,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 200,
+        "AsShotNeutral": "0.574313 1 0.527291",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_RGGBLevelsDaylight": "1768 1024 1024 1745",
+        "WB_RGGBLevelsAsShot": "1783 1024 1024 1942",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2033,8 +3972,28 @@
         "CameraCalibration2": "0.9748 0 0 0 1 0 0 0 1.0663",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.4,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 10439,
+        "ISO": 640,
+        "AsShotNeutral": "0.556522 1 0.575281",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 640,
+        "WB_RGGBLevelsDaylight": "1907 1024 1024 1675",
+        "WB_RGGBLevelsAsShot": "1840 1024 1024 1780",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2054,8 +4013,28 @@
         "CameraCalibration2": "1.004 0 0 0 1 0 0 0 0.9984",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.08,
+        "BlackLevel": "2047 2047 2047 2047",
+        "WhiteLevel": 14351,
+        "ISO": 800,
+        "AsShotNeutral": "0.494208 1 0.58783",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 800,
+        "WB_RGGBLevelsDaylight": "1982 1024 1024 1827",
+        "WB_RGGBLevelsAsShot": "2072 1024 1024 1742",
+        "HighlightTonePriority": 1,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2075,8 +4054,28 @@
         "CameraCalibration2": "0.9905 0 0 0 1 0 0 0 1.0197",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.52,
+        "BlackLevel": "510 510 510 510",
+        "WhiteLevel": 16384,
+        "ISO": 100,
+        "AsShotNeutral": "0.690492 1 0.396438",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1990 1024 1024 1876",
+        "WB_RGGBLevelsAsShot": "1483 1024 1024 2583",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2096,8 +4095,28 @@
         "CameraCalibration2": "1.0016 0 0 0 1 0 0 0 0.9924",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.52,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 125,
+        "AsShotNeutral": "0.571429 1 0.521385",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGGBLevelsDaylight": "1917 1024 1024 1589",
+        "WB_RGGBLevelsAsShot": "1792 1024 1024 1964",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2117,8 +4136,28 @@
         "CameraCalibration2": "0.9836 0 0 0 1 0 0 0 1.0219",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.29,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 100,
+        "AsShotNeutral": "0.579186 1 0.589862",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1768 1024 1024 1736",
+        "WB_RGGBLevelsAsShot": "1768 1024 1024 1736",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2138,8 +4177,28 @@
         "CameraCalibration2": "0.9887 0 0 0 1 0 0 0 1.0183",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.4,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 100,
+        "AsShotNeutral": "0.558647 1 0.608437",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1833 1024 1024 1683",
+        "WB_RGGBLevelsAsShot": "1833 1024 1024 1683",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2159,8 +4218,28 @@
         "CameraCalibration2": "1.0165 0 0 0 1 0 0 0 1.0075",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.37,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 100,
+        "AsShotNeutral": "0.552617 1 0.614277",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1879 1024 1024 1596",
+        "WB_RGGBLevelsAsShot": "1853 1024 1024 1667",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2180,8 +4259,28 @@
         "CameraCalibration2": "0.9853 0 0 0 1 0 0 0 1.0247",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.27,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 14008,
+        "ISO": 100,
+        "AsShotNeutral": "0.472761 1 0.756837",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1967 1024 1024 1496",
+        "WB_RGGBLevelsAsShot": "2166 1024 1024 1353",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2201,8 +4300,28 @@
         "CameraCalibration2": "1.0052 0 0 0 1 0 0 0 1.0017",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.26,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 13995,
+        "ISO": 100,
+        "AsShotNeutral": "0.441379 1 0.704264",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2270 1024 1024 1458",
+        "WB_RGGBLevelsAsShot": "2320 1024 1024 1454",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2222,8 +4341,28 @@
         "CameraCalibration2": "1.0139 0 0 0 1 0 0 0 0.9822",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.41,
+        "BlackLevel": "512 511 511 512",
+        "WhiteLevel": 16384,
+        "ISO": 100,
+        "AsShotNeutral": "0.588844 1 0.604486",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1799 1024 1024 1570",
+        "WB_RGGBLevelsAsShot": "1739 1024 1024 1694",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2243,8 +4382,28 @@
         "CameraCalibration2": "0.9868 0 0 0 1 0 0 0 1.0132",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.27,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16384,
+        "ISO": 200,
+        "AsShotNeutral": "0.540084 1 0.629766",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_RGGBLevelsDaylight": "1964 1024 1024 1513",
+        "WB_RGGBLevelsAsShot": "1896 1024 1024 1626",
+        "HighlightTonePriority": 1,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2264,8 +4423,28 @@
         "CameraCalibration2": "1.0097 0 0 0 1 0 0 0 1.003",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.32,
+        "BlackLevel": "513 513 513 513",
+        "WhiteLevel": 14558,
+        "ISO": 100,
+        "AsShotNeutral": "0.589862 1 0.461885",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2052 1024 1024 1694",
+        "WB_RGGBLevelsAsShot": "1736 1024 1024 2217",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2281,8 +4460,28 @@
         "CameraCalibration2": "1.0199 0 0 0 1 0 0 0 0.9969",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1.857143 1 1.56"
-      }
+        "AnalogBalance": "1.857143 1 1.56",
+        "BaselineExposure": 0.42,
+        "BlackLevel": "0 0 0",
+        "WhiteLevel": "14888 14888 14888",
+        "ISO": 500,
+        "AsShotNeutral": "1 0.999099 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 500,
+        "WB_RGGBLevelsDaylight": "1856 1024 1024 1608",
+        "WB_RGGBLevelsAsShot": "1900 1024 1024 1596",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2302,8 +4501,28 @@
         "CameraCalibration2": "1.0037 0 0 0 1 0 0 0 1.0221",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.4,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16050,
+        "ISO": 100,
+        "AsShotNeutral": "0.627067 1 0.561404",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1893 1024 1024 1586",
+        "WB_RGGBLevelsAsShot": "1633 1024 1024 1824",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2323,8 +4542,28 @@
         "CameraCalibration2": "1.1024 0 0 0 1 0 0 0 0.9529",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16000,
+        "ISO": 100,
+        "AsShotNeutral": "0.59848 1 0.851913",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1397 1024 1024 1379",
+        "WB_RGGBLevelsAsShot": "1711 1024 1024 1202",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2344,8 +4583,28 @@
         "CameraCalibration2": "0.9851 0 0 0 1 0 0 0 0.9634",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.13,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 14335,
+        "ISO": 125,
+        "AsShotNeutral": "0.387732 1 0.613174",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGGBLevelsDaylight": "2284 1024 1024 1883",
+        "WB_RGGBLevelsAsShot": "2641 1024 1024 1670",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2365,8 +4624,28 @@
         "CameraCalibration2": "0.9868 0 0 0 1 0 0 0 1.0017",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.13,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 14335,
+        "ISO": 125,
+        "AsShotNeutral": "0.444252 1 0.536126",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGGBLevelsDaylight": "2280 1024 1024 1811",
+        "WB_RGGBLevelsAsShot": "2305 1024 1024 1910",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2386,8 +4665,28 @@
         "CameraCalibration2": "0.986 0 0 0 1 0 0 0 1.024",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "2048 2048 2048 2048",
+        "WhiteLevel": 16000,
+        "ISO": 125,
+        "AsShotNeutral": "0.465878 1 0.583808",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 125,
+        "WB_RGGBLevelsDaylight": "2150 1024 1024 1753",
+        "WB_RGGBLevelsAsShot": "2198 1024 1024 1754",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Canon",
@@ -2407,8 +4706,28 @@
         "CameraCalibration2": "0.9678 0 0 0 1 0 0 0 0.9811",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.16,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 13036,
+        "ISO": 100,
+        "AsShotNeutral": "0.529199 1 0.667101",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "1931 1024 1024 1535",
+        "WB_RGGBLevelsAsShot": "1935 1024 1024 1535",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2428,8 +4747,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3880,
+        "ISO": 400,
+        "AsShotNeutral": "0.430976 1 0.608076",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RBLevels": "2.3203125 1.64453125 1 1",
+        "FirmwareVersion": 1.11,
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2449,8 +4787,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3972,
+        "ISO": 100,
+        "AsShotNeutral": "0.487619 1 0.713092",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.05078125 1.40234375 1 1",
+        "FirmwareVersion": "1.00b",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2470,8 +4827,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "400 400 400 400",
+        "WhiteLevel": 15520,
+        "ISO": 100,
+        "AsShotNeutral": "0.420534 1 0.731951",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.377929688 1.366210938 1 1",
+        "FirmwareVersion": "1.10a",
+        "Compression": 1,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2491,8 +4867,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "400 400 400 400",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.435004 1 0.552468",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.298828125 1.810058594 1 1",
+        "FirmwareVersion": 1.12,
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2512,8 +4907,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3972,
+        "ISO": 200,
+        "AsShotNeutral": "0.468864 1 0.721127",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_RBLevels": "2.1328125 1.38671875 1 1",
+        "FirmwareVersion": "1.00d",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2533,8 +4947,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.461261 1 0.634449",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.16796875 1.576171875 1 1",
+        "FirmwareVersion": "01.11.d0",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2554,8 +4987,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": 0,
+        "WhiteLevel": 3880,
+        "ISO": 400,
+        "AsShotNeutral": "0.536688 1 0.697548",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RBLevels": "1.86328125 1.43359375 1 1",
+        "FirmwareVersion": "1.01 ",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2575,8 +5027,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3972,
+        "ISO": 1600,
+        "AsShotNeutral": "0.644836 1 0.361072",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 1600,
+        "WB_RBLevels": "1.55078125 2.76953125 1 1",
+        "FirmwareVersion": "1.01b",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2596,8 +5067,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.1,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.479401 1 0.828479",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.0859375 1.20703125 1 1",
+        "FirmwareVersion": "1.10d",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2617,8 +5107,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "400 400 400 400",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.43399 1 0.639201",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.304199219 1.564453125 1 1",
+        "FirmwareVersion": "1.00h",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2638,8 +5147,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.596737 1 0.646465",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "1.67578125 1.546875 1 1",
+        "FirmwareVersion": "01.00",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2655,8 +5183,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "2.160156 1 1.183594"
-      }
+        "AnalogBalance": "2.160156 1 1.183594",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": "65535 65535 65535",
+        "ISO": 100,
+        "AsShotNeutral": "1 1 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16"
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.16015625 1.18359375 1 1",
+        "FirmwareVersion": "1.11d",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2676,8 +5223,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "400 400 400 400",
+        "WhiteLevel": 3880,
+        "ISO": 64,
+        "AsShotNeutral": "0.526208 1 0.727015",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 64,
+        "WB_RBLevels": "1.900390625 1.375488281 1 1",
+        "FirmwareVersion": "1.00b",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2697,8 +5263,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": 0,
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.5 1 0.670157",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2 1.4921875 1 1",
+        "FirmwareVersion": "1.01a",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2718,8 +5303,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.3,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3972,
+        "ISO": 1800,
+        "AsShotNeutral": "0.518219 1 0.685408",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 1800,
+        "WB_RBLevels": "1.9296875 1.458984375 1 1",
+        "FirmwareVersion": "01.00.c0",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2739,8 +5343,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 400,
+        "AsShotNeutral": "0.592593 1 0.648923",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RBLevels": "1.6875 1.541015625 1 1",
+        "FirmwareVersion": "01.01.00",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2760,8 +5383,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 250,
+        "AsShotNeutral": "0.537815 1 0.639201",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 250,
+        "WB_RBLevels": "1.859375 1.564453125 1 1",
+        "FirmwareVersion": "01.00.p0",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2781,8 +5423,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.839344 1 0.471889",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "1.19140625 2.119140625 1 1",
+        "FirmwareVersion": "02.00.g1",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2802,8 +5463,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.579186 1 0.748538",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "1.7265625 1.3359375 1 1",
+        "FirmwareVersion": "01.00.e0",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2823,8 +5503,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 64,
+        "AsShotNeutral": "0.590542 1 0.719101",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 64,
+        "WB_RBLevels": "1.693359375 1.390625 1 1",
+        "FirmwareVersion": "01.00.d1",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2844,8 +5543,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.517172 1 0.864865",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "1.93359375 1.15625 1 1",
+        "FirmwareVersion": "01.00.e1",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2865,8 +5583,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 64,
+        "AsShotNeutral": "0.504433 1 0.697548",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 64,
+        "WB_RBLevels": "1.982421875 1.43359375 1 1",
+        "FirmwareVersion": "01.00.j0",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2886,8 +5623,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 64,
+        "AsShotNeutral": "0.586483 1 0.647282",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 64,
+        "WB_RBLevels": "1.705078125 1.544921875 1 1",
+        "FirmwareVersion": "01.00.k0",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2907,8 +5663,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 160,
+        "AsShotNeutral": "0.536126 1 0.829822",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 160,
+        "WB_RBLevels": "1.865234375 1.205078125 1 1",
+        "FirmwareVersion": "01.00.h0",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2928,8 +5703,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 3972,
+        "ISO": 400,
+        "AsShotNeutral": "0.524053 1 0.734577",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 400,
+        "WB_RBLevels": "1.908203125 1.361328125 1 1",
+        "FirmwareVersion": "01.00.e0",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2949,8 +5743,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 100,
+        "AsShotNeutral": "0.466302 1 0.795031",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.14453125 1.2578125 1 1",
+        "FirmwareVersion": "01.00.c0",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2970,8 +5783,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.2,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 100,
+        "AsShotNeutral": "0.605201 1 0.728307",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "1.65234375 1.373046875 1 1",
+        "FirmwareVersion": "01.00.d1",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Nikon",
@@ -2991,8 +5823,27 @@
         "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
         "CameraCalibrationSig": "com.adobe",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.25,
+        "BlackLevel": "1008 1008 1008 1008",
+        "WhiteLevel": 15892,
+        "ISO": 200,
+        "AsShotNeutral": "0.527291 1 0.628993",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 200,
+        "WB_RBLevels": "1.896484375 1.58984375 1 1",
+        "FirmwareVersion": "01.00.f0",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3009,8 +5860,25 @@
         "Model": "PENTAX 645Z",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": -0.5,
+        "BlackLevel": "1 1 1 1",
+        "WhiteLevel": 16316,
+        "ISO": 6,
+        "AsShotNeutral": "0.474074 1 0.682667",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 6,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3027,8 +5895,25 @@
         "Model": "PENTAX K-1 Mark II",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.5,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16318,
+        "ISO": 9,
+        "AsShotNeutral": "0.485769 1 0.663212",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 9,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3045,8 +5930,25 @@
         "Model": "PENTAX K-3 Mark III",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.7,
+        "BlackLevel": "256 256 256 256",
+        "WhiteLevel": 16376,
+        "ISO": 15,
+        "AsShotNeutral": "0.402516 1 0.549356",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 15,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3063,8 +5965,25 @@
         "Model": "PENTAX K-70",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.5,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16319,
+        "ISO": 12,
+        "AsShotNeutral": "0.515091 1 0.471455",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 12,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3081,8 +6000,25 @@
         "Model": "PENTAX KF",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.5,
+        "BlackLevel": "64 64 64 64",
+        "WhiteLevel": 16319,
+        "ISO": 9,
+        "AsShotNeutral": "0.474074 1 0.537815",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 9,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "Pentax",
@@ -3099,8 +6035,25 @@
         "Model": "PENTAX KP",
         "DNGVersion": "1 4 0 0",
         "ProfileCalibrationSig": "com.adobe",
-        "AnalogBalance": "1 1 1"
-      }
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.5,
+        "BlackLevel": "128 128 128 128",
+        "WhiteLevel": 16254,
+        "ISO": 12,
+        "AsShotNeutral": "0.410915 1 0.563877",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "native_metadata": {
+        "ISO": 12,
+        "Compression": 65535,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     },
     {
       "make": "SONY",
@@ -3295,6 +6248,442 @@
         ]
       },
       "source": "local"
+    },
+    {
+      "make": "Sony",
+      "model": "ILCE-1M2",
+      "sha256": "3f4ce83f58b1809b9f0d70489091b44e9597a57ec80470bade3fcf53640c6469",
+      "url": "https://raw.pixls.us/getfile.php/7833/nice/Sony - ILCE-1M2 - 14bit lossless (3:2).ARW",
+      "tags": {
+        "Make": "SONY",
+        "Model": "ILCE-1M2",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.9847 0 0 0 1 0 0 0 0.9408",
+        "CameraCalibration2": "0.9847 0 0 0 1 0 0 0 0.9408",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.15,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.439485 1 0.634842",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          2160.0,
+          1024.0,
+          1757.0
+        ]
+      },
+      "measured": [
+        0.9847,
+        1.0,
+        0.9408
+      ],
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2160 1024 1757",
+        "Compression": 7,
+        "BitsPerSample": 14,
+        "RAWFileType": 2
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Sony",
+      "model": "DSC-RX1RM3",
+      "sha256": "0fbbc32e4e24faa3626027987bc1591faf5aec76b47c8f857464ee97be9c224a",
+      "url": "https://raw.pixls.us/getfile.php/8547/nice/Sony - DSC-RX1RM3 - 4:3.ARW",
+      "tags": {
+        "Make": "SONY",
+        "Model": "DSC-RX1RM3",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.9785 0 0 0 1 0 0 0 1.0032",
+        "CameraCalibration2": "0.9785 0 0 0 1 0 0 0 1.0032",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "2.389648 1 1.739258",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "1024 1024 1024",
+        "WhiteLevel": "16383 16383 16383",
+        "ISO": 100,
+        "AsShotNeutral": "1 1 1",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 34892,
+        "SamplesPerPixel": 3,
+        "BitsPerSample": "16 16 16",
+        "NativeDaylightWB": [
+          2321.0,
+          1024.0,
+          1880.0
+        ]
+      },
+      "reason": "non-identity AnalogBalance requires a full matrix implementation",
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2321 1024 1880",
+        "Compression": 7,
+        "BitsPerSample": "15 15 15",
+        "RAWFileType": 2
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Sony",
+      "model": "DSC-RX1RM3",
+      "sha256": "62708b41b6e223f5a6dbf93e17cb99bf5a936a42d4cedcd7cf963257b59d3a28",
+      "url": "https://raw.pixls.us/getfile.php/8548/nice/Sony - DSC-RX1RM3 - 14bit (3:2).ARW",
+      "tags": {
+        "Make": "SONY",
+        "Model": "DSC-RX1RM3",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.9785 0 0 0 1 0 0 0 1.0032",
+        "CameraCalibration2": "0.9785 0 0 0 1 0 0 0 1.0032",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 16383,
+        "ISO": 100,
+        "AsShotNeutral": "0.418472 1 0.574958",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          2321.0,
+          1024.0,
+          1880.0
+        ]
+      },
+      "measured": [
+        0.9785,
+        1.0,
+        1.0032
+      ],
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGBLevelsDaylight": "2321 1024 1880",
+        "Compression": 32767,
+        "BitsPerSample": 14,
+        "RAWFileType": 0
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Fujifilm",
+      "model": "X-T5",
+      "sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "url": "https://raw.pixls.us/getfile.php/7271/nice/Fujifilm - X-T5 - 14bit 14bit compressed (16:9).RAF",
+      "tags": {
+        "Make": "FUJIFILM",
+        "Model": "X-T5",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.952 0 0 0 1 0 0 0 1.0101",
+        "CameraCalibration2": "0.952 0 0 0 1 0 0 0 1.0101",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 1.02,
+        "BlackLevel": "1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020 1020",
+        "WhiteLevel": 16383,
+        "ISO": 400,
+        "AsShotNeutral": "0.53169 1 0.523397",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          646.0,
+          302.0,
+          494.0
+        ]
+      },
+      "measured": [
+        0.952,
+        1.0,
+        1.0101
+      ],
+      "native_metadata": {
+        "ISO": 400,
+        "WB_GRBLevels": "302 568 577",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 381 842 17 302 646 494 21"
+      },
+      "evidence_role": "validation",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Fujifilm",
+      "model": "X-T3",
+      "sha256": "24abd27b4a200f3170ea1579672944b807d0eb35bf21422a3937bb644f27f2eb",
+      "url": "https://raw.pixls.us/getfile.php/2784/nice/Fujifilm - X-T3 - 14bit 14bit uncompressed (3:2).RAF",
+      "tags": {
+        "Make": "FUJIFILM",
+        "Model": "X-T3",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "1.0129 0 0 0 1 0 0 0 0.9855",
+        "CameraCalibration2": "1.0129 0 0 0 1 0 0 0 0.9855",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.07,
+        "BlackLevel": "1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022 1022",
+        "WhiteLevel": 16383,
+        "ISO": 160,
+        "AsShotNeutral": "0.51801 1 0.517123",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          619.0,
+          302.0,
+          482.0
+        ]
+      },
+      "measured": [
+        1.0129,
+        1.0,
+        0.9855
+      ],
+      "native_metadata": {
+        "ISO": 160,
+        "WB_GRBLevels": "302 583 584",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 367 823 17 302 619 482 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Fujifilm",
+      "model": "X100VI",
+      "sha256": "8e5e4d8d2e0a865ca79b3d40734b6abc2f4b00281afea8b9bd3d8c29808f2fb3",
+      "url": "https://raw.pixls.us/getfile.php/7300/nice/Fujifilm - X100VI - 14bit 14bit uncompressed (3:2).RAF",
+      "tags": {
+        "Make": "FUJIFILM",
+        "Model": "X100VI",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.9762 0 0 0 1 0 0 0 1.0439",
+        "CameraCalibration2": "0.9762 0 0 0 1 0 0 0 1.0439",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.442815 1 0.674107",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          630.0,
+          302.0,
+          478.0
+        ]
+      },
+      "measured": [
+        0.9762,
+        1.0,
+        1.0439
+      ],
+      "native_metadata": {
+        "ISO": 125,
+        "WB_GRBLevels": "302 682 448",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 372 822 17 302 630 478 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Fujifilm",
+      "model": "X100VI",
+      "sha256": "e9709b98f4ff96b993dbe4ad20eff0accfa709a58559eb4219f59d1e7181934a",
+      "url": "https://raw.pixls.us/getfile.php/7301/nice/Fujifilm - X100VI - 14bit 14bit lossless compressed (3:2).RAF",
+      "tags": {
+        "Make": "FUJIFILM",
+        "Model": "X100VI",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "0.9762 0 0 0 1 0 0 0 1.0439",
+        "CameraCalibration2": "0.9762 0 0 0 1 0 0 0 1.0439",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.02,
+        "BlackLevel": "1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023 1023",
+        "WhiteLevel": 16383,
+        "ISO": 125,
+        "AsShotNeutral": "0.442815 1 0.674107",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16,
+        "NativeDaylightWB": [
+          630.0,
+          302.0,
+          478.0
+        ]
+      },
+      "measured": [
+        0.9762,
+        1.0,
+        1.0439
+      ],
+      "native_metadata": {
+        "ISO": 125,
+        "WB_GRBLevels": "302 682 448",
+        "DynamicRange": 1,
+        "Compression": 6,
+        "BitsPerSample": 14,
+        "WB_GRBLevelsStandard": "302 372 822 17 302 630 478 21"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Canon",
+      "model": "EOS 5D Mark IV",
+      "sha256": "02b23f9cc6dc4c99fb39aa4d1f65ac227804d06461ac1bd0f842aa2f3beb8fe4",
+      "url": "https://raw.pixls.us/getfile.php/983/nice/Canon - EOS 5D Mark IV - RAW (3:2).CR2",
+      "tags": {
+        "Make": "Canon",
+        "Model": "Canon EOS 5D Mark IV",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "1.0022 0 0 0 1 0 0 0 0.9836",
+        "CameraCalibration2": "1.0022 0 0 0 1 0 0 0 0.9836",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.13,
+        "BlackLevel": "512 512 512 512",
+        "WhiteLevel": 14008,
+        "ISO": 100,
+        "AsShotNeutral": "0.503937 1 0.677697",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "measured": [
+        1.0022,
+        1.0,
+        0.9836
+      ],
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RGGBLevelsDaylight": "2013 1024 1024 1479",
+        "WB_RGGBLevelsAsShot": "2032 1024 1024 1511",
+        "HighlightTonePriority": 0,
+        "Compression": 6,
+        "BitsPerSample": "8 8 8"
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Nikon",
+      "model": "D810",
+      "sha256": "ea8baa753dc1d77fdabb3f35048f71aa3c99d5b675f50f6a8d301ab287f5fd68",
+      "url": "https://raw.pixls.us/getfile.php/2033/nice/Nikon - D810 - 12bit 12bit compressed (Lossless) (3:2).NEF",
+      "tags": {
+        "Make": "NIKON CORPORATION",
+        "Model": "NIKON D810",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "1 0 0 0 1 0 0 0 1",
+        "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 3880,
+        "ISO": 100,
+        "AsShotNeutral": "0.462929 1 0.844884",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "measured": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.16015625 1.18359375 1 1",
+        "FirmwareVersion": "1.11d",
+        "Compression": 34713,
+        "BitsPerSample": 12
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
+    },
+    {
+      "make": "Nikon",
+      "model": "D810",
+      "sha256": "40a9df99865ad25a68b1131014cf954fb72da8bc32991b6a5e19d14937e21bc9",
+      "url": "https://raw.pixls.us/getfile.php/2029/nice/Nikon - D810 - 14bit 14bit compressed (Lossless) (3:2).NEF",
+      "tags": {
+        "Make": "NIKON CORPORATION",
+        "Model": "NIKON D810",
+        "DNGVersion": "1 4 0 0",
+        "CameraCalibration1": "1 0 0 0 1 0 0 0 1",
+        "CameraCalibration2": "1 0 0 0 1 0 0 0 1",
+        "CameraCalibrationSig": "com.adobe",
+        "ProfileCalibrationSig": "com.adobe",
+        "AnalogBalance": "1 1 1",
+        "BaselineExposure": 0.35,
+        "BlackLevel": "600 600 600 600",
+        "WhiteLevel": 15520,
+        "ISO": 100,
+        "AsShotNeutral": "0.462929 1 0.844884",
+        "CalibrationIlluminant1": 17,
+        "CalibrationIlluminant2": 21,
+        "PhotometricInterpretation": 32803,
+        "SamplesPerPixel": 1,
+        "BitsPerSample": 16
+      },
+      "measured": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "native_metadata": {
+        "ISO": 100,
+        "WB_RBLevels": "2.16015625 1.18359375 1 1",
+        "FirmwareVersion": "1.11d",
+        "Compression": 34713,
+        "BitsPerSample": 14
+      },
+      "evidence_role": "diagnostic",
+      "capture_revision": "e8335b45e871bc4bd19814b9c9c7b50785d542be"
     }
   ]
 }

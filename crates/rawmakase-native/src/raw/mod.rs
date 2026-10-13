@@ -91,6 +91,11 @@ impl Raw {
                 .iter()
                 .all(|v| v.is_finite() && *v > 0.)
                 .then_some(m.sony_daylight_wb),
+            fuji_daylight_wb: m
+                .fuji_daylight_wb
+                .iter()
+                .all(|v| v.is_finite() && *v > 0.)
+                .then_some(m.fuji_daylight_wb),
             matrix: std::array::from_fn(|r| std::array::from_fn(|c| m.matrix[r * 3 + c])),
             cam_xyz: std::array::from_fn(|r| std::array::from_fn(|c| m.cam_xyz[r * 3 + c])),
             lens: None,

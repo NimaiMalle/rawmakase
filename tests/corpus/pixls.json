@@ -1800,6 +1800,96 @@
    "sha256": "8e7229f28be30bfa45289940eac04194af2b3474f6db286e4fa4070c145a0a70",
    "size_mb": 88.21,
    "license": "CC0-1.0"
+  },
+  {
+   "make": "Sony",
+   "model": "ILCE-1M2",
+   "mode": "14bit lossless (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/7833/nice/Sony - ILCE-1M2 - 14bit lossless (3:2).ARW",
+   "sha256": "3f4ce83f58b1809b9f0d70489091b44e9597a57ec80470bade3fcf53640c6469",
+   "size_mb": 25.15,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Sony",
+   "model": "DSC-RX1RM3",
+   "mode": "4:3",
+   "url": "https://raw.pixls.us/getfile.php/8547/nice/Sony - DSC-RX1RM3 - 4:3.ARW",
+   "sha256": "0fbbc32e4e24faa3626027987bc1591faf5aec76b47c8f857464ee97be9c224a",
+   "size_mb": 34.63,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Sony",
+   "model": "DSC-RX1RM3",
+   "mode": "14bit (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/8548/nice/Sony - DSC-RX1RM3 - 14bit (3:2).ARW",
+   "sha256": "62708b41b6e223f5a6dbf93e17cb99bf5a936a42d4cedcd7cf963257b59d3a28",
+   "size_mb": 65.89,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Fujifilm",
+   "model": "X-T5",
+   "mode": "14bit 14bit compressed (16:9)",
+   "url": "https://raw.pixls.us/getfile.php/7271/nice/Fujifilm - X-T5 - 14bit 14bit compressed (16:9).RAF",
+   "sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+   "size_mb": 24.54,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Fujifilm",
+   "model": "X-T3",
+   "mode": "14bit 14bit uncompressed (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/2784/nice/Fujifilm - X-T3 - 14bit 14bit uncompressed (3:2).RAF",
+   "sha256": "24abd27b4a200f3170ea1579672944b807d0eb35bf21422a3937bb644f27f2eb",
+   "size_mb": 53.49,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Fujifilm",
+   "model": "X100VI",
+   "mode": "14bit 14bit uncompressed (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/7300/nice/Fujifilm - X100VI - 14bit 14bit uncompressed (3:2).RAF",
+   "sha256": "8e5e4d8d2e0a865ca79b3d40734b6abc2f4b00281afea8b9bd3d8c29808f2fb3",
+   "size_mb": 83.53,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Fujifilm",
+   "model": "X100VI",
+   "mode": "14bit 14bit lossless compressed (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/7301/nice/Fujifilm - X100VI - 14bit 14bit lossless compressed (3:2).RAF",
+   "sha256": "e9709b98f4ff96b993dbe4ad20eff0accfa709a58559eb4219f59d1e7181934a",
+   "size_mb": 47.09,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Canon",
+   "model": "EOS 5D Mark IV",
+   "mode": "RAW (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/983/nice/Canon - EOS 5D Mark IV - RAW (3:2).CR2",
+   "sha256": "02b23f9cc6dc4c99fb39aa4d1f65ac227804d06461ac1bd0f842aa2f3beb8fe4",
+   "size_mb": 32.33,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Nikon",
+   "model": "D810",
+   "mode": "12bit 12bit compressed (Lossless) (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/2033/nice/Nikon - D810 - 12bit 12bit compressed (Lossless) (3:2).NEF",
+   "sha256": "ea8baa753dc1d77fdabb3f35048f71aa3c99d5b675f50f6a8d301ab287f5fd68",
+   "size_mb": 31.51,
+   "license": "CC0-1.0"
+  },
+  {
+   "make": "Nikon",
+   "model": "D810",
+   "mode": "14bit 14bit compressed (Lossless) (3:2)",
+   "url": "https://raw.pixls.us/getfile.php/2029/nice/Nikon - D810 - 14bit 14bit compressed (Lossless) (3:2).NEF",
+   "sha256": "40a9df99865ad25a68b1131014cf954fb72da8bc32991b6a5e19d14937e21bc9",
+   "size_mb": 40.26,
+   "license": "CC0-1.0"
   }
  ]
 }

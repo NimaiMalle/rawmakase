@@ -451,3 +451,70 @@ fn profiles_fit_under_the_names_adobe_uses() {
         "Google Pixel 7 Pro Wide Camera"
     ));
 }
+
+#[test]
+fn xt5_per_file_calibration_matches_independent_converter_samples() {
+    // Public samples 6123 (calibration, ISO 125) and 7271 (validation, ISO 400).
+    // Do not install either sample's gains as a fixed camera correction.
+    for (daylight, expected) in [
+        ([658., 302., 473.], [0.9347, 1., 1.055]),
+        ([646., 302., 494.], [0.952, 1., 1.0101]),
+    ] {
+        let m = Metadata {
+            make: "Fujifilm".into(),
+            model: "X-T5".into(),
+            fuji_daylight_wb: Some(daylight),
+            ..x100f()
+        };
+        let mut p = CameraProfile::camera_matrix_default(&m).unwrap();
+        p.calibration_signature = "com.adobe".into();
+        assert_eq!(p.neutral_calibration(&m), expected);
+        let mut dng = m.clone();
+        dng.baseline_exposure = Some(0.02);
+        dng.dng_neutral_calibration = Some(crate::camera_data::NeutralCalibration {
+            gains: expected,
+            signature: "com.adobe".into(),
+        });
+        assert_eq!(p.as_shot_white_balance(&m), p.as_shot_white_balance(&dng));
+        for t in [2856., 3200., 5600., 7500.] {
+            for tint in [-20., 0., 20.] {
+                assert_eq!(p.white_balance(t, tint, &m), p.white_balance(t, tint, &dng));
+            }
+        }
+        // Native preset units do not change the calibration. DNG facts win even
+        // if a caller leaves native metadata on the object: never apply twice.
+        let mut scaled = m.clone();
+        scaled.fuji_daylight_wb = Some(daylight.map(|v| v * 2.));
+        assert_eq!(p.neutral_calibration(&scaled), expected);
+        dng.fuji_daylight_wb = Some([1., 1., 1.]);
+        assert_eq!(p.neutral_calibration(&dng), expected);
+        dng.dng_neutral_calibration = None;
+        assert_eq!(p.neutral_calibration(&dng), [1.; 3]);
+        p.calibration_signature = "unrelated".into();
+        assert_eq!(p.neutral_calibration(&m), [1.; 3]);
+    }
+}
+
+#[test]
+fn xt5_missing_invalid_and_other_models_do_not_borrow_calibration() {
+    let mut m = Metadata {
+        make: "Fujifilm".into(),
+        model: "X-T5".into(),
+        ..x100f()
+    };
+    let mut p = CameraProfile::camera_matrix_default(&m).unwrap();
+    p.calibration_signature = "com.adobe".into();
+    for daylight in [
+        None,
+        Some([0., 302., 473.]),
+        Some([658., f32::NAN, 473.]),
+        Some([658., 302., f32::INFINITY]),
+        Some([1., 302., 1.]),
+    ] {
+        m.fuji_daylight_wb = daylight;
+        assert_eq!(p.neutral_calibration(&m), [1.; 3]);
+    }
+    m.fuji_daylight_wb = Some([658., 302., 473.]);
+    m.model = "X-T50".into();
+    assert_eq!(p.neutral_calibration(&m), [1.; 3]);
+}

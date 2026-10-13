@@ -49,6 +49,10 @@ pub struct Camera {
     /// daylight preset to obtain its individual-unit calibration.
     #[serde(default)]
     pub sony_daylight_reference: Option<[f32; 3]>,
+    /// Fujifilm model reference divided by the RAW's native D65 standard preset.
+    /// Only models verified with independent files have a reference.
+    #[serde(default)]
+    pub fujifilm_daylight_reference: Option<[f32; 3]>,
     /// Fujifilm only: see [`ExposureShift`].
     #[serde(default)]
     pub fujifilm_exposure_shift: ExposureShift,
@@ -207,7 +211,10 @@ pub fn neutral_calibration(make: &str, model: &str, daylight: Option<[f32; 3]>) 
     let Some(row) = find_in(all(), make, model) else {
         return [1.; 3];
     };
-    if let Some(reference) = row.sony_daylight_reference {
+    if let Some(reference) = row
+        .sony_daylight_reference
+        .or(row.fujifilm_daylight_reference)
+    {
         let Some(wb) = daylight.filter(|v| v.iter().all(|v| v.is_finite() && *v > 0.)) else {
             return [1.; 3];
         };
@@ -330,6 +337,18 @@ mod tests {
                     "{name}"
                 );
             }
+            if let Some(v) = c.fujifilm_daylight_reference {
+                assert!(
+                    c.make == "Fujifilm"
+                        && c.neutral_calibration.is_none()
+                        && c.sony_daylight_reference.is_none(),
+                    "{name}"
+                );
+                assert!(
+                    v.iter().all(|v| v.is_finite() && *v > 0. && *v < 65536.),
+                    "{name}"
+                );
+            }
             let d: Vec<&str> = c.checked.split('-').collect();
             assert!(
                 d.len() == 3 && d.iter().all(|p| p.parse::<u32>().is_ok()) && d[0].len() == 4,
@@ -365,6 +384,7 @@ mod tests {
             baseline_exposure: ev,
             neutral_calibration: None,
             sony_daylight_reference: None,
+            fujifilm_daylight_reference: None,
             fujifilm_exposure_shift: ExposureShift::Followed,
             fujifilm_dr100_shift: None,
             source: Source::Fitted,

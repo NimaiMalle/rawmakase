@@ -33,7 +33,7 @@ struct Metadata {
     float focal_35mm;
     int highlight_tone_priority;
     float fuji_exposure_shift;
-    float sony_daylight_wb[3];
+    float sony_daylight_wb[3], fuji_daylight_wb[3];
     // The visible image's offset in the raw data, and the camera's aspect-ratio
     // crop in raw coordinates, as crop_* are (cleft 0xffff when there is none).
     unsigned left_margin, top_margin;
@@ -249,6 +249,10 @@ void* ora_open(const char* path, Metadata* m, char* err) {
         if (d.idata.maker_index == LIBRAW_CAMERAMAKER_Sony && !d.idata.dng_version) {
             for (int c=0; c<3; ++c)
                 m->sony_daylight_wb[c] = d.color.WB_Coeffs[LIBRAW_WBI_Daylight][c];
+        }
+        if (d.idata.maker_index == LIBRAW_CAMERAMAKER_Fujifilm && !d.idata.dng_version) {
+            for (int c=0; c<3; ++c)
+                m->fuji_daylight_wb[c] = d.color.WB_Coeffs[LIBRAW_WBI_D65][c];
         }
         for(int c=0;c<3;++c) {
             m->daylight_wb[c] = d.color.pre_mul[c];

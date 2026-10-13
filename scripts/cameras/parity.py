@@ -50,6 +50,14 @@ def cases():
                                 ('Dehaze', 'dehaze', [20, 40]),
                                 ('Whites2012', 'whites', [50, 100])]:
         result.extend((f'{label}{v}', {key: str(v)}) for v in amounts)
+    for ev in [-1, 1]:
+        result.append((f'exposure{ev:+d}', dict(Exposure2012=str(ev))))
+    for value in [-100, 100]:
+        result.append((f'highlights{value:+d}', dict(Highlights2012=str(value))))
+    result.append(('shadows100-highlights-100', dict(Shadows2012='100', Highlights2012='-100')))
+    result.append(('wb-3200-20-contrast50-shadows50-highlights-50',
+                   dict(WhiteBalance='Custom', Temperature='3200', Tint='20',
+                        Contrast2012='50', Shadows2012='50', Highlights2012='-50')))
     return result
 
 
@@ -163,6 +171,8 @@ def check(args):
     manifest = json.loads((out / 'manifest.json').read_text())
     render = out / 'candidate'; render.mkdir(exist_ok=True)
     results, originals = [], {}
+    wb_only = {name for name, settings in cases() if settings
+               and set(settings) <= {'WhiteBalance', 'Temperature', 'Tint'}}
     for c in manifest['cases']:
         try:
             raw = Path(c['raw']); ref = out / c['reference']; xmp = out / c['xmp']
@@ -213,9 +223,9 @@ def check(args):
         extra = measured['mae'] - originals[key]['mae']
         limit = .025 if c['name'].startswith('whites') else .020
         failed = measured['median_de00'] > 3 if c['name'] == 'default' else (
-            measured['median_de00'] > originals[key]['median_de00'] + 1.0 if c['name'].startswith('wb') else extra > limit)
+            measured['median_de00'] > originals[key]['median_de00'] + 1.0 if c['name'] in wb_only else extra > limit)
         effect = {}
-        if c['name'] != 'default' and not c['name'].startswith('wb'):
+        if c['name'] != 'default' and c['name'] not in wb_only:
             effect = effect_score(a, aligned, originals[key]['reference'], originals[key]['actual'])
             failed |= not effect['effect_passed']
         results.append(dict(sample=key, name=c['name'], alignment=offset, **measured, **effect, extra_mae=extra, passed=not failed))

@@ -24,7 +24,10 @@ from pathlib import Path
 
 IDENTITY = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 TAGS = ['Make', 'Model', 'DNGVersion', 'CameraCalibration1', 'CameraCalibration2',
-        'CameraCalibrationSig', 'ProfileCalibrationSig', 'AnalogBalance']
+        'CameraCalibrationSig', 'ProfileCalibrationSig', 'AnalogBalance',
+        'ISO', 'BaselineExposure', 'BlackLevel', 'WhiteLevel', 'AsShotNeutral',
+        'CalibrationIlluminant1', 'CalibrationIlluminant2',
+        'PhotometricInterpretation', 'SamplesPerPixel', 'BitsPerSample']
 TABLE = Path(__file__).resolve().parents[2] / 'data/cameras.toml'
 
 
@@ -65,6 +68,28 @@ def table_row(rows, make, model):
                  and model.casefold() in [v.casefold() for v in [r['model'], *r.get('aliases', [])]]), None)
 
 
+def native_daylight(tags, make):
+    """Read native RGB daylight facts, never the matrix-derived pre_mul."""
+    try:
+        if make.casefold() == 'sony' and 'WB_RGBLevelsDaylight' in tags:
+            values = numbers(tags, 'WB_RGBLevelsDaylight', [0.] * 3)
+        elif make.casefold() == 'fujifilm' and 'WB_GRBLevelsStandard' in tags:
+            raw = tags['WB_GRBLevelsStandard']
+            values = [float(v) for v in (raw if isinstance(raw, list) else str(raw).split())]
+            if len(values) % 4 or not all(math.isfinite(v) for v in values):
+                return None
+            d65 = [values[n:n + 3] for n in range(0, len(values), 4) if values[n + 3] == 21]
+            if len(d65) != 1:
+                return None
+            g, r, b = d65[0]
+            values = [r, g, b]
+        else:
+            return None
+        return values if all(v > 0 for v in values) else None
+    except (ValueError, TypeError):
+        return None
+
+
 def audit(tags, rows):
     make, model = tags.get('Make', ''), tags.get('Model', '')
     make = {'nikon corporation': 'Nikon', 'ricoh imaging company, ltd.': 'Pentax',
@@ -83,27 +108,30 @@ def audit(tags, rows):
     except (ValueError, TypeError) as error:
         return dict(result, status='unsupported', reason=str(error))
     row = table_row(rows, make, model)
-    if make.casefold() == 'sony' and 'NativeDaylightWB' not in tags:
-        return dict(result, status='unsupported', reason='Sony calibration audit requires native RAW daylight metadata; pass the RAW with --converter')
+    reference_field = 'fujifilm_daylight_reference' if make.casefold() == 'fujifilm' else 'sony_daylight_reference'
+    needs_daylight = make.casefold() == 'sony' or row and reference_field in row
+    if needs_daylight and 'NativeDaylightWB' not in tags:
+        return dict(result, status='unsupported', reason='Calibration audit requires native RAW daylight metadata; pass the RAW with --converter')
     proposed = f'neutral_calibration = {json.dumps(actual)}'
-    if make.casefold() == 'sony' and 'NativeDaylightWB' in tags:
+    if make.casefold() in ('sony', 'fujifilm') and 'NativeDaylightWB' in tags:
         try:
             wb = numbers(tags, 'NativeDaylightWB', [0.] * 3)
             if any(v <= 0 for v in wb):
                 raise ValueError('invalid native daylight preset')
         except (ValueError, TypeError) as error:
             return dict(result, status='unsupported', reason=str(error))
-        reference = [round(g * w / wb[1] * 1024) for g, w in zip(actual, wb)]
-        if any(abs(r / 1024 / (w / wb[1]) - g) > .00005 for r, w, g in zip(reference, wb, actual)):
-            return dict(result, status='unsupported', reason='Sony daylight reference does not reproduce DNG calibration')
+        scale = 1024 if make.casefold() == 'sony' else wb[1]
+        reference = [round(g * w / wb[1] * scale) for g, w in zip(actual, wb)]
+        if any(abs(r / scale / (w / wb[1]) - g) > .00005 for r, w, g in zip(reference, wb, actual)):
+            return dict(result, status='unsupported', reason='Daylight reference does not reproduce DNG calibration')
         result['proposed_reference'] = reference
-        proposed = f'sony_daylight_reference = {json.dumps(reference)}'
+        proposed = f'{reference_field} = {json.dumps(reference)}'
     else:
         wb = None
-    if row and 'sony_daylight_reference' in row:
+    if row and reference_field in row:
         if wb is None:
-            return dict(result, status='unsupported', reason='Sony calibration audit requires native RAW daylight metadata; pass the RAW with --converter')
-        ref = row['sony_daylight_reference']
+            return dict(result, status='unsupported', reason='Calibration audit requires native RAW daylight metadata; pass the RAW with --converter')
+        ref = row[reference_field]
         expected = [math.floor((r / ref[1]) / (w / wb[1]) * 10000 + .5) / 10000
                     for r, w in zip(ref, wb)]
     else:
@@ -140,9 +168,10 @@ def main():
                 source = converted[0]
             tags = json.loads(subprocess.check_output(['exiftool', '-j', '-n', *['-' + t for t in TAGS], str(source)]))[0]
             if args.converter:
-                native = json.loads(subprocess.check_output(['exiftool', '-j', '-n', '-WB_RGBLevelsDaylight', str(raw)]))[0]
-                if 'WB_RGBLevelsDaylight' in native:
-                    tags['NativeDaylightWB'] = [float(v) for v in str(native['WB_RGBLevelsDaylight']).split()]
+                native = json.loads(subprocess.check_output(['exiftool', '-j', '-n', '-WB_RGBLevelsDaylight', '-WB_GRBLevelsStandard', str(raw)]))[0]
+                daylight = native_daylight(native, tags.get('Make', ''))
+                if daylight is not None:
+                    tags['NativeDaylightWB'] = daylight
             record.update(audit(tags, rows))
             record['tags'] = {k: v for k, v in tags.items() if k != 'SourceFile'}
             results.append(record)
@@ -155,7 +184,7 @@ def main():
     for samples in by_camera.values():
         if len({tuple(r.get('proposed_reference', r['measured'])) for r in samples}) > 1:
             for r in samples:
-                r.update(status='conflict', reason='samples from this body have different calibrations')
+                r.update(status='conflict', reason='samples of this model imply different calibration references; body identity is unknown')
     report = {'schema': 1, 'samples': results}
     args.report.write_text(json.dumps(report, indent=2) + '\n')
     for r in results:

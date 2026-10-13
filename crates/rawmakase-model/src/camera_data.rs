@@ -55,6 +55,9 @@ pub struct Metadata {
     /// Unlike `daylight_wb`, this is not calculated from a color matrix.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sony_daylight_wb: Option<[f32; 3]>,
+    /// Fujifilm's native D65 standard preset (RGB), not the matrix-derived pre_mul.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fuji_daylight_wb: Option<[f32; 3]>,
     pub matrix: [[f32; 3]; 3],
     /// LibRaw's XYZ(D65)-to-camera matrix, equivalent to a DNG ColorMatrix. Zero when unknown.
     #[serde(default)]

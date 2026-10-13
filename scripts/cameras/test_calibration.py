@@ -27,7 +27,11 @@ class CalibrationTests(unittest.TestCase):
                 if 'measured' in fact:
                     self.assertEqual(c.calibration(fact['tags']), fact['measured'])
                     self.assertEqual(result['measured'], fact['measured'])
-                    if result['make'].casefold() == 'sony' or (result['make'], result['model']) == ('Fujifilm', 'X100F'):
+                    row = c.table_row(rows, result['make'], result['model'])
+                    if row is None:
+                        self.assertEqual(result['status'], 'missing', result)
+                        self.assertEqual(result['applied'], [1.] * 3)
+                    elif result['make'].casefold() == 'sony' or (result['make'].casefold() == 'fujifilm' and result['model'] in ('X100F', 'X-T5')):
                         self.assertEqual(result['status'], 'ok', result)
                     else:
                         # Other makes remain measured evidence, not a per-unit
@@ -50,6 +54,27 @@ class CalibrationTests(unittest.TestCase):
             result = c.audit(tags, rows)
             self.assertEqual(result['status'], 'ok', result)
             self.assertEqual(result['applied'], gains)
+
+    def test_fujifilm_d65_standard_preset_keeps_channel_order(self):
+        native = dict(WB_GRBLevelsStandard='302 390 810 17 302 658 473 21')
+        self.assertEqual(c.native_daylight(native, 'FUJIFILM'), [658., 302., 473.])
+        native['WB_GRBLevelsStandard'] = '302 658 473 21 302 390 810 17'
+        self.assertEqual(c.native_daylight(native, 'FUJIFILM'), [658., 302., 473.])
+        for value in ['302 390 810 17', '302 658 nan 21', '302 658 473 21 302 640 480 21']:
+            native['WB_GRBLevelsStandard'] = value
+            self.assertIsNone(c.native_daylight(native, 'FUJIFILM'))
+
+    def test_xt5_uses_per_file_preset_not_a_fixed_gain(self):
+        rows = [dict(make='Fujifilm', model='X-T5', fujifilm_daylight_reference=[615, 302, 499])]
+        for wb, gains in [([658, 302, 473], [.9347, 1., 1.055]),
+                          ([646, 302, 494], [.952, 1., 1.0101])]:
+            tags = self.tags()
+            tags.update(Make='FUJIFILM', Model='X-T5', NativeDaylightWB=wb,
+                        CameraCalibration1=[gains[0], 0, 0, 0, 1, 0, 0, 0, gains[2]],
+                        CameraCalibration2=[gains[0], 0, 0, 0, 1, 0, 0, 0, gains[2]])
+            self.assertEqual(c.audit(tags, rows)['status'], 'ok')
+            del tags['NativeDaylightWB']
+            self.assertEqual(c.audit(tags, rows)['status'], 'unsupported')
 
     def tags(self):
         return dict(Make='SONY', Model='ILCE-7M4', DNGVersion='1 7 1 0',

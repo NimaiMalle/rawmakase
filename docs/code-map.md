@@ -439,5 +439,8 @@ in the validation documents so each has a clear home.
 
 `scripts/cameras/check-calibration.py` audits converter metadata against the camera
 table; `data/camera-calibration-facts.json` holds public-sample and anonymous local numerical evidence.
+`scripts/cameras/inventory.py` groups that evidence by model and failure type,
+with baseline exposure kept separate; [the inventory](camera-calibration-inventory.md)
+and [assessment](camera-calibration-audit.md) record coverage and unresolved cases.
 `scripts/cameras/parity.py` captures and verifies Camera Raw renders and compares
 frozen references with RAWmakase. See [camera parity](camera-parity.md).

@@ -2,10 +2,12 @@
 
 `data/cameras.toml` holds what RAWmakase knows about camera bodies beyond what the raw
 file says, one `[[camera]]` row per model. It is compiled into the app
-(`src/cameras.rs`) and checked by a unit test, so a malformed row fails `cargo test`.
+(`crates/rawmakase-model/src/cameras.rs`) and checked by a unit test, so a malformed row fails `cargo test`.
 A row carries baseline exposure. Sony rows also hold a white-balance daylight
 reference combined with the individual RAW’s daylight preset. The existing
-X100F correction is retained; other non-Sony converter measurements remain
+X100F correction is retained. The X-T5 uses its own native D65 standard preset
+with `fujifilm_daylight_reference = [615, 302, 499]`, verified on two public RAWs
+at ISO 125 and 400. Other non-Sony converter measurements remain
 diagnostic facts until their applicability across camera units is verified. Calibration uses exact model/alias matching and identity for unknown
 bodies; it does not use the baseline exposure fallback. See
 [camera parity](camera-parity.md) for calibration provenance and automated audits.
@@ -169,8 +171,8 @@ GFX100RF, GFX100S, GFX100S II and GFX50S II samples, for which RAWmakase does no
 and 645Z and Fujifilm X-T200 and X-T50, whose default crop differs from Camera Raw's.
 
 Four rows are not from raw.pixls.us: the X100F (read from two Lightroom DNGs, see
-`macos-lightroom-validation.md`), the A7 II and A7CR, fitted to Camera Raw 18.6
-renders of private photos (8 and 4), and the A7R VI, read from Adobe DNG Converter
+`macos-lightroom-validation.md`), the A7 II (+0.35 EV from three Converter 18.7 samples) and A7CR
+(fitted to Camera Raw 18.6 renders of four private photos), and the A7R VI, read from Adobe DNG Converter
 18.7's DNG of one private photo. LibRaw does not identify the A7R VI by name yet, but
 its white level, black level and crop match Adobe's.
 
