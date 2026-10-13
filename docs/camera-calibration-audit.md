@@ -29,6 +29,9 @@ all public hashes were verified. Originals and sidecars were untouched. Numerica
 recording metadata, baseline tags and native WB facts were added; no RAWs, profiles,
 serial numbers or local paths are committed. The expanded facts contain **159
 samples / 145 models**: 152 public and seven anonymous local samples.
+Native EXIF `BitsPerSample`/`Compression` can describe a preview rather than
+sensor storage; they are not used to infer RAW precision. Public recording-mode
+labels and converted full-image storage tags are kept separate.
 
 With the X-T5 correction, the expanded audit reports 81 `ok`, 63 `mismatch`, five
 `missing` table rows, and ten `unsupported` samples. The actionable grouping is:
@@ -158,3 +161,27 @@ unexplained. The tree image was a Shadows calibration case (about 0.50 → 1.22 
 Camera Raw 1.34), not independent validation. The other Sony under-lift (~0.44 EV),
 Nikon 1.56 versus 1.65 EV, and the slightly regressed mixed chart remain engine
 limitations. This calibration change does not claim to resolve them.
+
+## Verification record
+
+The candidate source is pinned at `cdcad0c92f077b084ab9d6899e4f03f047de780f`.
+[Numeric render results](../data/camera-calibration-validation.json) retain the
+baseline/candidate binary hashes, source hashes, reference/XMP hashes, verified
+settings, per-case metrics and all framing failures. References remain frozen.
+
+Passed locally on macOS: Rust 1.99 stable formatting, workspace clippy with
+warnings denied, workspace tests (including synthetic/frozen rendering tests),
+model all-features tests, no-default-features clippy, Rust 1.98.1 all-target check,
+seven explicit GPU tests, architecture and crate-closure checks, cargo-deny,
+shadow-context data validation, 26 Python tests and the actual-file native/DNG
+regression including saved settings and the explicit baseline action.
+
+Linux/Windows packaging and installation, PostgreSQL statement preparation and
+the complete private photographic corpus were not run locally. The two X-T5
+photos do not establish all scene, body, firmware, ISO or recording-mode coverage.
+The independent photo's framing gate remains failed, not waived.
+
+Switching baseline/candidate builds in a shared target directory exposed a stale
+native archive: a pinned executable rejected the Rust/C++ metadata layout before
+opening images. That run was discarded. The native package was cleaned and the
+candidate rebuilt; accepted measurements use the rebuilt binary recorded above.

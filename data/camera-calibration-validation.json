@@ -1,0 +1,1928 @@
+{
+  "schema": 1,
+  "measurement_base": "e8335b45e871bc4bd19814b9c9c7b50785d542be",
+  "candidate_revision": "cdcad0c92f077b084ab9d6899e4f03f047de780f",
+  "candidate_binary_sha256": "0f853485c9f0eb79838c29014d41aec9ae45733e1496263c342901150c44aff6",
+  "baseline_binary_sha256": "f9a73ad454b4fa98807059a68e200842c04f545b7d05d8bedbf25dffefbb1264",
+  "profile": "Adobe Standard",
+  "look": null,
+  "limitations": [
+    "ISO 400 sample fails framing gate in both revisions; no rendered parity conclusion for that sample.",
+    "ISO 125 photo is calibration data, not independent validation.",
+    "Native/DNG numerical validation passes on both samples; independent body count is unknown.",
+    "No baseline exposure values or scene-tone operators changed."
+  ],
+  "comparisons": [
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "default",
+      "reference_sha256": "c95e5020921d73fdcbbd5240366eef0f1460825efab88572d49f399d50f30a5a",
+      "resolved_xmp_sha256": "d369caf4384c5d27addb077384000cd9842301ff714bc0d0dc93f619f1cae325",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.6575464223067629,
+        "mae": 0.03697501494713544,
+        "mean_dL": 0.29461130721096623,
+        "p90_L": 82.81384216042942,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21643636363636365,
+            "dL": 2.184491259058072
+          },
+          "40-50": {
+            "fraction": 0.059393939393939395,
+            "dL": -2.6321265727453462
+          },
+          "50-60": {
+            "fraction": 0.06676363636363636,
+            "dL": -1.9891544200610216
+          }
+        },
+        "extra_mae": 0.0,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.662769398012883,
+        "mae": 0.03696404187240039,
+        "mean_dL": 0.3201291178958601,
+        "p90_L": 82.81384216042942,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21643636363636365,
+            "dL": 2.198204591141504
+          },
+          "40-50": {
+            "fraction": 0.059393939393939395,
+            "dL": -2.6010050056081333
+          },
+          "50-60": {
+            "fraction": 0.06676363636363636,
+            "dL": -1.9496301163483354
+          }
+        },
+        "extra_mae": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "wb-3200-0",
+      "reference_sha256": "e638e415c8066a1894b8d2c72bf84c6a09c293a98e003df18e3508675f08a1d3",
+      "resolved_xmp_sha256": "3da44b2765a8352c362f69673d93d8a95ad24687b7fc1425a924b6d9864296d1",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "3200",
+        "Tint": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.611531278089355,
+        "mae": 0.044348544711959835,
+        "mean_dL": -0.05916242383846323,
+        "p90_L": 80.95759376350166,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2322909090909091,
+            "dL": 2.191884119731853
+          },
+          "40-50": {
+            "fraction": 0.06276363636363637,
+            "dL": -2.7623158088593285
+          },
+          "50-60": {
+            "fraction": 0.06802424242424242,
+            "dL": -2.5295576900472976
+          }
+        },
+        "extra_mae": 0.007373529764824395,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.7573274872133693,
+        "mae": 0.03782278949620177,
+        "mean_dL": 0.18754657172844935,
+        "p90_L": 80.95759376350166,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2322909090909091,
+            "dL": 2.169876755675808
+          },
+          "40-50": {
+            "fraction": 0.06276363636363637,
+            "dL": -2.5377143087878054
+          },
+          "50-60": {
+            "fraction": 0.06802424242424242,
+            "dL": -2.1202175265506478
+          }
+        },
+        "extra_mae": 0.0008587476238013786,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "wb-5600-0",
+      "reference_sha256": "d7144474f0e8fcdde98ca76c55f575612491e7bd73a5a7da32bbafc9fb815f5d",
+      "resolved_xmp_sha256": "d2d566aca79375dab3d391658d8c5d5a7a8840f3f7239fa695ff8170e91acaf7",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "5600",
+        "Tint": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.0937679202505035,
+        "mae": 0.03984349534516208,
+        "mean_dL": -0.07985723326642345,
+        "p90_L": 83.28681775290552,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21575757575757576,
+            "dL": 1.9507703331764297
+          },
+          "40-50": {
+            "fraction": 0.05861818181818182,
+            "dL": -3.0901681299567625
+          },
+          "50-60": {
+            "fraction": 0.0679030303030303,
+            "dL": -2.417297116830015
+          }
+        },
+        "extra_mae": 0.002868480398026639,
+        "passed": false
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.659493511059226,
+        "mae": 0.03690638612221851,
+        "mean_dL": 0.3172041444567694,
+        "p90_L": 83.28681775290552,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21575757575757576,
+            "dL": 2.2102586667391177
+          },
+          "40-50": {
+            "fraction": 0.05861818181818182,
+            "dL": -2.7218034037473844
+          },
+          "50-60": {
+            "fraction": 0.0679030303030303,
+            "dL": -1.9589470218722969
+          }
+        },
+        "extra_mae": -5.765575018187863e-05,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "wb-7500-0",
+      "reference_sha256": "e31d331c7ee232092265b8fabe853e3481616c7f2503c1c7b391e2bc8d33ce71",
+      "resolved_xmp_sha256": "5c48581e30c98f9dad45af165307489dd28dbd6977730a3f45d115a4fafcfd19",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "7500",
+        "Tint": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.4867097785317203,
+        "mae": 0.04013396235519757,
+        "mean_dL": -0.0882845762757452,
+        "p90_L": 84.37829549912324,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21161212121212122,
+            "dL": 1.9767689226583194
+          },
+          "40-50": {
+            "fraction": 0.05619393939393939,
+            "dL": -4.030863806986536
+          },
+          "50-60": {
+            "fraction": 0.07498181818181818,
+            "dL": -2.4735925626931214
+          }
+        },
+        "extra_mae": 0.003158947408062128,
+        "passed": false
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.6592459840368092,
+        "mae": 0.03723113276333727,
+        "mean_dL": 0.3677314343407864,
+        "p90_L": 84.37829549912324,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21161212121212122,
+            "dL": 2.352287424707609
+          },
+          "40-50": {
+            "fraction": 0.05619393939393939,
+            "dL": -3.4219243635562266
+          },
+          "50-60": {
+            "fraction": 0.07498181818181818,
+            "dL": -1.8011247508589694
+          }
+        },
+        "extra_mae": 0.00026709089093687743,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "wb-5600-20",
+      "reference_sha256": "e2b21ca4b38fd1740a4beea8eb4974b0dcade2ce6932b303544a793924974e79",
+      "resolved_xmp_sha256": "d8a7a3a91786669fd0d9f6fb52d2a64d03fab9750db763eacad73eb5509cfb69",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "5600",
+        "Tint": "20"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.211109470340905,
+        "mae": 0.04019770416710308,
+        "mean_dL": -0.08098468953958275,
+        "p90_L": 83.01701680525703,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2145939393939394,
+            "dL": 1.9542956200115527
+          },
+          "40-50": {
+            "fraction": 0.05856969696969697,
+            "dL": -3.111518662629104
+          },
+          "50-60": {
+            "fraction": 0.06896969696969697,
+            "dL": -2.362249573333005
+          }
+        },
+        "extra_mae": 0.003222689219967642,
+        "passed": false
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.670084200419315,
+        "mae": 0.037332585760489846,
+        "mean_dL": 0.3342742073115724,
+        "p90_L": 83.01701680525703,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2145939393939394,
+            "dL": 2.247081614358017
+          },
+          "40-50": {
+            "fraction": 0.05856969696969697,
+            "dL": -2.754925433761074
+          },
+          "50-60": {
+            "fraction": 0.06896969696969697,
+            "dL": -1.9454819777690173
+          }
+        },
+        "extra_mae": 0.0003685438880894551,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "shadows50",
+      "reference_sha256": "dae956792fd950123a9e5465fddbda73cb2b58c0bee5edfe5b43c51956522089",
+      "resolved_xmp_sha256": "f77167c40f5857dbd502a8099dd33665998ff581ace274ce0b3d55d2693e3111",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "50",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.0985091743617184,
+        "mae": 0.04207447144595702,
+        "mean_dL": -0.037452780216416896,
+        "p90_L": 83.1568493449735,
+        "bands": {
+          "10-20": {
+            "fraction": 0.11069090909090909,
+            "dL": 3.3424017393905734
+          },
+          "40-50": {
+            "fraction": 0.06383030303030303,
+            "dL": -4.622348287770765
+          },
+          "50-60": {
+            "fraction": 0.07922424242424242,
+            "dL": -1.3055336277022709
+          }
+        },
+        "reference_effect": 0.04008679213142722,
+        "candidate_effect": 0.03741339595769758,
+        "effect_mae": 0.01050222217272901,
+        "effect_passed": true,
+        "extra_mae": 0.0050994564988215765,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.101324093711444,
+        "mae": 0.04209045933720602,
+        "mean_dL": -0.003949610984259219,
+        "p90_L": 83.1568493449735,
+        "bands": {
+          "10-20": {
+            "fraction": 0.11069090909090909,
+            "dL": 3.3514485732464885
+          },
+          "40-50": {
+            "fraction": 0.06383030303030303,
+            "dL": -4.605168840414156
+          },
+          "50-60": {
+            "fraction": 0.07922424242424242,
+            "dL": -1.2590740882218472
+          }
+        },
+        "reference_effect": 0.04008679213142722,
+        "candidate_effect": 0.037475743329389855,
+        "effect_mae": 0.010486768098036664,
+        "effect_passed": true,
+        "extra_mae": 0.005126417464805626,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "shadows100",
+      "reference_sha256": "57d15638deeb4567185d4ea5e0db65bfd2c6fa8906c61cc0787b2bf34b29106b",
+      "resolved_xmp_sha256": "351cce05a4762a04c5bb9adb8d419b16396d41ebb04f57ab25ab7ffb01254921",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "100",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.649327098808837,
+        "mae": 0.049836588550134585,
+        "mean_dL": -0.32925957559136015,
+        "p90_L": 83.50865714775273,
+        "bands": {
+          "10-20": {
+            "fraction": 0.023563636363636363,
+            "dL": 10.822937757975112
+          },
+          "40-50": {
+            "fraction": 0.10455757575757575,
+            "dL": -3.812803183694296
+          },
+          "50-60": {
+            "fraction": 0.08152727272727273,
+            "dL": -4.252191809285454
+          }
+        },
+        "reference_effect": 0.0903357204399703,
+        "candidate_effect": 0.08502909207143013,
+        "effect_mae": 0.02294051643073889,
+        "effect_passed": true,
+        "extra_mae": 0.012861573602999145,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.6536866981004152,
+        "mae": 0.04983693227055382,
+        "mean_dL": -0.28503935210665654,
+        "p90_L": 83.50865714775273,
+        "bands": {
+          "10-20": {
+            "fraction": 0.023563636363636363,
+            "dL": 10.866093898592316
+          },
+          "40-50": {
+            "fraction": 0.10455757575757575,
+            "dL": -3.8005262447445567
+          },
+          "50-60": {
+            "fraction": 0.08152727272727273,
+            "dL": -4.2124364007995005
+          }
+        },
+        "reference_effect": 0.0903357204399703,
+        "candidate_effect": 0.08518588459340681,
+        "effect_mae": 0.022900220546250735,
+        "effect_passed": true,
+        "extra_mae": 0.012872890398153432,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "dehaze20",
+      "reference_sha256": "9699584fd0ee1f103b92a717b33acc62de8d1aa47a1d9ed78460a04ec3c57b99",
+      "resolved_xmp_sha256": "74f21b9d8c37eaa340dbb620d3f47a1ec921a9668154d13730a2d226fbb6f656",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "20"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.2103565926144624,
+        "mae": 0.04241429104613685,
+        "mean_dL": -0.17021184678604623,
+        "p90_L": 80.18156571655548,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21241212121212122,
+            "dL": 1.575048543053726
+          },
+          "40-50": {
+            "fraction": 0.0632,
+            "dL": -4.128860861169841
+          },
+          "50-60": {
+            "fraction": 0.06623030303030303,
+            "dL": -3.6431709683773925
+          }
+        },
+        "reference_effect": 0.02237582313639554,
+        "candidate_effect": 0.027047588326688386,
+        "effect_mae": 0.009821254084647735,
+        "effect_passed": true,
+        "extra_mae": 0.005439276099001411,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.2031926123923027,
+        "mae": 0.04237382016662709,
+        "mean_dL": -0.14114243080692773,
+        "p90_L": 80.18156571655548,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21241212121212122,
+            "dL": 1.5834864563291389
+          },
+          "40-50": {
+            "fraction": 0.0632,
+            "dL": -4.098028108743069
+          },
+          "50-60": {
+            "fraction": 0.06623030303030303,
+            "dL": -3.5959877373289078
+          }
+        },
+        "reference_effect": 0.02237582313639554,
+        "candidate_effect": 0.027033559496179218,
+        "effect_mae": 0.00983100677768872,
+        "effect_passed": true,
+        "extra_mae": 0.005409778294226696,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "dehaze40",
+      "reference_sha256": "34c5a9d026b30a3ac9e589d98e56a92555057ab0e7ba3b2935cf2b40359c26e3",
+      "resolved_xmp_sha256": "8efda30824853d98bf604f11919711f21f091980cd38e0be04fc97449a72cf1b",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "40"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.875423618080447,
+        "mae": 0.048590376249932836,
+        "mean_dL": 0.6557596457135414,
+        "p90_L": 77.097799425148,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1987878787878788,
+            "dL": 1.87321492577254
+          },
+          "40-50": {
+            "fraction": 0.0711030303030303,
+            "dL": -3.3709088990990295
+          },
+          "50-60": {
+            "fraction": 0.07515151515151515,
+            "dL": -1.12504089133716
+          }
+        },
+        "reference_effect": 0.046515885156830666,
+        "candidate_effect": 0.04360135158691432,
+        "effect_mae": 0.018212158367522366,
+        "effect_passed": true,
+        "extra_mae": 0.011615361302797396,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.913200777141281,
+        "mae": 0.04854912795521969,
+        "mean_dL": 0.6868184598271458,
+        "p90_L": 77.097799425148,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1987878787878788,
+            "dL": 1.8737564426644666
+          },
+          "40-50": {
+            "fraction": 0.0711030303030303,
+            "dL": -3.3334763286097426
+          },
+          "50-60": {
+            "fraction": 0.07515151515151515,
+            "dL": -1.0667305087031909
+          }
+        },
+        "reference_effect": 0.046515885156830666,
+        "candidate_effect": 0.04358316489197024,
+        "effect_mae": 0.01822648617861314,
+        "effect_passed": true,
+        "extra_mae": 0.011585086082819301,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "whites50",
+      "reference_sha256": "6fbc933f133015f3d7daea448fa150a565123f8f4ba89bdaef9496eb4d5a47bf",
+      "resolved_xmp_sha256": "1ed63e276ad71b42485587fc18d3a083a0df9016e8df3071462234720bbe0a62",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "50",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.8326283134329036,
+        "mae": 0.040973007789782995,
+        "mean_dL": 0.6553946202684908,
+        "p90_L": 90.20060316575645,
+        "bands": {
+          "10-20": {
+            "fraction": 0.20863030303030303,
+            "dL": 2.5695911217069756
+          },
+          "40-50": {
+            "fraction": 0.047975757575757574,
+            "dL": -4.393009047052162
+          },
+          "50-60": {
+            "fraction": 0.062206060606060605,
+            "dL": -1.0327271990494808
+          }
+        },
+        "reference_effect": 0.03863089608036504,
+        "candidate_effect": 0.04236149549006918,
+        "effect_mae": 0.006444363282135534,
+        "effect_passed": true,
+        "extra_mae": 0.003997992842647555,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.8369986417878397,
+        "mae": 0.04097782243485752,
+        "mean_dL": 0.6737119726847649,
+        "p90_L": 90.20060316575645,
+        "bands": {
+          "10-20": {
+            "fraction": 0.20863030303030303,
+            "dL": 2.5830986671241027
+          },
+          "40-50": {
+            "fraction": 0.047975757575757574,
+            "dL": -4.380550939480988
+          },
+          "50-60": {
+            "fraction": 0.062206060606060605,
+            "dL": -1.008800285841767
+          }
+        },
+        "reference_effect": 0.03863089608036504,
+        "candidate_effect": 0.0422599125513162,
+        "effect_mae": 0.006375268633145253,
+        "effect_passed": true,
+        "extra_mae": 0.004013780562457131,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "whites100",
+      "reference_sha256": "553398720c6ab36995b789c32ed632f9b9feff07c00ce5109221f547bfa9152c",
+      "resolved_xmp_sha256": "4a91d190dac326231b968219a633a538024361ddcca60f7279ddaf3b2888cecd",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "100",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.1674239163617535,
+        "mae": 0.049203391371599285,
+        "mean_dL": 1.3567500558989858,
+        "p90_L": 100.00000386666655,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1373818181818182,
+            "dL": 5.301548099456257
+          },
+          "40-50": {
+            "fraction": 0.037163636363636364,
+            "dL": -0.47983687710811046
+          },
+          "50-60": {
+            "fraction": 0.03675151515151515,
+            "dL": -4.1964957065609925
+          }
+        },
+        "reference_effect": 0.13682257695815647,
+        "candidate_effect": 0.14641237557135336,
+        "effect_mae": 0.02427432670294226,
+        "effect_passed": true,
+        "extra_mae": 0.012228376424463845,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.1651838594740402,
+        "mae": 0.04902963338989147,
+        "mean_dL": 1.3233627363580194,
+        "p90_L": 100.00000386666655,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1373818181818182,
+            "dL": 5.2841321438321565
+          },
+          "40-50": {
+            "fraction": 0.037163636363636364,
+            "dL": -0.5600805692319742
+          },
+          "50-60": {
+            "fraction": 0.03675151515151515,
+            "dL": -4.290882537428668
+          }
+        },
+        "reference_effect": 0.13682257695815647,
+        "candidate_effect": 0.14591703127117425,
+        "effect_mae": 0.02402166668365163,
+        "effect_passed": true,
+        "extra_mae": 0.012065591517491078,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "default",
+      "reference_sha256": "9b237e682f75856a0544dbbb1786a14a2dd41555326b916116e542b0100d8ab8",
+      "resolved_xmp_sha256": "256183efef92c77fe8fe09ceb8e605fc7ebb9f3120562af804127e2060449840",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "wb-3200-0",
+      "reference_sha256": "68fe34ddd36a0847802e8415f9d728acf59087496c7813a64a507eaec1a83cc1",
+      "resolved_xmp_sha256": "b1adb6c58724ae21aafb109f5e180c1bdbac2c9ccb2486f0019f3b87aef3d15b",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "3200",
+        "Tint": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "wb-5600-0",
+      "reference_sha256": "907b132fa97f007cec5dcc46aad269cd92a59df7ace239b31f57611af490e328",
+      "resolved_xmp_sha256": "dd39042a96979cfc911abb26659db8f5bd02de6ad47d041c8eee46c03d803dc8",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "5600",
+        "Tint": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "wb-7500-0",
+      "reference_sha256": "8a90a6f8f789a7f5d9d34a47c69fbfee33ed18a054cb4aa559ccdc59b8562c3a",
+      "resolved_xmp_sha256": "5f005a86193c9c21c6fb5e3e3e5316b60f2a23e62a7b6fc56c8f0e42641f4a2e",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "7500",
+        "Tint": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "wb-5600-20",
+      "reference_sha256": "9f7ed62dbf7b1ec1c30c5bb657e614bfddfa15acc8409974a2af00a07b838b30",
+      "resolved_xmp_sha256": "c2e9b2a35f0c2319891a4d1c1f07d8979a412f0853c0b2d66130ae8154dd3adb",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "5600",
+        "Tint": "20"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "shadows50",
+      "reference_sha256": "c0969a4707efa1e184847a672dece3a0560379e5d21d58c6b89609b51ec14800",
+      "resolved_xmp_sha256": "5cb09231c81c94b9a8002b496dcc2f7b6d674ecb0690c6e2c75950c208e37586",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "50",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "shadows100",
+      "reference_sha256": "b2405adaccbf802130e14a4690bf5e4828262036dee3c1bdf620ffe2039e7285",
+      "resolved_xmp_sha256": "491c3245ecb19a5353d9f19b0d3fca5931cb75632ce549f727da802b0115f941",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "100",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "dehaze20",
+      "reference_sha256": "09c0ab37979eb97b1237332f4ff8149a8c39ce6db4d5cae92f9a456d3387952a",
+      "resolved_xmp_sha256": "1e34ece2ae405abfcfe82d43c3516bcffae535bdd9216a7520a545e95b98892e",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "20"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "dehaze40",
+      "reference_sha256": "0cf462fbaca9f190d92c85dcbc473ccf591d985db25075d950547740ec30a4bd",
+      "resolved_xmp_sha256": "5bf5b7e62668c6f7276e6b3a158c104e1c7e54e958ab565a5fe2ba4264b4f74f",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "40"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "whites50",
+      "reference_sha256": "39d9cff23d7a9bfe8da591ee33fb44f3d7fa5c228b531980d1e673f6c6297423",
+      "resolved_xmp_sha256": "64cef94d3867d50216a6262e8f637e93cbb2f15e9b41108f09259609f7c56795",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "50",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-parity",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "whites100",
+      "reference_sha256": "ceb883a35f759309644fa9639a9202cfe0920358cef4c7e204977436025828f9",
+      "resolved_xmp_sha256": "1f8f38e2613784878969ea40a45aeb3f303125384e3478c6e1feb7958327bd4a",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "100",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "default",
+      "reference_sha256": "4a71c54f4dfd3c30df1549941031a678896a786491831d2cbda613013067b3b5",
+      "resolved_xmp_sha256": "2db37e2bf6ac9e70ff23239bc7aaf71444e2dc6162c807a64a4459da88c9cde9",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.6575464223067629,
+        "mae": 0.03697501494713544,
+        "mean_dL": 0.29461130721096623,
+        "p90_L": 82.81384216042942,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21643636363636365,
+            "dL": 2.184491259058072
+          },
+          "40-50": {
+            "fraction": 0.059393939393939395,
+            "dL": -2.6321265727453462
+          },
+          "50-60": {
+            "fraction": 0.06676363636363636,
+            "dL": -1.9891544200610216
+          }
+        },
+        "extra_mae": 0.0,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.662769398012883,
+        "mae": 0.03696404187240039,
+        "mean_dL": 0.3201291178958601,
+        "p90_L": 82.81384216042942,
+        "bands": {
+          "10-20": {
+            "fraction": 0.21643636363636365,
+            "dL": 2.198204591141504
+          },
+          "40-50": {
+            "fraction": 0.059393939393939395,
+            "dL": -2.6010050056081333
+          },
+          "50-60": {
+            "fraction": 0.06676363636363636,
+            "dL": -1.9496301163483354
+          }
+        },
+        "extra_mae": 0.0,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "exposure-1",
+      "reference_sha256": "4cf5ac988fb1dd4f5d7e5b2ee8b5b95e66efea6496d870d383586c98f92daa3a",
+      "resolved_xmp_sha256": "e744c70db026418dbccf4222c69e327b2602fe5c9a6f939d3832ded250fb851c",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "-1",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.4273110533454092,
+        "mae": 0.02889607739793278,
+        "mean_dL": 0.2920359526714292,
+        "p90_L": 64.7828062738061,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1294060606060606,
+            "dL": 0.08320816420269761
+          },
+          "40-50": {
+            "fraction": 0.05789090909090909,
+            "dL": 0.5872351633084537
+          },
+          "50-60": {
+            "fraction": 0.13056969696969697,
+            "dL": 0.8986723411164769
+          }
+        },
+        "reference_effect": 0.13142329411305695,
+        "candidate_effect": 0.13088027582195647,
+        "effect_mae": 0.010791739536683099,
+        "effect_passed": true,
+        "extra_mae": -0.00807893754920266,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.4059228975640878,
+        "mae": 0.028890074068460274,
+        "mean_dL": 0.32451522000503735,
+        "p90_L": 64.7828062738061,
+        "bands": {
+          "10-20": {
+            "fraction": 0.1294060606060606,
+            "dL": 0.06200607243085545
+          },
+          "40-50": {
+            "fraction": 0.05789090909090909,
+            "dL": 0.6595062266205824
+          },
+          "50-60": {
+            "fraction": 0.13056969696969697,
+            "dL": 0.9841733239045724
+          }
+        },
+        "reference_effect": 0.13142329411305695,
+        "candidate_effect": 0.13082740207838714,
+        "effect_mae": 0.010793941205100029,
+        "effect_passed": true,
+        "extra_mae": -0.008073967803940117,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "exposure+1",
+      "reference_sha256": "d769784853989452163f81ed8c371d36388e334c382504e9058d1c95afef5974",
+      "resolved_xmp_sha256": "e6e54f026e77a214388ab22e8b3c4de681e21b6fc680d23e7ef54666bd012326",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "1",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.635730868775107,
+        "mae": 0.04202342979249531,
+        "mean_dL": 0.31381470937100003,
+        "p90_L": 93.0547539971666,
+        "bands": {
+          "10-20": {
+            "fraction": 0.0680969696969697,
+            "dL": 4.243485205588178
+          },
+          "40-50": {
+            "fraction": 0.06625454545454545,
+            "dL": -1.5739121658667568
+          },
+          "50-60": {
+            "fraction": 0.04673939393939394,
+            "dL": -4.7192953068192764
+          }
+        },
+        "reference_effect": 0.12995757129605146,
+        "candidate_effect": 0.12962958684618378,
+        "effect_mae": 0.012731800733465979,
+        "effect_passed": true,
+        "extra_mae": 0.0050484148453598734,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.6406637658441885,
+        "mae": 0.04201691078542375,
+        "mean_dL": 0.3226585702548948,
+        "p90_L": 93.0547539971666,
+        "bands": {
+          "10-20": {
+            "fraction": 0.0680969696969697,
+            "dL": 4.226008451639079
+          },
+          "40-50": {
+            "fraction": 0.06625454545454545,
+            "dL": -1.6178431399578548
+          },
+          "50-60": {
+            "fraction": 0.04673939393939394,
+            "dL": -4.7370376077071885
+          }
+        },
+        "reference_effect": 0.12995757129605146,
+        "candidate_effect": 0.1295348144480082,
+        "effect_mae": 0.012727241268224448,
+        "effect_passed": true,
+        "extra_mae": 0.00505286891302336,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "highlights-100",
+      "reference_sha256": "49ca94d958682202196d22e48677425abb80f24e68b3e62be20d7f6204c053c1",
+      "resolved_xmp_sha256": "6a9ac1435e91743d34a7ab70b4d130c1de56bf3839a7f7777e29549fb134cd20",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "-100",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.3405804710013665,
+        "mae": 0.040633831946637965,
+        "mean_dL": -0.12587674697027276,
+        "p90_L": 66.95044390012974,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2225939393939394,
+            "dL": 1.8631473303305992
+          },
+          "40-50": {
+            "fraction": 0.08344242424242425,
+            "dL": -2.1555722298654207
+          },
+          "50-60": {
+            "fraction": 0.13536969696969697,
+            "dL": -0.17060797302374378
+          }
+        },
+        "reference_effect": 0.06814892417046417,
+        "candidate_effect": 0.07217245240813051,
+        "effect_mae": 0.013357126004314062,
+        "effect_passed": true,
+        "extra_mae": 0.0036588169995025246,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.323261364592086,
+        "mae": 0.040597088719435,
+        "mean_dL": -0.09435303654977305,
+        "p90_L": 66.95044390012974,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2225939393939394,
+            "dL": 1.8754162963686642
+          },
+          "40-50": {
+            "fraction": 0.08344242424242425,
+            "dL": -2.1092779420260954
+          },
+          "50-60": {
+            "fraction": 0.13536969696969697,
+            "dL": -0.10723735188046404
+          }
+        },
+        "reference_effect": 0.06814892417046417,
+        "candidate_effect": 0.07215340862627805,
+        "effect_mae": 0.013334847214552583,
+        "effect_passed": true,
+        "extra_mae": 0.00363304684703461,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "highlights+100",
+      "reference_sha256": "eeae285e2527f3fd4d7ebeee148842d9e0e9f9e19c22733e8753071ec4df0ee9",
+      "resolved_xmp_sha256": "c9b1bcf8b34da8b1a3681ffc79ccdbb76b8bb79cb403e169beef576a503ec6a5",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "100",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.6973069280381883,
+        "mae": 0.03959487684919583,
+        "mean_dL": 0.49601323722610224,
+        "p90_L": 93.64871195547215,
+        "bands": {
+          "10-20": {
+            "fraction": 0.20901818181818183,
+            "dL": 2.386365438232085
+          },
+          "40-50": {
+            "fraction": 0.0496,
+            "dL": -2.9356828850918073
+          },
+          "50-60": {
+            "fraction": 0.06872727272727273,
+            "dL": 1.2308985382989832
+          }
+        },
+        "reference_effect": 0.05339220285045484,
+        "candidate_effect": 0.055490706445014686,
+        "effect_mae": 0.012300869394058592,
+        "effect_passed": true,
+        "extra_mae": 0.0026198619020603928,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 1.7074554596404496,
+        "mae": 0.03961276588484742,
+        "mean_dL": 0.5100610392913596,
+        "p90_L": 93.64871195547215,
+        "bands": {
+          "10-20": {
+            "fraction": 0.20901818181818183,
+            "dL": 2.399772985391007
+          },
+          "40-50": {
+            "fraction": 0.0496,
+            "dL": -2.9137933820873334
+          },
+          "50-60": {
+            "fraction": 0.06872727272727273,
+            "dL": 1.2542104594126593
+          }
+        },
+        "reference_effect": 0.05339220285045484,
+        "candidate_effect": 0.05543443551430093,
+        "effect_mae": 0.012255818737238279,
+        "effect_passed": true,
+        "extra_mae": 0.0026487240124470277,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "shadows100-highlights-100",
+      "reference_sha256": "48893f96397ff988dffd56e45a2624f66d78be05424e02689b2f08c1d1d57890",
+      "resolved_xmp_sha256": "1736be78167a27243f63575b475f9f8c77333cee0ba3bf64f394296162580810",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "-100",
+        "Shadows2012": "100",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.780007844339372,
+        "mae": 0.056770578456017295,
+        "mean_dL": -1.2015974650189067,
+        "p90_L": 70.73405108395933,
+        "bands": {
+          "10-20": {
+            "fraction": 0.03338181818181818,
+            "dL": 10.150086724503568
+          },
+          "40-50": {
+            "fraction": 0.09173333333333333,
+            "dL": -3.55984487094506
+          },
+          "50-60": {
+            "fraction": 0.1299151515151515,
+            "dL": -2.5151009887497384
+          }
+        },
+        "reference_effect": 0.11672868996400408,
+        "candidate_effect": 0.12499275382637047,
+        "effect_mae": 0.03351680278049744,
+        "effect_passed": true,
+        "extra_mae": 0.019795563508881855,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.7383883831758786,
+        "mae": 0.056715100370128425,
+        "mean_dL": -1.150861815757627,
+        "p90_L": 70.73405108395933,
+        "bands": {
+          "10-20": {
+            "fraction": 0.03338181818181818,
+            "dL": 10.188922856392365
+          },
+          "40-50": {
+            "fraction": 0.09173333333333333,
+            "dL": -3.5234438843403457
+          },
+          "50-60": {
+            "fraction": 0.1299151515151515,
+            "dL": -2.4533925825161007
+          }
+        },
+        "reference_effect": 0.11672868996400408,
+        "candidate_effect": 0.12519275285267878,
+        "effect_mae": 0.033462332337031116,
+        "effect_passed": true,
+        "extra_mae": 0.019751058497728034,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "cddd7ae0c43f9280876e5fdcbdf8878718972ebd3d034d8affc8cfc6752d33dc",
+      "role": "calibration",
+      "case": "wb-3200-20-contrast50-shadows50-highlights-50",
+      "reference_sha256": "fd5f042cb7a2a9704cabe3b704e60b280cf71bd61ad7acdb00cf64bb1708dd67",
+      "resolved_xmp_sha256": "a5a2e617930d11c7444a328b0f3a17734e86e54f6bc7687bf7e88382bcbd30be",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "50",
+        "Highlights2012": "-50",
+        "Shadows2012": "50",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "3200",
+        "Tint": "20"
+      },
+      "before": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 3.6740128030473436,
+        "mae": 0.05542672496720833,
+        "mean_dL": -0.6746763407537543,
+        "p90_L": 77.46245024283728,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2320242424242424,
+            "dL": 2.491860012096241
+          },
+          "40-50": {
+            "fraction": 0.07236363636363637,
+            "dL": -2.4787169409934133
+          },
+          "50-60": {
+            "fraction": 0.09612121212121212,
+            "dL": -1.2527348076454181
+          }
+        },
+        "reference_effect": 0.12767903765242203,
+        "candidate_effect": 0.15209583548484218,
+        "effect_mae": 0.03675293536469293,
+        "effect_passed": true,
+        "extra_mae": 0.01845171002007289,
+        "passed": true
+      },
+      "after": {
+        "alignment": [
+          0.5,
+          0.5
+        ],
+        "median_de00": 2.8451689701315512,
+        "mae": 0.04987447502393926,
+        "mean_dL": -0.34988457103150816,
+        "p90_L": 77.46245024283728,
+        "bands": {
+          "10-20": {
+            "fraction": 0.2320242424242424,
+            "dL": 2.322572840679278
+          },
+          "40-50": {
+            "fraction": 0.07236363636363637,
+            "dL": -2.3873554478524848
+          },
+          "50-60": {
+            "fraction": 0.09612121212121212,
+            "dL": -0.6630525125308823
+          }
+        },
+        "reference_effect": 0.12767903765242203,
+        "candidate_effect": 0.13403135532045313,
+        "effect_mae": 0.02784401377315764,
+        "effect_passed": true,
+        "extra_mae": 0.01291043315153887,
+        "passed": true
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "default",
+      "reference_sha256": "a60b0b783a1158b42e77e765b305c676455e48ffc8c7759f1ed7974bce45ca8a",
+      "resolved_xmp_sha256": "943dd842763ead93d519047887debb81438eafd66ac51ebddb20cc1a4d4a20e1",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "exposure-1",
+      "reference_sha256": "e00fb20bb572742aaba216e1e4755b3adccb11283d5a754fdde97f6674a2add0",
+      "resolved_xmp_sha256": "6667b35bee294804e24510022e807ad68626976ebd72c52e588d20ade154aca8",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "-1",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "exposure+1",
+      "reference_sha256": "f9fb133efcd80d8abd1b1526a4aa282271d517b985729f9d0124aa3eb687650d",
+      "resolved_xmp_sha256": "67f8decc5d85cb2e6e63fb13a2e4bebb016d096f838f152141a373e97feea3c4",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "1",
+        "Contrast2012": "0",
+        "Highlights2012": "0",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "highlights-100",
+      "reference_sha256": "93a8a4a3e8c5ea5a309e0ebe9b3df3825c2a94a004fb930a0dab69d7e89032ab",
+      "resolved_xmp_sha256": "e548275287a1d1b2da54c08ae91c369842581387aa41d5a5c21cf32018aa0897",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "-100",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "highlights+100",
+      "reference_sha256": "097116356d3c5525bb857b557e05052bc4ad4c5e239e5fa7a1f531d4e968bdf2",
+      "resolved_xmp_sha256": "5be4273c14159f8c33e4147bfec9b982fc350c6f9e76f190a69f825fec0b04d3",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "100",
+        "Shadows2012": "0",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "shadows100-highlights-100",
+      "reference_sha256": "ac3fa8553ae7ec3fb6863086f7379d3e811d15fb8a6f1942655e85032fed8117",
+      "resolved_xmp_sha256": "1bb5b166d9614311670118c52e3df53c2f4e6cd5693cf907564f5425f120581d",
+      "verified_settings": {
+        "WhiteBalance": "As Shot",
+        "Exposure2012": "0",
+        "Contrast2012": "0",
+        "Highlights2012": "-100",
+        "Shadows2012": "100",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    },
+    {
+      "suite": "xt5-controls",
+      "sample_sha256": "b77b0352a02c5a9272f5e4ee0bfb9ba270cf7482a727f5ffb91cf1d41a280e2c",
+      "role": "validation",
+      "case": "wb-3200-20-contrast50-shadows50-highlights-50",
+      "reference_sha256": "8898823decf0af076ddb63b7e0eb93f27c4469cd2d8ccb37b74f225adc650d4e",
+      "resolved_xmp_sha256": "e5a3e9c35a3b2c2be0338e379e5f1ffcb07cc1a66ef379420d7c958a0d65465e",
+      "verified_settings": {
+        "WhiteBalance": "Custom",
+        "Exposure2012": "0",
+        "Contrast2012": "50",
+        "Highlights2012": "-50",
+        "Shadows2012": "50",
+        "Whites2012": "0",
+        "Blacks2012": "0",
+        "Dehaze": "0",
+        "Temperature": "3200",
+        "Tint": "20"
+      },
+      "before": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      },
+      "after": {
+        "passed": false,
+        "error": "framing differs: reference (171, 256, 3), candidate (170, 256, 3)"
+      }
+    }
+  ],
+  "camera_raw": "18.7",
+  "linear_dng_decode": {
+    "binary_sha256": "0f853485c9f0eb79838c29014d41aec9ae45733e1496263c342901150c44aff6",
+    "revision": "cdcad0c92f077b084ab9d6899e4f03f047de780f",
+    "results": [
+      {
+        "sha256": "006b477808b3edaaa41e58ce082653a36e544c4ddc0bfe1bc8a6ef39d93d8369",
+        "model": "ILCE-1M2",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "c06c5cf9caeabc225881355520649a0d834644c4d5047c39b9a6f203a409c9d4",
+        "model": "DSC-RX1RM3",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "25d928f9e9a65525ac796bdff13e93b7b36b627568d7a17338e12dc44424078a",
+        "model": "Canon EOS 5D Mark IV",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "a4bf9842c2222b2eeb95ec71065f9d981c9b5be619b96db7f121e395968a119b",
+        "model": "Canon EOS 6D Mark II",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "35b66b2fc26a015ee622af7269eaf3e694fa6f5b6126ade27d910957d417d81a",
+        "model": "Canon EOS-1D X Mark II",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "26868d8b944395bf37d1ffc6fe88cc2039e913bba6b7724b5223d128a626b3b3",
+        "model": "Canon EOS 5DS R",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "2d86d7af6168af36ac666e462c0bac325884f88c1cb78eebfd4c9c11dcacc116",
+        "model": "Canon EOS 7D Mark II",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "f9c5404b57248c21e9b269721aa0d721c3b1281c94ebdee3c50bf32db42613a8",
+        "model": "Canon EOS 80D",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "0cb5b8193ddc1de57fcc5f2091d0f7e8476f3b3af4beeb1ccc73d45f1c7a6bed",
+        "model": "NIKON D810",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      },
+      {
+        "sha256": "0fbbc32e4e24faa3626027987bc1591faf5aec76b47c8f857464ee97be9c224a",
+        "model": "DSC-RX1RM3",
+        "status": 1,
+        "error": "Error: Only three-color Bayer, X-Trans and small RAW files are supported"
+      }
+    ]
+  }
+}
