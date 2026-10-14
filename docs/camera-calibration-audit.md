@@ -150,10 +150,31 @@ The small remaining coordinate difference is not explained as rounding.
 As Shot retains the camera multipliers; its corrected temperature can still alter
 profile interpolation. The default score rounds to 1.66 in both versions.
 
-The independent ISO 400 sample has a framing mismatch: the checker receives
+At the pinned calibration revision, the independent ISO 400 sample has a framing mismatch: the checker receives
 171×256 reference and 170×256 candidate arrays. It refuses to score them. This
 limits rendered validation despite native/DNG metadata agreement. The exact baseline
 binary produces the same framing failure, confirming that it predates this change.
+
+The separate RAF decode correction at
+`87d37dae79567c90d929ce3a0af1b69ab5042722` resolves that framing failure.
+LibRaw aligned the native crop's starting row from 21 to 24, removing three rows;
+retaining the preceding CFA period and applying the exact crop restores
+6000×4000, exporting 2048×1365 like the frozen reference. See
+[decode ownership and bounds](demosaic.md) and the
+[follow-up numerical results](../data/fuji-crop-validation.json). Camera calibration,
+exposure and tone processing are unchanged by that correction.
+
+With the same frozen Adobe Standard references and unchanged gates, the independent
+photo passes default/As Shot (median ΔE00 1.66), all four custom-WB settings
+(1.68–1.94), Exposure ±1, Highlights ±100, Shadows +50, Dehaze +20/+40,
+Whites +50/+100 and the mixed warm-WB/contrast/shadows/highlights case. Two tone
+comparisons still fail: Shadows +100 has extra RGB MAE **0.0241**, and Shadows
++100 with Highlights −100 has **0.0420**, against the **0.020** limit.
+These remain separate rendering gaps; no camera offset is fitted to hide them.
+That is **15/17 distinct settings** passing for independent validation and
+**17/17** for the calibration photo, or **34/36** comparisons including the
+repeated default in each suite. This supports the X-T5 WB correction without
+claiming complete rendered parity or additional body/firmware coverage.
 
 The prior Sony investigation remains separate: A7 II baseline +0.35 EV and per-file
 WB were already in #481; the 5421 K versus Lightroom 5400 K difference remains
@@ -179,7 +200,15 @@ regression including saved settings and the explicit baseline action.
 Linux/Windows packaging and installation, PostgreSQL statement preparation and
 the complete private photographic corpus were not run locally. The two X-T5
 photos do not establish all scene, body, firmware, ISO or recording-mode coverage.
-The independent photo's framing gate remains failed, not waived.
+The original framing failures remain in the historical numeric record. The
+follow-up record fixes their decoding cause rather than waiving the gate; its
+two remaining tone failures are retained explicitly.
+
+The crop follow-up reran the same available local checks successfully, including
+all seven GPU checks, the native/DNG calibration regression and a hash-verified
+crop regression through RAWmakase, LibRaw full-size and half-size decode. The crop
+regression failed at 6000×3997 before the fix. Synthetic tests cover aligned and
+unaligned origins, contained crops, zero sizes, overflow and invalid bounds.
 
 Switching baseline/candidate builds in a shared target directory exposed a stale
 native archive: a pinned executable rejected the Rust/C++ metadata layout before

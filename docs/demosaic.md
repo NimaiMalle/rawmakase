@@ -25,6 +25,10 @@ from row 18 and crops three rows inside it, retaining all 4000 requested rows.
 This fixes the 2048×1364 export to 2048×1365 without rescaling comparison inputs
 or changing white balance, exposure or tone processing. `tests/fuji_crop.rs`
 checks the hash-verified public sample through all three decode paths.
+The cause is LibRaw 0.22.2's
+[X-Trans margin alignment](https://github.com/LibRaw/LibRaw/blob/0.22.2/src/utils/open.cpp#L890-L912).
+Among 37 available public Fujifilm RAFs in the calibration inventory, only this
+sample needs the additional decode period; their other visible areas are unchanged.
 
 ## Measurements — 2026-09-26 (M1 Pro, loaded machine)
 

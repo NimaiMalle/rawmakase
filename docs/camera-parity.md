@@ -49,7 +49,7 @@ reproduces the Converter's four-decimal correction at ISO 125 and ISO 400.
 This does not use LibRaw's matrix-derived `pre_mul`. Missing/invalid metadata
 retains identity. No other Fujifilm model inherits this reference.
 See the [systematic audit](camera-calibration-audit.md) for independent numerical
-validation, rendered results and the remaining framing limitation.
+validation, rendered results, the separate RAF framing fix and remaining tone gaps.
 
 Other non-Sony converter facts remain diagnostic evidence; they are not installed as
 fixed corrections for native RAWs. One sample cannot establish that a correction
