@@ -207,6 +207,24 @@ void ora_background_thread() {
 }
 // So the Rust side can check its mirror of Metadata has the same layout.
 unsigned ora_metadata_size() { return sizeof(Metadata); }
+bool ora_expand_fuji_area(void* ptr, unsigned left, unsigned top) {
+    auto& h=*static_cast<Handle*>(ptr);
+    auto& d=h.raw.imgdata;
+    auto& s=d.sizes;
+    if(h.unpacked || d.idata.dng_version || d.idata.filters!=9
+        || d.idata.maker_index!=LIBRAW_CAMERAMAKER_Fujifilm
+        || left%6 || top%6 || left>s.left_margin || top>s.top_margin
+        || s.left_margin-left>6 || s.top_margin-top>6
+        || unsigned(s.left_margin)+s.width>s.raw_width
+        || unsigned(s.top_margin)+s.height>s.raw_height) return false;
+    // Move by a whole CFA period, retaining the pattern LibRaw established.
+    s.width += s.left_margin-left; s.height += s.top_margin-top;
+    s.left_margin=ushort(left); s.top_margin=ushort(top);
+    s.iwidth=s.width; s.iheight=s.height;
+    // raw2image restores this snapshot for LibRaw's full/half-size paths.
+    d.rawdata.sizes=s;
+    return true;
+}
 void* ora_open(const char* path, Metadata* m, char* err) {
     try {
         auto h = std::make_unique<Handle>();

@@ -98,6 +98,7 @@ unsafe extern "C" {
     fn ora_metadata_size() -> u32;
     fn ora_open(path: *const c_char, m: *mut NativeMetadata, err: *mut c_char) -> *mut c_void;
     fn ora_close(h: *mut c_void);
+    fn ora_expand_fuji_area(h: *mut c_void, left: u32, top: u32) -> bool;
     fn ora_develop(
         h: *mut c_void,
         fast: c_int,
@@ -223,6 +224,11 @@ pub(super) struct Developed {
     pub pixels: Vec<[f32; 3]>,
 }
 impl Handle {
+    /// Retains an earlier CFA period for an exact RAF crop, before unpacking.
+    pub(super) fn expand_fuji_area(&mut self, left: u32, top: u32) -> bool {
+        // SAFETY: this owns a live handle; the adapter validates the new bounds.
+        unsafe { ora_expand_fuji_area(self.0, left, top) }
+    }
     /// Opens the file and reads its metadata; fails for files LibRaw cannot read
     /// and for sensors other than three-colour Bayer and X-Trans.
     pub(super) fn open(path: &Path) -> Result<(Self, NativeMetadata)> {

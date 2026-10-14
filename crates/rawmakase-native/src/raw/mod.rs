@@ -45,7 +45,18 @@ impl Raw {
     /// and hints) and the imported lens profiles are `crate::photo::open`'s.
     pub fn open_file(path: &Path) -> Result<Self> {
         let path_ref = path;
-        let (handle, m) = ffi::Handle::open(path)?;
+        let (mut handle, mut m) = ffi::Handle::open(path)?;
+        let fuji_crop = fuji_crop(path_ref);
+        if let Some(crop) = fuji_crop
+            && let Some([left, top]) =
+                fuji_decode_origin([m.left_margin, m.top_margin, m.width, m.height], crop)
+            && handle.expand_fuji_area(left, top)
+        {
+            m.width += m.left_margin - left;
+            m.height += m.top_margin - top;
+            m.left_margin = left;
+            m.top_margin = top;
+        }
         let text = |bytes: &[std::ffi::c_char]| {
             let bytes: Vec<u8> = bytes.iter().map(|&c| c as u8).collect();
             let end = bytes.iter().position(|&b| b == 0).unwrap_or(bytes.len());
@@ -110,7 +121,7 @@ impl Raw {
             embedded_dcp: None,
         };
         let mut metadata = metadata;
-        if let Some(crop) = fuji_crop(path_ref) {
+        if let Some(crop) = fuji_crop {
             metadata.apply_default_crop(visible(crop, margin));
         }
         Ok(Self { handle, metadata })
@@ -199,6 +210,25 @@ impl Raw {
             scale_clipped: clipped,
         })
     }
+}
+/// LibRaw rounds X-Trans origins inward to a six-pixel boundary. Include the
+/// preceding period when the RAF crop needs it, keeping the CFA phase and the
+/// existing right/bottom bounds. Never infer extra sensor data from a bad crop.
+fn fuji_decode_origin([l, t, w, h]: [u32; 4], [cl, ct, cw, ch]: [u32; 4]) -> Option<[u32; 2]> {
+    if cw == 0
+        || ch == 0
+        || l % 6 != 0
+        || t % 6 != 0
+        || cl.checked_add(cw)? > l.checked_add(w)?
+        || ct.checked_add(ch)? > t.checked_add(h)?
+        || l.saturating_sub(cl) > 5
+        || t.saturating_sub(ct) > 5
+    {
+        return None;
+    }
+    let left = l.min(cl / 6 * 6);
+    let top = t.min(ct / 6 * 6);
+    (left != l || top != t).then_some([left, top])
 }
 /// LibRaw's crop `[left, top, width, height]` in raw coordinates, in the decoded
 /// image's, which start `margin` into the raw data. A crop without a position
@@ -338,6 +368,34 @@ mod tests {
         assert_eq!(super::fuji_crop(f.path()), Some([16, 16, 6000, 4000]));
         std::fs::write(f.path(), b"FUJIFILMCCD-RAW").unwrap();
         assert_eq!(super::fuji_crop(f.path()), None);
+    }
+
+    #[test]
+    fn raf_crop_retains_pixels_before_libraws_aligned_origin() {
+        use super::fuji_decode_origin as origin;
+        assert_eq!(
+            origin([876, 24, 6000, 3997], [876, 21, 6000, 4000]),
+            Some([876, 18])
+        );
+        assert_eq!(
+            origin([24, 24, 100, 100], [21, 19, 103, 105]),
+            Some([18, 18])
+        );
+        // Already-contained crops and zero/overflow/out-of-bounds metadata do
+        // not change the decoder's visible area.
+        for crop in [
+            [24, 24, 100, 100],
+            [25, 25, 98, 98],
+            [21, 21, 0, 100],
+            [21, 21, 104, 100],
+            [21, 21, 100, 104],
+            [17, 24, 107, 100],
+            [24, 17, 100, 107],
+            [u32::MAX, 24, 100, 100],
+        ] {
+            assert_eq!(origin([24, 24, 100, 100], crop), None, "{crop:?}");
+        }
+        assert_eq!(origin([23, 24, 100, 100], [21, 21, 100, 100]), None);
     }
     /// LibRaw's rectangles for a Canon EOS M6 Mark II CR3 shot at 1:1: SensorInfo's
     /// 6960×4640 frame and the AspectInfo square, in raw coordinates, with a visible

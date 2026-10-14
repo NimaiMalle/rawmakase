@@ -11,6 +11,21 @@ Borders are mirrored, which keeps the Bayer colour parity. Half-size drafts and 
 
 Preferences > Performance, or `Decode::full(Demosaic::Libraw)` in code, switches to LibRaw's AHD (Bayer) and 1-pass Markesteijn (X-Trans); the environment variable `RAWMAKASE_LIBRAW_DEMOSAIC=1` forces the same for the whole run.
 
+For native X-Trans RAFs, `raw` retains the header's exact recommended crop when
+LibRaw rounds its origin inward to a six-pixel CFA boundary. If that rounding
+excluded pixels, the adapter extends the decode area back by one complete CFA
+period and applies the exact crop inside it. The right/bottom bounds and colour
+phase remain unchanged. Invalid crops cannot extend the sensor buffer; contained
+crops, DNGs and other sensors keep their existing decode area. LibRaw's saved
+geometry is updated before unpacking so full-size and half-size development agree.
+
+Public X-T5 sample 7271 (Sports Finder mode) requests a 6000×4000 crop starting
+at raw row 21. LibRaw 0.22.2 exposes row 24 and 3997 rows; the adapter now decodes
+from row 18 and crops three rows inside it, retaining all 4000 requested rows.
+This fixes the 2048×1364 export to 2048×1365 without rescaling comparison inputs
+or changing white balance, exposure or tone processing. `tests/fuji_crop.rs`
+checks the hash-verified public sample through all three decode paths.
+
 ## Measurements — 2026-09-26 (M1 Pro, loaded machine)
 
 | File | LibRaw develop | RAWmakase develop | 100% crop MAE vs Adobe (LibRaw → RAWmakase) | Fine-detail MAE |
