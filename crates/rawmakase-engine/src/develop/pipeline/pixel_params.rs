@@ -43,12 +43,15 @@ const FIELDS: &[(&str, usize)] = &[
     ("LOCAL_SIZE", 2),
     ("LOCAL_SCALE", 2),
     ("LOCAL_A", 3),
-    ("SHADOWS", 4),
-    ("HIGHLIGHTS", 4),
-    // Positive Shadows' detail and region curves (as SHADOWS), and the regional level's
-    // grid or -1 (see `local_tone::LocalToneMap::lift`).
-    ("LIFT", 8),
-    ("LOCAL_REGION", 1),
+    // The learned operator (`local_tone::Net`): the cell grid's size and scale, the
+    // table offset of the cells' centre levels, the offsets of Shadows' and Highlights'
+    // curve grids at the recipe's sliders or -1, and for masks the offsets of the
+    // grids at each of `local_tone_net::POSITIONS` (Shadows then Highlights) or -1.
+    ("NET_SIZE", 2),
+    ("NET_SCALE", 2),
+    ("NET_CENTER", 1),
+    ("NET_CURVES", 2),
+    ("NET_FAMILIES", 14),
     ("BASIC", 1),
     ("LEVELS", 3),
     // The measured parametric curve's table, or -1 (see `parametric::ParametricCurve`).
@@ -85,7 +88,6 @@ const FIELDS: &[(&str, usize)] = &[
     // The masks' Contrast pivot.
     ("LOCAL_PIVOT", 1),
     ("LOCAL_FAMILIES", 1),
-    ("LOCAL_KEYS", 3),
     ("GLOBAL_SH", 2),
 ];
 pub(crate) fn wgsl_prelude() -> String {
@@ -194,7 +196,6 @@ fn masks_need_map(r: &Recipe) -> bool {
 }
 fn set_local(p: &mut PixelParams, local: &LocalToneMap) {
     p.set("LOCAL", &[1.]);
-    p.set("LOCAL_KEYS", &local.keys);
     p.set("LOCAL_SIZE", &[local.width as f32, local.height as f32]);
     p.set("LOCAL_SCALE", &local.scale);
     let a = p.push(local.a.iter().copied());
@@ -204,24 +205,25 @@ fn set_local(p: &mut PixelParams, local: &LocalToneMap) {
         None => -1.,
     };
     p.set("LOCAL_A", &[a, b, clarity]);
-    let region = match &local.region {
-        Some(k) => p.push(k.iter().copied()),
+    let net = &local.net;
+    p.set(
+        "NET_SIZE",
+        &[net.cells.width as f32, net.cells.height as f32],
+    );
+    p.set("NET_SCALE", &net.scale);
+    let center = p.push(net.cells.center.iter().copied());
+    p.set("NET_CENTER", &[center]);
+    let mut grid = |c: Option<&Vec<f32>>| match c {
+        Some(c) => p.push(c.iter().copied()),
         None => -1.,
     };
-    p.set("LOCAL_REGION", &[region]);
-    let mut curve = |c: Option<&crate::develop::local_tone::Curve>| match c {
-        Some(c) => [p.push(c.table), c.key, c.lo, c.hi],
-        None => [-1., 0., 0., 0.],
+    let curves = [grid(net.curves[0].as_ref()), grid(net.curves[1].as_ref())];
+    let families: Vec<f32> = match &net.families {
+        Some(f) => f.iter().flatten().map(|c| grid(c.as_ref())).collect(),
+        None => vec![-1.; 14],
     };
-    let shadows = curve(local.shadows.as_ref());
-    let highlights = curve(local.highlights.as_ref());
-    let [detail, region] = match &local.lift {
-        Some([d, r]) => [curve(Some(d)), curve(Some(r))],
-        None => [curve(None), curve(None)],
-    };
-    p.set("SHADOWS", &shadows);
-    p.set("HIGHLIGHTS", &highlights);
-    p.set("LIFT", &[detail, region].concat());
+    p.set("NET_CURVES", &curves);
+    p.set("NET_FAMILIES", &families);
 }
 fn set_rgb_table(p: &mut PixelParams, look: Option<&crate::camera_profiles::RgbLook>) {
     use crate::camera_profiles::{Dimensions, Gamut};

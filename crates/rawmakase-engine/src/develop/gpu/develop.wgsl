@@ -557,29 +557,72 @@ fn local_gain(pos: vec2<f32>, lum: f32) -> f32 {
         let bottom = table(c + i32(jy * w + ix)) * (1.0 - tx) + table(c + i32(jy * w + jx)) * tx;
         clarity = top * (1.0 - ty) + bottom * ty;
     }
-    // Positive Shadows' regional level (local_tone::LocalToneMap::lift), on the same grid.
-    var region = 0.0;
-    let r = offset(P_LOCAL_REGION);
-    if r >= 0 {
-        let top = table(r + i32(iy * w + ix)) * (1.0 - tx) + table(r + i32(iy * w + jx)) * tx;
-        let bottom = table(r + i32(jy * w + ix)) * (1.0 - tx) + table(r + i32(jy * w + jx)) * tx;
-        region = top * (1.0 - ty) + bottom * ty;
-    }
     if masked && (delta[L_SHADOWS] != 0.0 || delta[L_HIGHLIGHTS] != 0.0) {
         let s = p(P_GLOBAL_SH) + delta[L_SHADOWS];
-        let h = p(P_GLOBAL_SH + 1u) + delta[L_HIGHLIGHTS];
-        var lift = 0.0;
-        if r >= 0 {
-            lift = family(3u, s, 0.0, base - region) + family(4u, s, p(P_LOCAL_KEYS + 2u), region);
+        let hl = p(P_GLOBAL_SH + 1u) + delta[L_HIGHLIGHTS];
+        return exp2(net_family(0u, s, pos, base) + net_family(1u, hl, pos, base) + clarity);
+    }
+    return exp2(net_read(offset(P_NET_CURVES), pos, base) + net_read(offset(P_NET_CURVES + 1u), pos, base) + clarity);
+}
+// local_tone_net: the curve points per cell and their first base offset.
+const NET_POINTS: u32 = 13u;
+const NET_OFFSET0: f32 = -6.0;
+// local_tone::Net::read: a curve grid at table offset `grid` (-1 for none) read at sample
+// position `pos` and base level `base`: the four nearest cells' curves at `base`, bilinearly.
+fn net_read(grid: i32, pos: vec2<f32>, base: f32) -> f32 {
+    if grid < 0 {
+        return 0.0;
+    }
+    let w = u32(p(P_NET_SIZE));
+    let h = u32(p(P_NET_SIZE + 1u));
+    let fx = clamp((pos.x + 0.5) * p(P_NET_SCALE) - 0.5, 0.0, f32(w - 1u));
+    let fy = clamp((pos.y + 0.5) * p(P_NET_SCALE + 1u) - 0.5, 0.0, f32(h - 1u));
+    let ix = u32(fx);
+    let iy = u32(fy);
+    let jx = min(ix + 1u, w - 1u);
+    let jy = min(iy + 1u, h - 1u);
+    let tx = fx - f32(ix);
+    let ty = fy - f32(iy);
+    let top = net_cell(grid, iy * w + ix, base) * (1.0 - tx) + net_cell(grid, iy * w + jx, base) * tx;
+    let bottom = net_cell(grid, jy * w + ix, base) * (1.0 - tx) + net_cell(grid, jy * w + jx, base) * tx;
+    return top * (1.0 - ty) + bottom * ty;
+}
+// local_tone_net::read: cell `i`'s curve at `base`, linearly between points, held at the ends.
+fn net_cell(grid: i32, i: u32, base: f32) -> f32 {
+    let center = table(offset(P_NET_CENTER) + i32(i));
+    let f = clamp(base - center - NET_OFFSET0, 0.0, f32(NET_POINTS - 1u));
+    let j = min(u32(f), NET_POINTS - 2u);
+    let a = table(grid + i32(i * NET_POINTS + j));
+    return a + (table(grid + i32(i * NET_POINTS + j + 1u)) - a) * (f - f32(j));
+}
+// local_tone::Net::family: control `c` (0 Shadows, 1 Highlights) at slider `s_in` from the
+// grids at local_tone_net::POSITIONS (-1, -0.5, -0.25, 0, 0.25, 0.5, 1).
+fn net_family(c: u32, s_in: f32, pos: vec2<f32>, base: f32) -> f32 {
+    let s = clamp(s_in, -1.0, 1.0);
+    var j = 5u;
+    for (var k = 0u; k < 6u; k++) {
+        if s <= net_position(k + 1u) {
+            j = k;
+            break;
         }
-        return exp2(family(0u, s, p(P_LOCAL_KEYS), base)
-            + family(1u, h, p(P_LOCAL_KEYS + 1u), base) + lift + clarity);
     }
-    var lift = 0.0;
-    if r >= 0 {
-        lift = local_curve(P_LIFT, base - region) + local_curve(P_LIFT + 4u, region);
+    let s0 = net_position(j);
+    let s1 = net_position(j + 1u);
+    let t = (s - s0) / (s1 - s0);
+    let g0 = net_read(offset(P_NET_FAMILIES + c * 7u + j), pos, base);
+    let g1 = net_read(offset(P_NET_FAMILIES + c * 7u + j + 1u), pos, base);
+    return g0 + (g1 - g0) * t;
+}
+fn net_position(k: u32) -> f32 {
+    switch k {
+        case 0u: { return -1.0; }
+        case 1u: { return -0.5; }
+        case 2u: { return -0.25; }
+        case 3u: { return 0.0; }
+        case 4u: { return 0.25; }
+        case 5u: { return 0.5; }
+        default: { return 1.0; }
     }
-    return exp2(local_curve(P_SHADOWS, base) + local_curve(P_HIGHLIGHTS, base) + lift + clarity);
 }
 // scene_tone::haze: the fraction of the haze positive Dehaze `s` removes.
 fn haze_omega(s_in: f32) -> f32 {

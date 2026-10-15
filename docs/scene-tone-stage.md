@@ -157,182 +157,91 @@ scene 1.0 at 1.0, where Camera Raw renders 0.69.
 
 ### Local operators
 
-Shadows, Highlights and Clarity are luminance gains from a smooth, edge-aware base
-level: on photo-like synthetic scenes their gain is flat within regions whatever their
-texture, and stops at edges. Their strength follows the photo: a dark square is lifted
-+0.9 EV by Shadows +100 in a mid-gray scene and +1.6 EV in a bright one, and dark areas
-of a dark scene are hardly lifted; Highlights −100 pulls the brightest area of a dark
-scene down by up to 5.8 EV. With an ideal key per scene, one gain curve of the base
-level relative to it explains Shadows +100 to 0.056 EV and Highlights −100 to 0.050 EV
-on 40 scenes; keys predicted from the photo's percentiles (Shadows: 0.25·p99.9 +
-0.75·p99, Highlights: halfway between p75 and p1 of log luminance) leave 0.17 and 0.11
-in cross-validation, against 0.42 and 0.29 for doing nothing. A second dimension (the
-pixel against its base) did not help in cross-validation.
+Shadows and Highlights are luminance gains applied before the white point and the
+profile's curve. Since the learned operator (below) replaced the measured table
+families, this section records what Camera Raw does and how the operator is built and
+judged; the earlier tables, their keys and the two-scale lift are in the history of
+`local_tone.rs` and in this page's history.
 
-On photos the synthetic Shadows tables did not carry over as well as Highlights'. On
-22 training photos (cross-validated by photo, luminance gain in EV), Shadows' tables
-fitted on the photos themselves against the photo's mean luminance (log2 of the mean
-of the map's luminance) leave 0.12 at +100 and −100, against 0.25 and 0.24 for the
-synthetic tables and 0.43 and 0.34 for doing nothing; the 90th percentile key does as
-well. Highlights' synthetic tables match the photos' luminance gain (0.09–0.10 EV at
-±100), but positive Highlights renders closer to Camera Raw with tables fitted on the
-photos: rendered with tables fitted on the other half of the photos (two folds, 22
-photos), median ΔE00 at +100 is 1.80 against 1.91 for the synthetic tables, at +50 1.57
-against 1.69. At −100 the photo tables gain nothing (1.63 against 1.64), so negative
-Highlights keeps the synthetic tables. The photo tables are measured through the
-engine's own global curves, so they were refitted once the default black (below) was
-added: the earlier taps lacked it and the fit had taken Camera Raw's black for Shadows'
-gain (median ΔE00 on the training photos, Shadows +100 1.55 → 1.53 and +50 1.16 → 1.11,
-Highlights unchanged within 0.02); the cross-validated figures above are from the earlier
-taps.
+**What Camera Raw does (probes, Camera Raw 18.7, W\* = 1).** Uniform images never
+change at any level: the response is driven by contrast and the histogram, never by a
+plain tone curve. On two-level images Shadows +100 lifts only the darker level, by an
+amount that depends on the two levels (about 0.1 EV at 1 stop of contrast, 0.3 at 2,
+0.45 at 4, 0.7 at 6) and not on which level is the minority or on its share of the
+frame between 1.6% and 98%. Below about 65 px at 1024 px a spatial regime takes over
+(a single 32 px dark square is lifted 3.3 EV at 6 stops; a 32 px bright spot lifts the
+whole dark frame 2.4 EV, uniformly to the far corner). Highlights −100 removes about
+45% of the contrast to the dark key up to 4 stops and collapses bright regions onto it
+beyond about 4.5 stops when the histogram has a gap (−5.8 EV at 6 stops); with
+intermediate levels present the pull of the top stop is about 1 EV. Keys are read from
+a blurred copy: the same 6.25% of dark area pulls the bright majority by 2.1 EV as one
+256 px square and by 0.5 EV as 1,024 scattered 8 px squares. The lift of the darkest
+level grows with the histogram mass between it and the bright key (0.67 EV for a
+two-level image, 1.53 EV with a mid level added, 1.4–1.6 EV for a filled 6-stop
+staircase, fading out 3 stops above the minimum). On photos the arrangement effects are
+small; the histogram shape and the photo's range are what the measured tables missed:
+their held-out error was 2.2 times their in-sample error, and on wide-range (stress)
+photos Camera Raw lifts the darkest decile 2–4.5 EV where the tables lifted 1 EV less.
 
-**Brightness ordering of measured tables.** The fits' smoothness penalty does not
-prevent a decreasing output curve, especially where the clipped-reference exclusion
-leaves few samples. The original Highlights −100 tail had output slopes down to
-−2.28 (log luminance out per log luminance in), turning bright centres darker than
-edges. Smaller violations occurred at Highlights −50, Shadows −100, positive
-Shadows' regional +100 row and Dehaze −100.
+**The learned operator** (`local_tone_net.rs`, fitted by
+`scripts/corpus/scene-tone-net.py`). One network per slider position (±25, ±50, ±100 of
+each control; three hidden layers of 48 SiLU units) predicts the log2 luminance gain
+from, for a pixel: its guided base level B (the self-guided box filter of the
+measurement copy's log2 luminance, radius 3.2% of the long edge, ε 0.5, read per pixel
+through the map's coefficients as before); four coarser levels of the copy at the pixel
+(three box passes of radius 8, 16, 32 and 64 map pixels), less B; and global statistics
+of the copy, the percentiles 0.1 to 99.9, maximum and minimum of its log2 luminance
+blurred by three box passes of radius 2 and of 8, the log2 mean luminance and the
+99.9th percentile, both as they are and less B. Between measured positions the two
+networks' gains are interpolated linearly, as the tables were; 0 is the identity. The
+network is evaluated per cell of the measurement copy (4 × 4 map pixels), at 13 base
+levels from 6 stops below to 6 stops above the cell's own base level: a tone curve per
+cell, projected so that base + gain does not decrease (pooled adjacent violators, the
+tables' guarantee). A pixel reads the curves of its four nearest cells at its own base
+level, bilinearly. Masks read curves at the seven slider positions (0 included) and
+interpolate at their own value; CPU, masks and the GPU read the same grids. The
+networks' weights are `local_tone_net_data.rs`; `tests/corpus/camera-raw/local-tone-net.json`
+holds a synthetic scene's inputs and the script's gains, which the engine must reproduce.
 
-`Family::monotone` projects each row's **input + log gain** onto nondecreasing
-values with pooled adjacent violators. This is the least-squares correction in
-output log luminance; it leaves unaffected bins unchanged and permits flat
-compression, rather than inventing a minimum contrast. It runs at compile time on
-the shared data, so slider interpolation, masks, CPU rendering and GPU uploads
-read the same corrected rows. Generated tables retain this projection. It constrains
-each scalar response, not spatial ordering between pixels with different local
-bases, nor every composition of controls. Clarity's spatial contrast is not such
-a scalar response. The existing scene-probe baselines are not changed.
+**Training and judging.** Gains are measured as scene-tone-local.py measures them: Camera
+Raw's render of a linear-profile DNG at a slider position and its default render, mapped
+back through the photo's own default global curve (RAWmakase's scene output against its
+scene input), the log2 difference being the gain. Pixels near black, near white or below
+2^-10 are left out, and so are pixels whose render falls below the engine's default black
+floor (the inverse is undefined there; two synthetic scenes otherwise contributed gains of
+7 EV) and photos whose default render is black. The training set has three parts, sampled
+at 120,000 pixels per photo and 30,000 per synthetic scene: the 24 earlier training photos
+and the 59 photos of the stress families' training splits (dark, clipped and wide-range
+captures), 78 with usable taps; 40 synthetic scenes of `scene-tone-local.py`; and about
+250 synthetic probes rendered in Camera Raw, the two-level, staircase, patch-chart and
+arrangement images the survey above was measured on plus three families added for the
+stage probes in CI (clipped plateaus with a smooth edge on dark keys, tiny bright spots in
+dark fields, and the same values sorted into a ramp), each also rendered at Exposure +2,
++1 and −2 with engine taps at that Exposure so that values far above the sensor white are
+seen in training. Synthetic scenes keep their clipped pixels (the scene value is known
+exactly; Highlights pulls them back below white). Photo-only networks matched Camera Raw
+on photos but not on the stage probes (they lifted the dark-gap scene 0.15 EV where Camera
+Raw lifts 0.79); the probes brought the stage probes into tolerance at a small cost on
+photos. Held-out scoring on the general and stress validation photos, RMS / median gain
+error in EV:
 
-The engine snapshot for `synthetic-d65 / highlights-100` is updated for this
-intentional correction: the offending bright neutral patches become darker
-(largest change ΔE00 3.51; chart mean 0.058). Only that engine snapshot case is
-updated; Camera Raw references and parity-distance baselines remain unchanged.
+| Setting | General validation (21) | Stress validation (27) |
+|---|---|---|
+| Shadows +100 | 0.36 / 0.29 | 0.60 / 0.46 |
+| Shadows +50 | 0.17 / 0.14 | 0.27 / 0.23 |
+| Highlights −100 | 0.20 / 0.16 | 0.31 / 0.25 |
+| Highlights −50 | 0.10 / 0.07 | 0.17 / 0.15 |
 
-The clipped-spot references also show that Camera Raw has a modest spatial edge
-lift of its own. Passing the ordering and rim tests does not establish an exact
-match for highlight brightness in every scene; isolated highlights in very dark
-scenes remain an approximation. Cloud contrast at Exposure 0 can also remain
-flatter than Camera Raw after the ordering and partially clipped recovery fixes.
-These regressions protect against solarization, not all differences in highlight
-recovery or the strength of Shadows in dark scenes.
-
-**Positive Highlights' bright end.** The photo tables have few samples far above the
-key: in a dark photo with a bright object, the region 5–7 stops above the key, the
-+100 table lifted 1.09 EV at +5, 0.50 at +6 and 1.03 at +7, a fitting artefact. Positive
-Highlights now takes each bin from the photo table weighted by its photo samples
-(count / (count + 20,000), smoothed over five bins) and from the synthetic scenes' table
-for the rest, which carries the lift on smoothly (+100: 1.43, 1.56, 1.94 EV at +5, +6, +7)
-and is the photo table below +4. Training photos render as before (median ΔE00 at +100
-1.37, at +50 1.12 against 1.13); on validation Highlights +100 now passes on mid photos.
-
-Still open on low-key photos: a dark photo's bright object a couple of stops above the key
-(the moon in a night sky, 2.2 stops above it) is lifted about 1.6 EV by Camera Raw at
-Highlights +100, as bright spots two stops above a dark surround are on the probes, and
-0.35 by the table, which on the training photos only meets such levels near white. A
-second table of the base level itself (headroom to white) helps in cross-validation
-(Highlights +100 typical error 0.061 → 0.041 EV) but predicts 0.36 for the moon: the
-training photos have no such scene. Highlights −100 on bright photos is short of the
-rule's material improvement (1.53 against engine 4's 1.67). A median key for Highlights
-fitted the photos' scene gain better in cross-validation at every position but rendered
-the training photos worse (+100 1.37 → 1.44, −100 1.30 → 1.41), so the key is unchanged.
-
-**Positive Shadows: the two-scale lift.** On the training photos Shadows +100 left the
-darkest display tones (L* below 15) 5–7 L* too light, almost all of it from small dark
-areas (0.2–3.5% of the frame) inside brighter surroundings, which Camera Raw lifts less
-than large dark areas at the same base level. A second level fixes most of it: the
-*regional level* K, a bilateral blur of the map's log luminance much wider than the base
-(σ 25% of the long edge, range σ 4 stops; `clarity.rs`'s bilateral grid at one scale).
-Positive Shadows' gain is a table of the base level less K plus a table of K less the
-Shadows key (`SHADOWS_DETAIL`, `SHADOWS_REGION`), fitted together by least squares on the
-training photos at the renders' size (1024 pixels), with the region table held at 0 at
-the key (a constant could otherwise move between the tables). K is read from the map like
-the base level, so region and preview size do not change it. Negative Shadows keeps the
-base-level table: an earlier two-scale fit made Shadows −100 worse on validation (bands
-20–40 L* about 3.5 too light on bright photos). Masks read the same three tables at their own
-slider value.
-
-Chosen on the training photos alone (cross-validated by photo, 2 and 4 folds, EV of scene
-gain): at Shadows +100 the error falls from 0.248 to 0.163 and in the deep shadows (base
-4 stops below the key) from 1.06 to 0.39, at +50 from 0.123 to 0.082, and Shadows +50
-with Highlights −50 from 0.161 to 0.117. A plain Gaussian regional level does most of it
-(+100 0.185, +50 0.094); narrower edge-aware ones (σ 8–15%, range 2) less in the deep
-shadows. The validation gate was also used during development (seven runs of earlier
-fits and settings; of σ 25, 35 and 50% at range 4 it preferred 25%, 37, 38 and 40 failing
-setting/stratum pairs against 40 before). With these tables Shadows +100 passes in all
-three strata: its darkest band goes from 5.8 to 2.2 L* too light on mid photos and
-6.3 → 0.5 (10–20 L*) on bright ones, with Adobe Color 4.8 → 1.7 and 9.1 → 1.8; per photo,
-the band 0–10 L* of photos whose darkest tones are under 3% of the frame goes from 2.2–14.1
-to −0.2–6.1 L*. Still failing: Shadows +100 with Adobe Color on bright photos
-(median 1.56 against the rule's 1.53) and Shadows +50 with Highlights −50 on one mid photo
-(Sony A6100: 0.94 with engine 4, 2.38 here, as before this change; each slider alone is
-within 1.3), where Camera Raw's Highlights darkens bright areas less when Shadows is raised
-than the sum of the two gains does.
-
-**Sparse highlights in dark scenes.** The mean-only Shadows key under-lifts
-large dark areas when small bright gaps are scattered through the image. The same
-input histogram arranged as a bright strip needs a different correction in Camera
-Raw. Positive Shadows now adds a calibrated scene-context offset to its regional
-key; negative Shadows and Highlights keep their keys. Ten log-luminance percentiles
-and luminance/texture distributions at four spatial scales distinguish these cases.
-All statistics are relative to mean luminance, so increasing Exposure does not
-activate the correction. The existing measurement copy defines the spatial scale;
-CPU, GPU and masks share the corrected key.
-
-The calibration contains 137 anonymous contexts (22 photos, 115 synthetic scenes).
-`data/shadow-context.json` keeps their 34 statistics and squared gain-error curves
-for offsets −2..2 EV, without pixels, profiles or private paths. Regenerate the
-runtime table with `python3 scripts/corpus/shadow-context.py`; `--check` checks it
-without rewriting it. The minimum includes a weak 0.002·offset² penalty. Smooth
-inverse-distance weighting, with bandwidth set by the third neighbour, interpolates
-these bounded offsets without switching abruptly between reference scenes.
-
-The reported tree photo is explicitly a calibration case. Independent checks include
-other photos and procedurally generated texture/spatial arrangements. The descriptor and interpolation were selected with grouped cross-validation
-on the original 21 usable photo maps and synthetic seeds; the separate texture
-probes were withheld. Calibration errors are approximations, not a claim to
-reproduce Adobe's proprietary algorithm.
-Regression tests compare actual rendered lift with fixed Camera Raw measurements,
-including Exposure −2/0/+2, default black Auto/None, and identical pixels arranged
-as scattered gaps versus a strip. Camera Raw references are not regenerated to
-accommodate the engine.
-The engine snapshots for ten positive-Shadows chart cases are refreshed. Against
-unchanged Camera Raw chart references, Shadows +100 mean ΔE00 improves 6.64 → 5.21,
-+60 improves 4.11 → 3.18, and the look at Amount 100 improves 1.58 → 1.13. One mixed
-case is worse: warm white balance, Contrast +25, Highlights −40 and Shadows +30
-moves from mean/p95 1.35/3.33 to 1.56/4.15. Only that case's accepted-distance entry
-is updated; the general tolerances stay unchanged. Combined-control parity remains
-an approximation; this tradeoff must not be described as universal parity.
-
-What did not work, on the same photos:
-
-- *A second table dimension for the pixel against its base* (Camera Raw does lift
-  darker-than-their-base pixels less; cross-validation 0.66 → 0.52 EV in the deep shadows,
-  display 6.6 → 5.0 L*), pixels below 2^-10 in the fit, smoother bases (guided ε 0.03–8,
-  radius 1.6–6%), the default black before the gain, and a key from the brightest levels
-  (0.25·p99.9 + 0.75·p99) for the regional table (cross-validated error doubled).
-- *A full-resolution fast local Laplacian filter* (Paris, Hasinoff, Kautz 2011; Aubry et
-  al. 2014) on log2 luminance with the Shadows curve fitted through it (the output is
-  linear in the curve), with the curve's value at the reference level inside a detail
-  threshold of 1–3 stops and edges following the curve, with and without a fitted detail
-  slope per level. It reproduces the small dark areas (darkest band about 0 L* on those
-  photos at a 2-stop threshold) but is blotchy: within the threshold, neighbouring regions
-  share one gain where Camera Raw lifts them separately, and the median ΔE00 at Shadows
-  +100 rose from 1.53 to 1.98 (1.64 with the detail slope). Its scale behaviour is also
-  the reverse of Camera Raw's on synthetic probes (below). It follows the published
-  method, not Adobe's code or patents, and is not in the engine.
-
-**Probes.** Single squares 4 stops below a flat 0.18 surround, Shadows +100, rendered at
-1024 and 4096 pixels: perfectly flat squares of 8–32 pixels (at 1024) are lifted 2.2 EV,
-64 pixels 0.95, 128–256 pixels 0.3–0.5, with no halo and the same gain over the whole
-square; the size counts relative to the image (4096-pixel renders match at four times
-the pixels), and squares below about 6 pixels are not lifted at any size. The same dark
-area scattered as 16-pixel spots is lifted 1.7–1.9 EV, so the dependence is spatial, not
-on the histogram. With texture (±0.3 EV noise or ±0.5 EV blobs on everything) a 256-pixel
-square is lifted 2.4–2.5 EV: the weak lift of large regions holds only for perfectly flat
-areas, and is why the synthetic chart's flat patches stay far from Camera Raw at
-Shadows ±60 and ±100 (mean ΔE00 4–7). On bright spots in a dark surround, Highlights ±100
-is size-independent from about 8 pixels. Clarity's weights keep the percentile key they
-were fitted with.
+One stress photo is left out of the table: Camera Raw's Shadows render of it falls below
+the engine's black floor almost everywhere, so its measured gain (7.6 EV RMS) is not a
+target the operator can reach. The structure was selected on photo-only fits against the
+measured tables (Shadows +100 0.32 against 0.40 on the general set, 0.53 against 0.57 on
+stress; Highlights −100 0.16 against 0.24 and 0.29 against 0.44).
+A per-pixel model on raw Gaussian bases scored the same but was mottled at fine scales;
+without the global statistics the stress error doubled (0.92 EV at Shadows +100); the
+pixel's own level adds nothing beyond its guided base. Refitting the table families on
+the same 79 photos, with keys on a blurred copy or a histogram-mass dimension, gained
+5–10% at most, which is why the structure changed rather than the fit.
 
 ### Dehaze
 
