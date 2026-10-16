@@ -134,8 +134,11 @@ class Photo:
         self.L = np.log2(np.maximum(lin, FLOOR))
         self.px, self.glob = features(self.xin)
         self.default = self.read(exposure or 'default')
-        o = np.argsort(lin.ravel())
-        self.xs, self.ys = lin.ravel()[o], np.maximum.accumulate((self.xout @ YW).ravel()[o])
+        # The default curve, from pixels with a positive scene luminance only: black-level
+        # subtraction leaves negative values whose inverse would be meaningless.
+        pos = lin.ravel() > FLOOR
+        o = np.argsort(lin.ravel()[pos])
+        self.xs, self.ys = lin.ravel()[pos][o], np.maximum.accumulate((self.xout @ YW).ravel()[pos][o])
         self.d = d
 
     def exposures(self):
@@ -166,8 +169,9 @@ class Photo:
             # back below white) are valid samples too.
             g = stl.log_gain(after, self.xin @ YW)
         else:
-            ok &= self.default.max(-1) < 0.98
-            g = stl.log_gain(after, inv(d))
+            before = inv(d)
+            ok &= (self.default.max(-1) < 0.98) & (before > 2 ** -10)
+            g = stl.log_gain(after, before)
         # Where Camera Raw's render falls below the engine's default black floor, the
         # inverse lands at the bottom of the curve and the gain is undefined.
         ok &= after > 2 ** -10
