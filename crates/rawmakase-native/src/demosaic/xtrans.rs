@@ -105,29 +105,30 @@ fn band_candidates(cfa: &Cfa, y0: usize, out: &mut [[f32; 3]]) {
     let rows = out.len() / w;
     let band = Band::new(cfa, y0, rows);
     let (pw, ph) = (band.width, band.height);
-    let candidates: Vec<(Vec<[f32; 3]>, Vec<f32>)> = DIRECTIONS
-        .iter()
-        .map(|&(dx, dy)| {
-            let step = dy * pw as isize + dx;
-            let rgb = candidate(&band, step);
-            let variation = variation(&rgb, pw, ph);
-            (rgb, variation)
-        })
-        .collect();
+    let candidates = DIRECTIONS.map(|(dx, dy)| {
+        let step = dy * pw as isize + dx;
+        let rgb = candidate(&band, step);
+        let variation = variation(&rgb, pw, ph);
+        (rgb, variation)
+    });
     for (r, row) in out.chunks_mut(w).enumerate() {
         for (x, px) in row.iter_mut().enumerate() {
             let i = (r + MARGIN) * pw + x + MARGIN;
-            let mut sum = [0f32; 3];
-            let mut total = 0.;
-            for (rgb, variation) in &candidates {
+            let windows = candidates.each_ref().map(|(_, variation)| {
                 let window: f32 = [-1isize, 0, 1]
                     .iter()
                     .flat_map(|dy| [-1isize, 0, 1].map(|dx| dy * pw as isize + dx))
                     .map(|o| variation[(i as isize + o) as usize])
                     .sum();
-                let inv = 1. / (window + VARIATION_FLOOR);
-                let weight = (inv * inv) * (inv * inv);
-                let weight = weight * weight;
+                window + VARIATION_FLOOR
+            });
+            // Relative to the smoothest candidate, so the best always weighs 1.
+            let best = windows.iter().fold(f32::INFINITY, |a, b| a.min(*b));
+            let mut sum = [0f32; 3];
+            let mut total = 0.;
+            for ((rgb, _), window) in candidates.iter().zip(windows) {
+                let ratio = best / window;
+                let weight = ratio.powi(8);
                 for c in 0..3 {
                     sum[c] += rgb[i][c] * weight;
                 }

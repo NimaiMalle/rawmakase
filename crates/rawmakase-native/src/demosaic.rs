@@ -253,6 +253,26 @@ mod tests {
         }
     }
     #[test]
+    fn extreme_samples_do_not_make_non_finite_pixels() {
+        let pattern = xtrans_pattern();
+        let (w, h) = (32, 40);
+        let data = mosaic(&pattern, w, h, |x, y| {
+            let v = if (x * 7 + y * 13) % 5 == 0 {
+                65535.
+            } else {
+                0.
+            };
+            [v; 3]
+        });
+        let cfa = Cfa {
+            data: &data,
+            width: w,
+            height: h,
+            pattern: &pattern,
+        };
+        assert!(demosaic(&cfa).iter().flatten().all(|v| v.is_finite()));
+    }
+    #[test]
     fn recognises_bayer_and_xtrans() {
         let b = bayer_pattern();
         let x = xtrans_pattern();
