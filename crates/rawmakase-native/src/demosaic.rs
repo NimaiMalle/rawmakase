@@ -13,6 +13,8 @@
 use rayon::prelude::*;
 
 mod xtrans;
+#[cfg(test)]
+pub(crate) use xtrans::demosaic as xtrans_demosaic;
 
 /// Side of the colour pattern: a common multiple of the 2, 6 and 16 pixel periods.
 pub(crate) const PATTERN: usize = 48;

@@ -345,6 +345,142 @@ mod tests {
         out
     }
 
+    /// A RAF of the current layout: header, a JPEG, the records, then a
+    /// little-endian TIFF whose raw image directory (0xF000) holds `width` ×
+    /// `height` 14-bit `samples` as 16-bit words.
+    fn raf(records: &[(u16, Vec<u8>)], width: u32, height: u32, samples: &[u16]) -> Vec<u8> {
+        let data: Vec<u8> = samples.iter().flat_map(|v| v.to_le_bytes()).collect();
+        // The raw image directory's LONG entries, then the data.
+        let mut entries: Vec<(u16, Vec<u32>)> = vec![
+            (0xf001, vec![width]),
+            (0xf002, vec![height]),
+            (0xf003, vec![14]),
+            (0xf00a, vec![64, 64, 64, 64]),
+            (0xf00e, vec![300, 600, 450]),
+        ];
+        let n = entries.len() + 2;
+        let ifd_at = 26u32;
+        let values_at = ifd_at + 2 + 12 * n as u32 + 4;
+        let extra: u32 = entries
+            .iter()
+            .filter(|e| e.1.len() > 1)
+            .map(|e| 4 * e.1.len() as u32)
+            .sum();
+        entries.push((0xf007, vec![values_at + extra]));
+        entries.push((0xf008, vec![data.len() as u32]));
+        entries.sort_by_key(|e| e.0);
+        let mut block = b"II*\0\x08\0\0\0\x01\0\x00\xf0\x0d\0\x01\0\0\0".to_vec();
+        block.extend(ifd_at.to_le_bytes());
+        block.extend(0u32.to_le_bytes());
+        block.extend((n as u16).to_le_bytes());
+        let mut values = Vec::new();
+        for (tag, v) in &entries {
+            block.extend(tag.to_le_bytes());
+            block.extend(4u16.to_le_bytes());
+            block.extend((v.len() as u32).to_le_bytes());
+            if v.len() == 1 {
+                block.extend(v[0].to_le_bytes());
+            } else {
+                block.extend((values_at + values.len() as u32).to_le_bytes());
+                values.extend(v.iter().flat_map(|x| x.to_le_bytes()));
+            }
+        }
+        block.extend(0u32.to_le_bytes());
+        block.extend(values);
+        block.extend(data);
+        let mut dir = (records.len() as u32).to_be_bytes().to_vec();
+        for (tag, v) in records {
+            dir.extend(tag.to_be_bytes());
+            dir.extend((v.len() as u16).to_be_bytes());
+            dir.extend(v);
+        }
+        let jpeg = [0xff, 0xd8, 0xff, 0xd9];
+        let mut out = b"FUJIFILMCCD-RAW 0201FF000000X-T9".to_vec();
+        out.resize(160, 0);
+        let (d, r) = (164u32, 164 + dir.len() as u32);
+        let pointers = [160, 4, d, dir.len() as u32, r, block.len() as u32];
+        for (i, v) in pointers.into_iter().enumerate() {
+            out[84 + 4 * i..88 + 4 * i].copy_from_slice(&v.to_be_bytes());
+        }
+        out.extend(jpeg);
+        out.extend(dir);
+        out.extend(block);
+        out
+    }
+
+    /// RAWmakase's own decoders develop X-Trans data with its X-Trans
+    /// demosaic (`demosaic::xtrans`, whose directional candidates and blend
+    /// keep fine periodic detail free of moiré), in full and at half size,
+    /// whose pixels are 2 × 2 means of that demosaic, never a Bayer path.
+    #[test]
+    fn x_trans_develops_through_the_x_trans_demosaic() {
+        use crate::camera_data::{Decode, Demosaic};
+        use crate::raw::{Decoder, Raw};
+        // An X-Trans period, rows top first (0 red, 1 green, 2 blue); the
+        // XTransLayout record lists it last colour first.
+        let period: [u8; 36] = [
+            1, 1, 0, 1, 1, 2, //
+            1, 1, 2, 1, 1, 0, //
+            2, 0, 1, 0, 2, 1, //
+            1, 1, 2, 1, 1, 0, //
+            1, 1, 0, 1, 1, 2, //
+            0, 2, 1, 2, 0, 1,
+        ];
+        let layout: Vec<u8> = period.iter().rev().copied().collect();
+        let (w, h) = (24u32, 18u32);
+        // Stripes three pixels wide over a ramp: detail along every direction.
+        let samples: Vec<u16> = (0..w * h)
+            .map(|i| {
+                let (x, y) = (i % w, i / w);
+                let stripe = if (x + y) / 3 % 2 == 0 { 3000 } else { 0 };
+                (500 + 200 * x + 90 * y + stripe) as u16
+            })
+            .collect();
+        let file = raf(&[(0x131, layout)], w, h, &samples);
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("x-trans.raf");
+        std::fs::write(&path, file).unwrap();
+        let open = || Raw::open_with(&path, Decoder::Own).unwrap();
+        let raw = open();
+        assert!(raw.metadata.xtrans);
+        let wb = raw.metadata.wb;
+        let super::super::Backend::Own(own) = &raw.backend else {
+            panic!("not RAWmakase's decoders");
+        };
+        let mut cfa = own.cfa(&AtomicBool::new(false)).unwrap().unwrap();
+        let n = crate::demosaic::PATTERN;
+        for (i, v) in cfa.data.iter_mut().enumerate() {
+            let (x, y) = (i % w as usize, i / w as usize);
+            *v *= wb[cfa.pattern[(y % n) * n + x % n] as usize];
+        }
+        let expected = crate::demosaic::xtrans_demosaic(&crate::demosaic::Cfa {
+            data: &cfa.data,
+            width: w as usize,
+            height: h as usize,
+            pattern: &cfa.pattern,
+        });
+        let cancel = AtomicBool::new(false);
+        let full = open()
+            .develop(Decode::Full(Demosaic::Rawmakase), &cancel)
+            .unwrap();
+        assert_eq!([full.width, full.height], [w, h]);
+        assert!(full.pixels == expected, "the full size is not X-Trans's");
+        let half = open().develop(Decode::Half, &cancel).unwrap();
+        assert_eq!([half.width, half.height], [w / 2, h / 2]);
+        for (k, got) in half.pixels.iter().enumerate() {
+            let (i, j) = (k % (w as usize / 2), k / (w as usize / 2));
+            let mut sum = [0f32; 3];
+            for y in 2 * j..2 * j + 2 {
+                for x in 2 * i..2 * i + 2 {
+                    for c in 0..3 {
+                        sum[c] += expected[y * w as usize + x][c];
+                    }
+                }
+            }
+            assert_eq!(*got, sum.map(|v| v / 4.), "half-size pixel {i}, {j}");
+        }
+    }
+
     /// A tall Super CCD of 4 × 65,532 stored samples (512 KiB) would turn
     /// into 32,770 × 32,769 pixels (4.3 GB of floats): refused before the
     /// turned or demosaiced image is allocated.

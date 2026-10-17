@@ -34,7 +34,7 @@ const BLEND_POWER: i32 = 4;
 /// Weight of the Hamilton–Adams-style curvature correction of the directional green.
 const CURVATURE: f32 = 0.2;
 
-pub(super) fn demosaic(cfa: &Cfa) -> Vec<[f32; 3]> {
+pub(crate) fn demosaic(cfa: &Cfa) -> Vec<[f32; 3]> {
     let w = cfa.width;
     let mut out = vec![[0f32; 3]; w * cfa.height];
     out.par_chunks_mut(w * BAND)
