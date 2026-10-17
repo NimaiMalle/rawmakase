@@ -18,6 +18,9 @@ pub enum Variant {
     DngDeflate,
     /// DNG, uncompressed floating-point samples.
     DngUncompressedFloat,
+    /// DNG of VC5-coded tiles (compression 9, GoPro's GPR): its header facts
+    /// and preview are read, its sensor data is `Error::Unsupported`.
+    DngVc5,
     /// Panasonic RW2 (raw formats 3 and 4): delta-coded 16-byte blocks, the
     /// chunks of format 4 rotated.
     Rw2Delta,
@@ -163,6 +166,7 @@ impl Variant {
             Variant::DngLosslessJpeg => "dng-ljpeg",
             Variant::DngDeflate => "dng-deflate",
             Variant::DngUncompressedFloat => "dng-float",
+            Variant::DngVc5 => "dng-vc5",
             Variant::Rw2Delta => "rw2-delta",
             Variant::Rw2PackedRotated => "rw2-packed-rotated",
             Variant::Rw2Seeded => "rw2-seeded",
@@ -378,6 +382,9 @@ pub(crate) fn decode(info: &RawInfo, bytes: &[u8], cancel: &AtomicBool) -> Resul
             | Variant::DngDeflate
             | Variant::DngUncompressedFloat,
         ) => crate::container::dng::decode(info, plan, bytes, cancel),
+        (Plan::Dng(_), Variant::DngVc5) => Err(Error::Unsupported(
+            "DNG of VC5-coded data (GoPro GPR)".into(),
+        )),
         (
             Plan::Rw2(plan),
             Variant::Rw2Delta

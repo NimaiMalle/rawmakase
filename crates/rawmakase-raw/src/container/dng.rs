@@ -82,6 +82,7 @@ pub(crate) fn open(bytes: &[u8], t: TiffFile) -> Result<RawInfo> {
         (7, 1) => Variant::DngLosslessJpeg,
         (8, _) => Variant::DngDeflate,
         (1, 3) => Variant::DngUncompressedFloat,
+        (9, _) => Variant::DngVc5,
         _ => return Err(Error::Unsupported(format!("DNG compression {compression}"))),
     };
     let cfa = cfa(&t, ifd)?;
@@ -1256,6 +1257,21 @@ pub(crate) mod tests {
             .map(|b| u16::from_be_bytes(*b))
             .collect();
         assert_eq!(back, [0x1234, 0x5678, 0x9abc, 0xdef0]);
+    }
+
+    /// GoPro's GPRs code their tiles in VC5 (compression 9): they open, with
+    /// their header facts, and only their sensor data is unsupported.
+    #[test]
+    fn vc5_dngs_open_but_do_not_decode() {
+        let f = dng(4, 2, &[(259, 3, 1, 9u16.to_le_bytes().to_vec())]);
+        let info = crate::open(&f).unwrap();
+        assert_eq!(info.variant, crate::Variant::DngVc5);
+        assert_eq!([info.width, info.height], [4, 2]);
+        let error = crate::decode(&info, &f, &AtomicBool::new(false)).unwrap_err();
+        assert!(
+            matches!(&error, crate::Error::Unsupported(m) if m.contains("VC5")),
+            "{error}"
+        );
     }
 
     #[test]
