@@ -440,14 +440,15 @@ mRAWs, is not one of the simple ones (each MCU's chroma at its top-left or
 its centre, linear or nearest), and matches it on under a third of the
 pixels whatever the siting.
 
-Before RAWmakase's own decoders replace LibRaw for Canon small RAWs, two
-things outside this crate have to follow: `rawmakase-model`'s
-`sraw_baseline_exposure` corrects LibRaw's scale (green times 1.303, white
-16383), which the samples here no longer have, so it becomes Adobe's small
-RAW BaselineExposure alone; and Adobe clips each channel of a small RAW at
-its white before taking AnalogBalance out, so red and blue clip at the white
-times their level over green's, which one `white` cannot say (`linear_white`
-could carry it; the develop pipeline does not read it yet).
+Each channel of that balanced RGB is clipped at the white before red and
+blue are taken back, as a DNG's linear reference values are clipped before
+AnalogBalance applies: red and blue clip at the white times their level over
+green's, where Adobe clips them, and a clipped highlight stays neutral.
+
+Before RAWmakase's own decoders replace LibRaw for Canon small RAWs,
+`rawmakase-model`'s `sraw_baseline_exposure` has to follow: it corrects
+LibRaw's scale (green times 1.303, white 16383), which the samples here no
+longer have, so it becomes Adobe's small RAW BaselineExposure alone.
 
 Canon CRW (`container::ciff`, `codec::crw`): a CIFF heap of directory blocks;
 SensorInfo (0x1031) gives the sensor and the default crop, DecoderTable

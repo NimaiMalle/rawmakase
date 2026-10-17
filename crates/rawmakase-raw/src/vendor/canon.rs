@@ -330,9 +330,13 @@ impl Notes {
 
 impl SmallRaw {
     /// The camera RGB of a pixel from its luma and (interpolated) chroma;
-    /// darker than black is 0.
+    /// darker than black is 0. Each channel of the balanced RGB is clipped at
+    /// `white` first: a DNG's linear reference values are clipped to its
+    /// white level before AnalogBalance applies (DNG 1.7, "Mapping Raw
+    /// Values to Linear Reference Values"), so red and blue clip at `white`
+    /// times their level over green's, where Adobe clips them.
     #[inline]
-    pub(crate) fn rgb(&self, y: i32, cb: i32, cr: i32) -> [u16; 3] {
+    pub(crate) fn rgb(&self, y: i32, cb: i32, cr: i32, white: u32) -> [u16; 3] {
         let y = i64::from(y) + i64::from(self.y_offset);
         let rgb = if self.older {
             let (cb, cr) = (i64::from(2 * cb - 32766), i64::from(2 * cr - 32766));
@@ -351,7 +355,7 @@ impl SmallRaw {
         };
         let green = i64::from(self.levels[1]);
         std::array::from_fn(|c| {
-            let v = rgb[c].max(0);
+            let v = rgb[c].clamp(0, i64::from(white));
             let v = if c == 1 {
                 v
             } else {
@@ -663,7 +667,10 @@ mod tests {
         };
         let sraw = notes.small_raw().unwrap();
         assert!(sraw.older);
-        assert_eq!(sraw.rgb(76, 16382, 16385), [63, 72, 28]);
+        assert_eq!(sraw.rgb(76, 16382, 16385, 16383), [63, 72, 28]);
+        // Neutral luma above a white of 9000: clipped there before the
+        // levels, so red and blue at 9000 × 844 / 1170 and × 488 / 1170.
+        assert_eq!(sraw.rgb(9100, 16383, 16383, 9000), [6492, 9000, 3754]);
         // The newer bodies' mix: half of twice the chroma for red and blue;
         // green less a fraction of each, each rounded down. Darker than
         // black is 0.
@@ -676,8 +683,11 @@ mod tests {
         }
         .small_raw()
         .unwrap();
-        assert_eq!(newer.rgb(1000, 16384 + 24, 16384 - 10), [990, 1001, 1024]);
-        assert_eq!(newer.rgb(5, 16384, 16384 - 100), [0, 55, 5]);
+        assert_eq!(
+            newer.rgb(1000, 16384 + 24, 16384 - 10, 16383),
+            [990, 1001, 1024]
+        );
+        assert_eq!(newer.rgb(5, 16384, 16384 - 100, 16383), [0, 55, 5]);
         assert!(Notes::default().small_raw().is_none());
     }
 

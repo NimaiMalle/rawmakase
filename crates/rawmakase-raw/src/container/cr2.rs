@@ -373,6 +373,7 @@ fn small_raw(
     [h, v]: [usize; 2],
     visible: usize,
     conversion: &SmallRaw,
+    white: u32,
     cancel: &AtomicBool,
 ) -> Result<Vec<u16>> {
     let (width, height) = (plan.width as usize, plan.height as usize);
@@ -421,7 +422,7 @@ fn small_raw(
                         (_, 0) => below,
                         _ => below_right,
                     };
-                    let rgb = conversion.rgb(i32::from(luma[i * h + j]), cb, cr);
+                    let rgb = conversion.rgb(i32::from(luma[i * h + j]), cb, cr, white);
                     let at = (y * width + x) * 4;
                     out[at..at + 3].copy_from_slice(&rgb);
                 }
@@ -442,12 +443,20 @@ pub(crate) fn decode(
     let (data, precision) = grid(plan, bytes, cancel)?;
     let size = [plan.width, plan.height];
     if let Some(([h, v], conversion)) = plan.sraw {
+        // Adobe DNG Converter's white for the body's small RAWs (the camera
+        // table), else the 14 bits the conversion fills. (Adobe's small RAW
+        // white is the body's whatever the ISO: the rows by ISO are its
+        // mosaics'.)
+        let white = crate::facts::camera(&info.make, &info.model, false, size)
+            .find_map(|c| c.white)
+            .unwrap_or(16383);
         let data = small_raw(
             plan,
             &data,
             [h as usize, v as usize],
             (info.margins[0] + info.width) as usize,
             &conversion,
+            white,
             cancel,
         )?;
         return Ok(Sensor {
@@ -458,13 +467,7 @@ pub(crate) fn decode(
             area: [info.margins[0], info.margins[1], info.width, info.height],
             black: [0; 4],
             black_pattern: (0, 0, Vec::new()),
-            // Adobe DNG Converter's white for the body's small RAWs (the
-            // camera table), else the 14 bits the conversion fills.
-            // (Adobe's small RAW white is the body's whatever the ISO: the
-            // rows by ISO are its mosaics'.)
-            white: crate::facts::camera(&info.make, &info.model, false, size)
-                .find_map(|c| c.white)
-                .unwrap_or(16383),
+            white,
             linear_white: [0; 4],
         });
     }
