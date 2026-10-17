@@ -1,4 +1,6 @@
-//! The native boundary: LibRaw through `native/raw.cpp` ([`raw`]), colour
+//! The native boundary: RAW files read by RAWmakase's own decoders ([`raw`];
+//! LibRaw, through `native/raw.cpp`, only for the commands that compare
+//! decoders until it is removed), colour
 //! management of what is shown and exported ([`color_management`]),
 //! RAWmakase's own demosaicing ([`demosaic`]), opening a photo ([`photo`]) and its
 //! full-size decode through the decode cache ([`decode`], [`decode_cache`]), its

@@ -93,3 +93,47 @@ pub(crate) fn highlight_tone_priority(t: &TiffFile, ifd: &Ifd) -> i32 {
         .and_then(|v| v.get(3).copied())
         .map_or(0, |v| v as i32)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::container::cr2::tests::{put_ifd, shorts};
+    use crate::container::tiff::TiffFile;
+
+    /// The black of a ColorData `version` whose ColorData11 place (word 363)
+    /// holds `black11` and whose ColorData12 place (383) holds `black12`,
+    /// red, green, green, blue.
+    fn black(version: u16, black11: [u16; 4], black12: [u16; 4]) -> Option<[u32; 4]> {
+        let mut cd = vec![0u16; super::COLOR_DATA_USED];
+        cd[0] = version;
+        cd[363..367].copy_from_slice(&black11);
+        cd[383..387].copy_from_slice(&black12);
+        let mut f = b"II*\0\0\0\0\0".to_vec();
+        let ifd = put_ifd(
+            &mut f,
+            &[(super::COLOR_DATA, 3, cd.len() as u32, shorts(&cd))],
+            0,
+        );
+        f[4..8].copy_from_slice(&ifd.to_le_bytes());
+        let t = TiffFile::parse(&f, 0).unwrap();
+        super::black(&t, &t.ifds[0])
+    }
+
+    /// The EOS R6 Mark III (version 66) and R50 V (65) keep ColorData12's
+    /// levels in a record as long as ColorData11; read where ColorData11
+    /// has them, they are small wrong values (#517).
+    #[test]
+    fn reads_the_black_where_each_color_data_version_keeps_it() {
+        let wrong = [0, 58, 113, 145];
+        assert_eq!(black(66, wrong, [512; 4]), Some([512; 4]));
+        assert_eq!(
+            black(65, wrong, [2044, 2047, 2046, 2043]),
+            Some([2044, 2047, 2043, 2046])
+        );
+        // ColorData11 itself (the R6 Mark II's version 48).
+        assert_eq!(
+            black(48, [511, 512, 513, 514], wrong),
+            Some([511, 512, 514, 513])
+        );
+        assert_eq!(black(99, [511; 4], [512; 4]), None);
+    }
+}

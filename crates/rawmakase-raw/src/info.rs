@@ -75,6 +75,12 @@ pub struct RawInfo {
     pub lens_id: u32,
     /// Canon Highlight Tone Priority: 0 off, 1 on, 2 enhanced.
     pub highlight_tone_priority: i32,
+    /// The sensor data's mean black, its white and the samples' maximum
+    /// (their bit depth's), where the file says them before unpacking
+    /// (Canon's CR2 and CR3 mosaics, whose white Adobe takes by ISO speed):
+    /// Adobe DNG Converter's BaselineExposure moves with that white, so
+    /// development's exposure follows it.
+    pub levels: Option<[u32; 3]>,
     pub(crate) plan: crate::variant::Plan,
     /// The embedded JPEGs the file lists.
     pub(crate) previews: Vec<crate::preview::Candidate>,
@@ -185,6 +191,7 @@ pub(crate) fn base(variant: Variant) -> RawInfo {
         lens: String::new(),
         lens_id: 0,
         highlight_tone_priority: 0,
+        levels: None,
         plan: crate::variant::Plan::None,
         previews: Vec::new(),
         uncompressed_preview: false,

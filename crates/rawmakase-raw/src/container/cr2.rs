@@ -432,6 +432,54 @@ fn small_raw(
     Ok(out)
 }
 
+/// Adobe DNG Converter's white for a mosaic of samples up to `bits`, black
+/// at most `darkest`: the camera table's for the file's ISO speed where
+/// Adobe has its own; else the white level the maker notes record (the
+/// specular one, or the normal one where Adobe takes that; one at or above
+/// the samples' maximum says nothing), at most the table's cap; else the
+/// table's; else the samples' bit depth.
+fn white(info: &RawInfo, plan: &Cr2Plan, bits: u32, darkest: u32) -> u32 {
+    let size = [plan.width, plan.height];
+    let camera = || crate::facts::camera(&info.make, &info.model, false, size);
+    let normal = camera().any(|c| c.normal_white == Some(true));
+    let cap = camera().find_map(|c| c.white_max).unwrap_or(u32::MAX);
+    let recorded = plan.levels;
+    crate::facts::iso_white(&info.make, &info.model, false, size, info.iso)
+        .or_else(|| {
+            if normal {
+                recorded.normal
+            } else {
+                recorded.specular
+            }
+            .filter(|&w| w < bits && w > darkest)
+            .map(|w| w.min(cap))
+        })
+        .or_else(|| camera().find_map(|c| c.white))
+        .unwrap_or(bits)
+}
+
+/// A mosaic's black (the maker notes', mean), white and samples' maximum
+/// before unpacking, for exposure: the white as `decode` takes it with that
+/// black; `None` for a small RAW, without recorded levels (a black only the
+/// masked border tells) or a readable strip header. Read once the camera's
+/// names are RAWmakase's (`variant::open`): the camera table is keyed by them.
+pub(crate) fn levels(info: &RawInfo, plan: &Cr2Plan, bytes: &[u8]) -> Option<[u32; 3]> {
+    if plan.sraw.is_some() {
+        return None;
+    }
+    let black = plan.levels.black?;
+    let file = crate::io::Bytes::new(bytes, crate::io::Order::Little);
+    let strip = file.slice(plan.strip.0, plan.strip.1).ok()?;
+    let precision = ljpeg::header(strip).ok()?.precision;
+    let bits = 1u32.checked_shl(u32::from(precision))?.checked_sub(1)?;
+    let darkest = black.iter().copied().max().unwrap_or(0);
+    Some([
+        black.iter().sum::<u32>() / 4,
+        white(info, plan, bits, darkest),
+        bits,
+    ])
+}
+
 /// Decodes a mosaic CR2, with the black level measured on its masked
 /// borders.
 pub(crate) fn decode(
@@ -524,26 +572,8 @@ pub(crate) fn decode(
             }
         }
     };
-    // Adobe DNG Converter's white: the camera table's for the file's ISO
-    // speed where Adobe has its own; else the white level the maker notes
-    // record (the specular one, or the normal one where Adobe takes that;
-    // one at or above the samples' maximum says nothing), at most the
-    // table's cap; else the table's; else the samples' bit depth.
     let darkest = black.iter().copied().max().unwrap_or(0);
-    let normal = camera().any(|c| c.normal_white == Some(true));
-    let cap = camera().find_map(|c| c.white_max).unwrap_or(u32::MAX);
-    let white = crate::facts::iso_white(&info.make, &info.model, false, size, info.iso)
-        .or_else(|| {
-            if normal {
-                recorded.normal
-            } else {
-                recorded.specular
-            }
-            .filter(|&w| w < bits && w > darkest)
-            .map(|w| w.min(cap))
-        })
-        .or_else(|| camera().find_map(|c| c.white))
-        .unwrap_or(bits);
+    let white = white(info, plan, bits, darkest);
     Ok(Sensor {
         width: plan.width,
         height: plan.height,
@@ -770,14 +800,55 @@ pub(crate) mod tests {
             let bytes = cr2(&jpeg, &[], &note);
             let info = crate::open(&bytes).unwrap();
             let sensor = crate::decode(&info, &bytes, &AtomicBool::new(false)).unwrap();
-            (sensor.black, sensor.white)
+            (sensor.black, sensor.white, info.levels)
         };
-        // Red, green, blue, second green from red, green, green, blue.
-        assert_eq!(decode(110, 3000), ([110, 110, 112, 111], 3000));
-        // A recorded black far above the border is on another scale.
-        assert_eq!(decode(1023, 3000), ([100; 4], 3000));
+        // Red, green, blue, second green from red, green, green, blue; the
+        // notes' mean black and the white are known before unpacking.
+        assert_eq!(
+            decode(110, 3000),
+            ([110, 110, 112, 111], 3000, Some([110, 3000, 4095]))
+        );
+        // A recorded black far above the border is on another scale (open
+        // cannot tell; development's exposure takes the notes' black).
+        assert_eq!(
+            decode(1023, 3000),
+            ([100; 4], 3000, Some([1023, 3000, 4095]))
+        );
         // A white at the samples' maximum says nothing: the bit depth's.
-        assert_eq!(decode(110, 4095), ([110, 110, 112, 111], 4095));
+        assert_eq!(
+            decode(110, 4095),
+            ([110, 110, 112, 111], 4095, Some([110, 4095, 4095]))
+        );
+    }
+
+    /// The white known on opening is the one decoding takes, from the camera
+    /// table, which is keyed by RAWmakase's names ("EOS 5D", not the file's
+    /// "Canon EOS 5D"): the EOS 5D's 3692 where ColorData says nothing.
+    #[test]
+    fn levels_on_opening_follow_the_camera_table() {
+        let image: Vec<u16> = (0..48)
+            .map(|i| if i % 12 < 6 { 100 } else { 1000 })
+            .collect();
+        let jpeg = crate::codec::ljpeg::tests::encode(&image, 12, 12, 1);
+        let mut cd = vec![0u16; 1592];
+        cd[0] = 13;
+        cd[778..782].copy_from_slice(&[110; 4]);
+        cd[783] = 4095;
+        let note = [
+            (0x00e0, 3, 9, shorts(&[18, 12, 4, 0, 0, 6, 0, 11, 3])),
+            (0x4001, 3, cd.len() as u32, shorts(&cd)),
+        ];
+        let mut bytes = cr2(&jpeg, &[], &note);
+        let at = bytes
+            .windows(12)
+            .position(|w| w == b"Canon EOS T1")
+            .unwrap();
+        bytes[at..at + 12].copy_from_slice(b"Canon EOS 5D");
+        let info = crate::open(&bytes).unwrap();
+        assert_eq!(info.model, "EOS 5D");
+        let sensor = crate::decode(&info, &bytes, &AtomicBool::new(false)).unwrap();
+        assert_eq!(sensor.white, 3692);
+        assert_eq!(info.levels, Some([110, 3692, 4095]));
     }
 
     #[test]

@@ -285,6 +285,7 @@ fn header(i: &RawInfo) -> Header {
         lens: i.lens.clone(),
         lens_id: i.lens_id,
         dng_version: i.dng_version,
+        levels: i.levels,
     }
 }
 

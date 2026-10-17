@@ -454,6 +454,9 @@ pub(crate) fn open(bytes: &[u8]) -> Result<RawInfo> {
         .find_map(|c| c.white)
         .or(noted_white.filter(|&w| w > 0 && w <= range))
         .unwrap_or(range);
+    if let Black::Notes(b) = &black {
+        info.levels = Some([b.iter().sum::<u32>() / 4, white, range]);
+    }
     for t in &c.tracks {
         if t.jpeg
             && let Some((offset, len)) = t.sample
@@ -752,6 +755,9 @@ mod tests {
         assert_eq!(s.black, [100, 101, 103, 102]);
         // ColorData's SpecularWhiteLevel.
         assert_eq!(s.white, 14008);
+        // All known before unpacking: the black's mean, the white and the
+        // 14-bit samples' maximum.
+        assert_eq!(info.levels, Some([101, 14008, 16383]));
         assert_eq!(
             crate::decode(&info, &file, &AtomicBool::new(true)).unwrap_err(),
             crate::Error::Cancelled

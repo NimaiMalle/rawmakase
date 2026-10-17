@@ -1,8 +1,8 @@
-//! RAW files: opening them through LibRaw, reading their metadata (with the
-//! DNG, RAF and lens details read on top), development into linear camera-space
-//! pixels and the embedded preview. The values
-//! they produce are [`crate::camera_data`]'s.
-//! The native boundary itself is in [`ffi`].
+//! RAW files: opening them with RAWmakase's own decoders (`rawmakase-raw`,
+//! through [`own`]), reading their metadata, development into linear
+//! camera-space pixels and the embedded preview. The values they produce are
+//! [`crate::camera_data`]'s. LibRaw ([`ffi`]) is reached only by the commands
+//! that compare decoders (`--decoder libraw`), until it is removed.
 use anyhow::{Result, ensure};
 use rayon::prelude::*;
 use std::{
@@ -15,17 +15,26 @@ mod priority;
 use crate::camera_data::{
     CameraImage, Decode, Demosaic, HighlightTonePriority, Metadata, Source, WhiteBalancePresets,
 };
-pub use ffi::version;
+/// The version of the decoder photos open with.
+pub fn version() -> String {
+    version_of(Decoder::Own)
+}
 /// The version of `decoder`, for fingerprints.
 pub fn version_of(decoder: Decoder) -> String {
     match decoder {
-        Decoder::Libraw => version(),
+        Decoder::Libraw => ffi::version(),
         Decoder::Own => rawmakase_raw::VERSION.to_string(),
     }
 }
+/// What a developed image depends on in the decoder, for identities of
+/// developed images kept across runs (stored previews): the decoding, bumped
+/// (with [`version`]) when it changes what photos develop to.
+pub fn developed() -> String {
+    "rawmakase-raw 1".into()
+}
 /// Runs `work` on a thread of its own at background priority: a lower
-/// scheduling priority, and parallel work (RAWmakase's decoders, LibRaw's on
-/// two OpenMP threads) on two background threads, never the shared pool.
+/// scheduling priority, and parallel work (RAWmakase's decoders) on two
+/// background threads, never the shared pool.
 /// Every worker that reads or decodes photos behind the user's back starts
 /// here or in [`background_pool`], so none competes with Develop for the CPU.
 pub fn spawn_background(work: impl FnOnce() + Send + 'static) -> std::thread::JoinHandle<()> {
@@ -56,7 +65,6 @@ pub fn background_pool(
 }
 /// Runs the calling thread at background priority from now on.
 fn background_thread() {
-    ffi::background_thread();
     priority::lower();
 }
 pub struct Raw {
@@ -64,18 +72,19 @@ pub struct Raw {
     pub metadata: Metadata,
     pub facts: Facts,
 }
-/// The decoder behind a [`Raw`]. The app's photos open with LibRaw; RAWmakase's
-/// own decoders are reached only through [`Raw::open_with`], by the commands that
-/// compare the two (`fingerprint`, `decode-dump`), until they replace LibRaw.
+/// The decoder behind a [`Raw`]. Every photo the app opens is RAWmakase's
+/// own decoders'; LibRaw is reached only through [`Raw::open_with`], by the
+/// commands that compare the two (`fingerprint`, `decode-dump`).
 enum Backend {
     Libraw(ffi::Handle),
     Own(Box<own::Own>),
 }
-/// Which decoder reads a file, for the commands that compare decoders.
+/// Which decoder reads a file: RAWmakase's own; LibRaw only for the commands
+/// that compare decoders, until it is removed.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Decoder {
-    #[default]
     Libraw,
+    #[default]
     Own,
 }
 /// What the decoder read about a file beyond [`Metadata`], before any of
@@ -163,20 +172,22 @@ pub(crate) struct Header {
     pub lens: String,
     pub lens_id: u32,
     pub dng_version: u32,
+    /// Black and white known on opening; see `Metadata::levels`.
+    pub levels: Option<[u32; 3]>,
 }
 impl Raw {
-    /// The photo's facts as LibRaw reads them, and the crop a RAF header
-    /// recommends. What the file says beyond them (lens tables, a DNG's profile
-    /// and hints) and the imported lens profiles are `crate::photo::open`'s.
+    /// The photo's facts as RAWmakase's decoders read them. What the file says
+    /// beyond them (lens tables, a DNG's profile and hints) and the imported
+    /// lens profiles are `crate::photo::open`'s.
     pub fn open_file(path: &Path) -> Result<Self> {
-        Self::open_with(path, Decoder::Libraw)
+        Self::open_with(path, Decoder::Own)
     }
     /// The file at `path` read by `decoder`; see [`Decoder`].
     pub fn open_with(path: &Path, decoder: Decoder) -> Result<Self> {
         let (backend, h) = match decoder {
             Decoder::Libraw => {
                 let (handle, m) = ffi::Handle::open(path)?;
-                let h = ffi::header(&m, panasonic_sensor(path), fuji_crop(path));
+                let h = ffi::header(&m, ffi::panasonic_sensor(path), ffi::fuji_crop(path));
                 (Backend::Libraw(handle), h)
             }
             Decoder::Own => {
@@ -249,6 +260,7 @@ impl Raw {
             lens_profiles: Default::default(),
             lateral_ca: Default::default(),
             embedded_dcp: None,
+            levels: h.levels,
             make: h.make,
             model: h.model,
         };
@@ -296,13 +308,11 @@ impl Raw {
             let cfa = own.cfa(cancel)?;
             return self
                 .develop_mosaic(cfa, decode == Decode::Half, cancel)?
-                .ok_or_else(|| {
-                    anyhow::anyhow!("RAWmakase's decoders do not develop this file yet")
-                });
+                .ok_or_else(|| anyhow::anyhow!("Sensor data RAWmakase cannot develop"));
         }
+        // LibRaw, for the commands that compare decoders.
         match decode {
             Decode::Half => self.develop_libraw(true, cancel),
-            Decode::Full(Demosaic::Libraw) => self.develop_libraw(false, cancel),
             // LibRaw's demosaic when the file is not Bayer or X-Trans data.
             Decode::Full(Demosaic::Rawmakase) => match self.develop_cfa(cancel)? {
                 Some(image) => Ok(image),
@@ -540,70 +550,6 @@ fn sony_frame(
     ];
     Some((frame, [left, top, width, height]))
 }
-/// The sensor borders of a Panasonic or Leica RW2 (RWL) header, tags 4 to 7 (top,
-/// left, bottom, right), as `[left, top, width, height]` in raw coordinates.
-/// LibRaw replaces them with the camera's aspect-ratio crop (tags 47 to 50).
-fn panasonic_sensor(path: &Path) -> Option<[u32; 4]> {
-    use std::io::{Read, Seek, SeekFrom};
-    let mut f = std::fs::File::open(path).ok()?;
-    let mut head = [0u8; 8];
-    f.read_exact(&mut head).ok()?;
-    if &head[..4] != b"IIU\0" {
-        return None;
-    }
-    f.seek(SeekFrom::Start(
-        u32::from_le_bytes(head[4..].try_into().ok()?) as u64,
-    ))
-    .ok()?;
-    let mut count = [0u8; 2];
-    f.read_exact(&mut count).ok()?;
-    let mut b = vec![0; usize::from(u16::from_le_bytes(count)).min(1024) * 12];
-    f.read_exact(&mut b).ok()?;
-    let mut border = [None; 4];
-    for e in b.as_chunks::<12>().0 {
-        let tag = u16::from_le_bytes([e[0], e[1]]);
-        if (4..=7).contains(&tag) && u16::from_le_bytes([e[2], e[3]]) == 3 {
-            border[usize::from(tag - 4)] = Some(u32::from(u16::from_le_bytes([e[8], e[9]])));
-        }
-    }
-    let [Some(top), Some(left), Some(bottom), Some(right)] = border else {
-        return None;
-    };
-    (right > left && bottom > top).then(|| [left, top, right - left, bottom - top])
-}
-/// The camera's recommended crop from the RAF header directory: tags 0x110 (top, left)
-/// and 0x111 (height, width), big-endian. Lightroom uses it as the default crop.
-fn fuji_crop(path: &Path) -> Option<[u32; 4]> {
-    use std::io::{Read, Seek, SeekFrom};
-    let mut f = std::fs::File::open(path).ok()?;
-    let mut head = [0u8; 100];
-    f.read_exact(&mut head).ok()?;
-    if !head.starts_with(b"FUJIFILMCCD-RAW") {
-        return None;
-    }
-    let dir = u32::from_be_bytes(head[92..96].try_into().ok()?) as u64;
-    let len = u32::from_be_bytes(head[96..100].try_into().ok()?) as usize;
-    if !(4..=1 << 20).contains(&len) {
-        return None;
-    }
-    let mut b = vec![0; len];
-    f.seek(SeekFrom::Start(dir)).ok()?;
-    f.read_exact(&mut b).ok()?;
-    let be16 = |o: usize| Some(u16::from_be_bytes(b.get(o..o + 2)?.try_into().ok()?) as u32);
-    let count = u32::from_be_bytes(b[..4].try_into().ok()?) as usize;
-    let (mut o, mut origin, mut size) = (4, None, None);
-    for _ in 0..count.min(256) {
-        let (tag, n) = (be16(o)?, be16(o + 2)? as usize);
-        if n == 4 && tag == 0x110 {
-            origin = Some([be16(o + 6)?, be16(o + 4)?]);
-        } else if n == 4 && tag == 0x111 {
-            size = Some([be16(o + 6)?, be16(o + 4)?]);
-        }
-        o += 4 + n;
-    }
-    let ([left, top], [width, height]) = (origin?, size?);
-    (width > 0 && height > 0).then_some([left, top, width, height])
-}
 pub fn thumbnail(raw: &mut Raw) -> anyhow::Result<image::RgbImage> {
     use image::{ImageDecoder, metadata::Orientation};
     let bytes = raw.thumbnail()?;
@@ -680,176 +626,6 @@ mod tests {
         assert_eq!(H::from_libraw(1), H::On);
         assert_eq!(H::from_libraw(2), H::Enhanced);
         assert_eq!(H::from_libraw(-1), H::Off);
-    }
-    /// A 64×48 uncompressed Canon TIFF claiming `model`, whose maker notes hold
-    /// `notes`: (tag, type, count, value) with every value stored after the image.
-    /// Written into a folder of its own: Windows does not let LibRaw open a
-    /// `NamedTempFile` while it is held.
-    fn canon_raw(
-        model: &str,
-        notes: &[(u16, u16, u32, Vec<u8>)],
-    ) -> (tempfile::TempDir, std::path::PathBuf) {
-        let le = |v: u32, n: usize| v.to_le_bytes()[..n].to_vec();
-        // IFD entries (tag, type, count, value) with values of up to four bytes.
-        let ifd = |entries: &[(u16, u16, u32, Vec<u8>)]| {
-            let mut b = le(entries.len() as u32, 2);
-            for (tag, kind, count, value) in entries {
-                b.extend(le(*tag as u32, 2));
-                b.extend(le(*kind as u32, 2));
-                b.extend(le(*count, 4));
-                b.extend(value.iter().copied().chain([0; 4]).take(4));
-            }
-            b.extend(le(0, 4));
-            b
-        };
-        let (make, model_at, exif, notes_at, image) = (192, 200, 300, 400, 1024);
-        let (width, height) = (64u32, 48u32);
-        let size = width * height * 2;
-        let mut file = vec![0u8; (image + size) as usize];
-        let mut entries = Vec::new();
-        for (tag, kind, count, value) in notes {
-            entries.push((*tag, *kind, *count, le(file.len() as u32, 4)));
-            file.extend(value);
-        }
-        let mut put = |at: u32, bytes: &[u8]| {
-            file[at as usize..at as usize + bytes.len()].copy_from_slice(bytes)
-        };
-        let model = format!("{model}\0");
-        put(0, b"II*\0\x08\0\0\0");
-        put(make, b"Canon\0");
-        put(model_at, model.as_bytes());
-        put(
-            8,
-            &ifd(&[
-                (0x0100, 4, 1, le(width, 4)),
-                (0x0101, 4, 1, le(height, 4)),
-                (0x0102, 3, 1, le(16, 2)),
-                (0x0103, 3, 1, le(1, 2)),
-                (0x0106, 3, 1, le(32803, 2)),
-                (0x010f, 2, 6, le(make, 4)),
-                (0x0110, 2, model.len() as u32, le(model_at, 4)),
-                (0x0111, 4, 1, le(image, 4)),
-                (0x0115, 3, 1, le(1, 2)),
-                (0x0116, 4, 1, le(height, 4)),
-                (0x0117, 4, 1, le(size, 4)),
-                (0x828d, 3, 2, [le(2, 2), le(2, 2)].concat()),
-                (0x828e, 1, 4, vec![0, 1, 1, 2]),
-                (0x8769, 4, 1, le(exif, 4)),
-            ]),
-        );
-        put(exif, &ifd(&[(0x927c, 7, 18, le(notes_at, 4))]));
-        put(notes_at, &ifd(&entries));
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("canon.tif");
-        std::fs::write(&path, file).unwrap();
-        (dir, path)
-    }
-    /// A Canon EOS 60D TIFF whose maker notes hold only CustomFunctions2 with
-    /// Highlight Tone Priority (record 0x0203) at `htp`, as bodies from the 40D
-    /// to the 600D record it: LibRaw reads none of the 60D's and a CameraInfo byte
-    /// of the 550D's that says Off when the custom function is on.
-    fn canon_custom_functions_raw(htp: u32) -> (tempfile::TempDir, std::path::PathBuf) {
-        let le = |v: u32, n: usize| v.to_le_bytes()[..n].to_vec();
-        let records = [(0x0201, 0), (0x0202, 0), (0x0203, htp)];
-        let mut group = [2, 8 + 12 * records.len() as u32, records.len() as u32]
-            .iter()
-            .flat_map(|&v| le(v, 4))
-            .collect::<Vec<_>>();
-        group.extend(
-            records
-                .iter()
-                .flat_map(|&(tag, v)| [tag, 1, v])
-                .flat_map(|v| le(v, 4)),
-        );
-        let mut custom = le(8 + group.len() as u32, 2);
-        custom.extend(le(0, 2));
-        custom.extend(le(1, 4));
-        custom.extend(group);
-        let words = custom.len() as u32 / 4;
-        canon_raw("Canon EOS 60D", &[(0x0099, 4, words, custom)])
-    }
-    /// A Canon TIFF claiming `model` whose ColorData (0x4001) is 3778 words of
-    /// `version`, with the per-channel blacks (red, green, green, blue) where
-    /// ColorData11 has them and where ColorData12 does.
-    fn canon_color_data_raw(
-        model: &str,
-        version: u16,
-        black11: [u16; 4],
-        black12: [u16; 4],
-    ) -> (tempfile::TempDir, std::path::PathBuf) {
-        let mut words = vec![0u16; 3778];
-        words[0] = version;
-        words[0x69..0x6d].copy_from_slice(&[2320, 1024, 1024, 1454]);
-        words[0x27c..0x280].copy_from_slice(&black11);
-        words[0x280..0x282].copy_from_slice(&[164, 172]);
-        words[0x290..0x294].copy_from_slice(&black12);
-        words[0x294..0x296].copy_from_slice(&[13200, 13995]);
-        let bytes = words.iter().flat_map(|w| w.to_le_bytes()).collect();
-        canon_raw(model, &[(0x4001, 3, 3778, bytes)])
-    }
-    #[test]
-    fn reads_black_from_canon_color_data_12_of_3778_words() {
-        let black = |model, version, black11, black12| {
-            let (_dir, path) = canon_color_data_raw(model, version, black11, black12);
-            super::Raw::open_file(&path)
-                .unwrap()
-                .sensor()
-                .unwrap()
-                .black
-        };
-        // The EOS R6 Mark III (version 66) and R50 V (65) write ColorData12 in a
-        // record as long as ColorData11; LibRaw reads it as ColorData11 and gets
-        // the small values there (pink renders when the masked border cannot
-        // correct them). Channels are LibRaw's: red, green, blue, second green.
-        let garbage = [0, 58, 113, 145];
-        assert_eq!(
-            black("Canon EOS R6 Mark III", 66, garbage, [512; 4]),
-            [512; 4]
-        );
-        assert_eq!(
-            black("Canon EOS R50 V", 65, garbage, [2044, 2047, 2046, 2043]),
-            [2044, 2047, 2043, 2046]
-        );
-        // ColorData11 itself (the R6 Mark II's version 48) keeps LibRaw's reading.
-        assert_eq!(
-            black("Canon EOS R6 Mark II", 48, [511, 512, 513, 514], [0; 4]),
-            [511, 512, 514, 513]
-        );
-    }
-    #[test]
-    fn reads_highlight_tone_priority_from_canon_custom_functions() {
-        use super::HighlightTonePriority as H;
-        let open = |htp| {
-            let (_dir, path) = canon_custom_functions_raw(htp);
-            let raw = super::Raw::open_file(&path).unwrap();
-            assert_eq!(
-                (&*raw.metadata.make, &*raw.metadata.model),
-                ("Canon", "EOS 60D")
-            );
-            raw.metadata.highlight_tone_priority
-        };
-        assert_eq!(open(1), H::On);
-        assert_eq!(open(0), H::Off);
-    }
-    #[test]
-    fn reads_fujifilm_default_crop() {
-        let mut raf = b"FUJIFILMCCD-RAW 0201FF383501".to_vec();
-        raf.resize(128, 0);
-        let mut dir = 2u32.to_be_bytes().to_vec();
-        for (tag, a, b) in [(0x110u16, 16u16, 16u16), (0x111, 4000, 6000)] {
-            dir.extend(tag.to_be_bytes());
-            dir.extend(4u16.to_be_bytes());
-            dir.extend(a.to_be_bytes());
-            dir.extend(b.to_be_bytes());
-        }
-        raf[92..96].copy_from_slice(&128u32.to_be_bytes());
-        raf[96..100].copy_from_slice(&(dir.len() as u32).to_be_bytes());
-        raf.extend(dir);
-        let f = tempfile::NamedTempFile::new().unwrap();
-        std::fs::write(f.path(), raf).unwrap();
-        assert_eq!(super::fuji_crop(f.path()), Some([16, 16, 6000, 4000]));
-        std::fs::write(f.path(), b"FUJIFILMCCD-RAW").unwrap();
-        assert_eq!(super::fuji_crop(f.path()), None);
     }
     /// LibRaw's rectangles for a Canon EOS M6 Mark II CR3 shot at 1:1: SensorInfo's
     /// 6960×4640 frame and the AspectInfo square, in raw coordinates, with a visible
@@ -1005,39 +781,20 @@ mod tests {
         );
         assert_eq!(got, olympus);
     }
+    /// Photos open, preview and develop with RAWmakase's decoders; LibRaw is
+    /// only the comparison commands' (`Decoder::Libraw`).
     #[test]
-    fn reads_panasonic_sensor_borders() {
-        let mut rw2 = b"IIU\0".to_vec();
-        rw2.extend(8u32.to_le_bytes());
-        let tags = [
-            (4u16, 8u16),
-            (5, 8),
-            (6, 3656),
-            (7, 5480),
-            (0x2f, 8),
-            (0x30, 312),
-        ];
-        rw2.extend((tags.len() as u16).to_le_bytes());
-        for (tag, v) in tags {
-            rw2.extend(tag.to_le_bytes());
-            rw2.extend(3u16.to_le_bytes());
-            rw2.extend(1u32.to_le_bytes());
-            rw2.extend(u32::from(v).to_le_bytes());
-        }
-        let f = tempfile::NamedTempFile::new().unwrap();
-        std::fs::write(f.path(), &rw2).unwrap();
-        assert_eq!(super::panasonic_sensor(f.path()), Some([8, 8, 5472, 3648]));
-        // Reversed borders, without every border, or in a TIFF, there is none.
-        let right = rw2.len() - 3 * 12 + 8;
-        let mut reversed = rw2.clone();
-        reversed[right..right + 2].copy_from_slice(&0u16.to_le_bytes());
-        std::fs::write(f.path(), &reversed).unwrap();
-        assert_eq!(super::panasonic_sensor(f.path()), None);
-        std::fs::write(f.path(), &rw2[..rw2.len() - 4 * 12]).unwrap();
-        assert_eq!(super::panasonic_sensor(f.path()), None);
-        rw2[2] = b'*';
-        std::fs::write(f.path(), &rw2).unwrap();
-        assert_eq!(super::panasonic_sensor(f.path()), None);
+    fn photos_open_with_rawmakases_decoders() {
+        let chart = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../tests/corpus/charts/synthetic-d65.dng"
+        );
+        assert_eq!(super::Decoder::default(), super::Decoder::Own);
+        assert!(super::developed().starts_with("rawmakase-raw"));
+        let raw = super::Raw::open_file(chart.as_ref()).unwrap();
+        assert!(matches!(raw.backend, super::Backend::Own(_)));
+        let opened = crate::photo::open(chart.as_ref()).unwrap();
+        assert!(matches!(opened.backend, super::Backend::Own(_)));
     }
     #[test]
     fn corrupt_raw_is_an_error() {
@@ -1133,11 +890,7 @@ mod tests {
             let expected: [u8; 32] =
                 <sha2::Sha256 as sha2::Digest>::digest(value.repeat(64 * 64)).into();
             assert_eq!(sensor.data_sha256, expected, "{model}");
-            for decode in [
-                Decode::Half,
-                Decode::Full(Demosaic::Libraw),
-                Decode::Full(Demosaic::Rawmakase),
-            ] {
+            for decode in [Decode::Half, Decode::Full(Demosaic::Rawmakase)] {
                 let raw = super::Raw::open_file(&path).unwrap();
                 let image = raw
                     .develop(decode, &AtomicBool::new(false))
@@ -1160,11 +913,7 @@ mod tests {
         // JPEG XS's start of codestream and capabilities marker, then noise.
         const JPEG_XS: [u8; 4] = [0xff, 0x10, 0xff, 0x50];
         for model in ["NIKON Z5_2", "NIKON Z 8"] {
-            for decode in [
-                Decode::Half,
-                Decode::Full(Demosaic::Libraw),
-                Decode::Full(Demosaic::Rawmakase),
-            ] {
+            for decode in [Decode::Half, Decode::Full(Demosaic::Rawmakase)] {
                 let (_dir, path) = nef(model, &JPEG_XS);
                 // Opened, so the embedded preview can stand in.
                 let raw = super::Raw::open_file(&path).unwrap();
@@ -1172,14 +921,14 @@ mod tests {
                 // fails the same way.
                 for _ in 0..2 {
                     let error = raw.sensor().err().expect("unpacked");
-                    assert!(error.to_string().contains("High Efficiency"), "{error}");
+                    assert!(error.to_string().contains("JPEG XS"), "{error}");
                 }
                 let error = raw
                     .develop(decode, &AtomicBool::new(false))
                     .err()
                     .unwrap_or_else(|| panic!("{model} developed with {decode:?}"));
                 assert!(
-                    error.to_string().contains("High Efficiency"),
+                    error.to_string().contains("JPEG XS"),
                     "{model}, {decode:?}: {error}"
                 );
             }

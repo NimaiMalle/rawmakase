@@ -165,14 +165,14 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../tests/corpus/charts/synthetic-d65.dng"
         );
-        let d = super::dump(chart.as_ref(), None, Decoder::Libraw);
+        let d = super::dump(chart.as_ref(), None, Decoder::Own);
         assert_eq!(d.mosaic, Some(true));
         let (full, half) = (d.full.unwrap(), d.half.unwrap());
         assert_eq!(full.size, Some([970, 742]));
         assert_eq!(half.size, Some([485, 371]));
         assert!(full.pixels_sha256.is_some() && full.error.is_none());
         let dir = tempfile::tempdir().unwrap();
-        let missing = super::dump(&dir.path().join("missing.dng"), None, Decoder::Libraw);
+        let missing = super::dump(&dir.path().join("missing.dng"), None, Decoder::Own);
         assert!(missing.sha256.is_none() && missing.error.is_some() && missing.full.is_none());
     }
 }

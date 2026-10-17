@@ -116,7 +116,7 @@ enum Command {
         #[arg(required = true, num_args = 1..)]
         files: Vec<PathBuf>,
         /// The decoder to read them with.
-        #[arg(long, value_enum, default_value_t = DecoderArg::Libraw)]
+        #[arg(long, value_enum, default_value_t = DecoderArg::Own)]
         decoder: DecoderArg,
     },
     /// Print each file's develop fingerprint as a line of JSON: the image each
@@ -128,7 +128,7 @@ enum Command {
         #[arg(long)]
         floats: Option<PathBuf>,
         /// The decoder to read them with.
-        #[arg(long, value_enum, default_value_t = DecoderArg::Libraw)]
+        #[arg(long, value_enum, default_value_t = DecoderArg::Own)]
         decoder: DecoderArg,
     },
     /// Print each file's half-size check as a line of JSON: RAWmakase's
@@ -146,7 +146,8 @@ enum Command {
         iterations: usize,
     },
 }
-/// The decoders the comparison commands can read a RAW with.
+/// The decoders the comparison commands can read a RAW with: RAWmakase's own, or
+/// LibRaw (the oracle) until it is removed.
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 enum DecoderArg {
     Libraw,
@@ -297,7 +298,7 @@ fn main() -> Result<()> {
                 errors
             );
             println!(
-                "LibRaw {}\n{}",
+                "{}\n{}",
                 raw::version(),
                 serde_json::to_string_pretty(&r.metadata)?
             );

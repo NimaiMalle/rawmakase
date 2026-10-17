@@ -37,12 +37,11 @@ pub struct FullSize {
 }
 
 impl FullSize {
-    /// The photo at `path`, with `demosaic` unless the environment forces LibRaw.
+    /// The photo at `path`, with `demosaic`.
     pub fn new(path: &Path, demosaic: Demosaic) -> Self {
         Self::with_cache(path, demosaic, DecodeCache::default())
     }
     pub fn with_cache(path: &Path, demosaic: Demosaic, cache: DecodeCache) -> Self {
-        let demosaic = demosaic.effective();
         Self {
             demosaic,
             key: DecodeCache::key(path, demosaic).ok(),

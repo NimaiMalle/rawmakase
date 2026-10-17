@@ -1,11 +1,14 @@
 # RAW decoding
 
-RAWmakase is replacing LibRaw with its own RAW decoders, in pure Rust:
-`crates/rawmakase-raw`. Until the switch, the app decodes with LibRaw and only
-the commands that compare decoders (`rawmakase fingerprint --decoder own`,
-`rawmakase decode-dump --decoder own`) reach the new crate, through
-`rawmakase-native`'s `raw` adapter. This page describes the crate, how it is
-checked against LibRaw, and how to add a camera or a variant.
+RAWmakase decodes RAW files with its own decoders, in pure Rust:
+`crates/rawmakase-raw`, reached through `rawmakase-native`'s `raw` adapter.
+LibRaw, which they replace, is still linked as the oracle of the commands that
+compare decoders (`rawmakase fingerprint --decoder libraw`, `rawmakase
+decode-dump --decoder libraw`) until it is removed; no other path calls it. A
+file in a variant the crate does not decode fails to open (or, for a known
+container, to develop) with an error that names it. This page describes the
+crate, how it is checked against LibRaw, and how to add a camera or a
+variant.
 
 ## Boundaries
 
@@ -408,7 +411,10 @@ the PowerShot G9's WBInfo), Highlight Tone Priority (LightingOpt, else
 CustomFunctions2), the lens (LensModel, with a space after the mount, when
 EXIF has none), and the orientation in CameraInfo when IFD0's is normal.
 Regional names map to the body (`[[name]]` rows). The EOS-1D Mark III's image
-starts two samples into its strip.
+starts two samples into its strip. A mosaic's black (the notes', its mean) and
+white are reported on opening too (`RawInfo::levels`, as CR3's are): Adobe moves
+a Canon's BaselineExposure with the white it takes, and development's exposure
+follows (`docs/cameras.md`).
 
 Canon EOS-1D and 1Ds TIF (`container::cr2`, `Variant::CanonTif`): a TIFF
 of thumbnails whose Canon maker note's RawDataOffset (0x0081) starts a
@@ -446,10 +452,9 @@ blue are taken back, as a DNG's linear reference values are clipped before
 AnalogBalance applies: red and blue clip at the white times their level over
 green's, where Adobe clips them, and a clipped highlight stays neutral.
 
-Before RAWmakase's own decoders replace LibRaw for Canon small RAWs,
-`rawmakase-model`'s `sraw_baseline_exposure` has to follow: it corrects
-LibRaw's scale (green times 1.303, white 16383), which the samples here no
-longer have, so it becomes Adobe's small RAW BaselineExposure alone.
+The samples are on Adobe's linear scale, not LibRaw's (green times 1.303,
+white 16383), so the camera table's `sraw_baseline_exposure` is Adobe's small
+RAW BaselineExposure alone (`docs/cameras.md`).
 
 Canon CRW (`container::ciff`, `codec::crw`): a CIFF heap of directory blocks;
 SensorInfo (0x1031) gives the sensor and the default crop, DecoderTable
@@ -773,12 +778,17 @@ the tungsten one, not the D50 one Camera Raw would use at D65.
 
 ## Checking against LibRaw
 
-LibRaw is the oracle while the decoders are written, never a fallback after.
-Its results on the test dataset are recorded once (`tests/corpus/README.md`,
-*Decode fingerprints*), and each variant is done when every dataset file of
-it matches them: `scripts/corpus/dataset-fingerprints.py check --decoder own`
-and `dataset-develop.py check --decoder own`. A difference made on purpose is
-approved in `tests/corpus/decode-deltas.toml` with its evidence.
+LibRaw is the oracle, never a fallback. Its results on the test dataset are
+recorded once (`tests/corpus/README.md`, *Decode fingerprints*), and each
+variant is done when every dataset file of it matches them:
+`scripts/corpus/dataset-fingerprints.py check` and `dataset-develop.py check`
+(RAWmakase's decoders are the default; `--decoder libraw` runs the oracle
+live). A difference made on purpose is approved in
+`tests/corpus/decode-deltas.toml` with its evidence. Half-size drafts are
+RAWmakase's own (`docs/demosaic.md`), not LibRaw's, so every mosaic's half-size
+pixels differ from the recordings: `dataset-develop.py check --half size`
+compares them by size (and error) only, and `dataset-half.py` checks them
+against the full decode reduced to their size (colour, detail) and LibRaw's time.
 
 ## Provenance
 

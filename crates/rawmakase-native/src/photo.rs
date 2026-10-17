@@ -1,4 +1,4 @@
-//! Opening a photo: LibRaw's facts about the file ([`Raw::open_file`]), then what
+//! Opening a photo: the RAW decoder's facts about the file ([`Raw::open_file`]), then what
 //! the file says beyond them and what the user's libraries add: the lens tables
 //! the camera embedded, a DNG's profile, baseline exposure, colour matrix, lens
 //! and default crop, and the imported lens profiles that fit. Everything that
@@ -30,7 +30,7 @@ impl Opened {
     }
 }
 
-/// Opens `path` as a RAW (LibRaw) when its extension is a RAW's, otherwise as a
+/// Opens `path` as a RAW when its extension is a RAW's, otherwise as a
 /// JPEG, PNG or TIFF. A rendered file opens as the scene its default rendering is of
 /// (`develop::rendered`), which Develop renders as a raw scene.
 pub fn open_source(path: &Path, cancel: &AtomicBool) -> Result<Opened> {
@@ -44,7 +44,7 @@ pub fn open_source(path: &Path, cancel: &AtomicBool) -> Result<Opened> {
 
 /// The photo at `path`, opened for developing.
 pub fn open(path: &Path) -> Result<Raw> {
-    open_with(path, crate::raw::Decoder::Libraw)
+    open_with(path, crate::raw::Decoder::Own)
 }
 
 /// The photo at `path` read by `decoder`, for the commands that compare
@@ -77,11 +77,11 @@ pub fn open_with(path: &Path, decoder: crate::raw::Decoder) -> Result<Raw> {
         }
         let fits = profile.is_some_and(|p| p.ensure_camera(metadata).is_ok());
         metadata.embedded_dcp = dng.profile.filter(|_| fits).map(std::sync::Arc::from);
-        // LibRaw has no XYZ-to-camera matrix for a DNG from a camera it does not
-        // know, so one written with colour matrices but no profile would render
-        // without a profile at all. Take the file's D65 matrix then: the same
-        // matrix in the same direction, so nothing downstream has to know where
-        // it came from. A camera LibRaw knows keeps LibRaw's matrix.
+        // A DNG the decoder found no XYZ-to-camera matrix for, written with
+        // colour matrices but no profile, would render without a profile at
+        // all. Take the file's D65 matrix then: the same matrix in the same
+        // direction, so nothing downstream has to know where it came from. A
+        // camera the decoder has a matrix for keeps it.
         if metadata.embedded_dcp.is_none()
             && metadata.cam_xyz.iter().flatten().all(|v| *v == 0.)
             && let Some(matrix) = color_matrix
@@ -95,7 +95,7 @@ pub fn open_with(path: &Path, decoder: crate::raw::Decoder) -> Result<Raw> {
         if let Some(crop) = dng.crop {
             metadata.apply_default_crop(crop);
         }
-        // Exact where LibRaw rounds it to whole, even pixels.
+        // Exact where the decoder rounds it to whole, even pixels.
         if dng.user_crop.is_some() {
             metadata.camera_crop = dng.user_crop.filter(|c| *c != [0., 0., 1., 1.]);
         }
@@ -321,16 +321,18 @@ mod tests {
     }
 
     #[test]
-    fn open_source_sends_a_raw_path_to_libraw() {
+    fn open_source_sends_a_raw_path_to_the_raw_decoder() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("garbage.ARW");
         std::fs::write(&path, b"not a raw file").unwrap();
         let cancel = std::sync::atomic::AtomicBool::new(false);
-        let libraw = super::open(&path).err().expect("LibRaw refuses garbage");
+        let raw = super::open(&path)
+            .err()
+            .expect("the decoder refuses garbage");
         let opened = super::open_source(&path, &cancel)
             .err()
-            .expect("LibRaw refuses garbage");
-        assert_eq!(opened.to_string(), libraw.to_string());
+            .expect("the decoder refuses garbage");
+        assert_eq!(opened.to_string(), raw.to_string());
     }
 
     /// A Sony DNG's DefaultCrop is its frame at any ratio, unlike an ARW's default

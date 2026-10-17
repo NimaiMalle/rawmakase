@@ -136,11 +136,29 @@ finds the profile, and check it against a Camera Raw render of the camera.
 
 Most rows (`adobe-dng`) come from Adobe DNG Converter 18.x: it converted a copy of one
 CC0 [raw.pixls.us](https://raw.pixls.us) sample per camera (the files
-`scripts/corpus/pixls.py` downloads), and the row is the DNG's BaselineExposure plus
-the difference between Adobe's white level and LibRaw's, which RAWmakase scales by:
-log2((LibRaw white − black) / (Adobe white − black)). That term is 0 for most bodies;
-Canon's ISO-dependent white levels make it up to +0.8 EV, so a Canon row holds at the
-sample's ISO and may be off by a few tenths at others.
+`scripts/corpus/pixls.py` downloads), and the row is the DNG's BaselineExposure,
+rounded to 0.05 EV. RAWmakase's decoders read Adobe's black and white levels
+([RAW decoding](raw-decoding.md)). Canon's white Adobe takes by ISO speed (the camera
+table's rows of `iso`, ColorData's levels), and moves its BaselineExposure with it, so
+that a photo's brightness stays referenced to one level: the EOS 1100D's is −0.5 at
+ISO 160, whose white is 11222, and 0 at ISO 400's 15000: the photo's brightness stays
+referenced to the samples' full range. Canon rows therefore give `levels`, the black,
+white and samples' maximum of their sample, and a photo whose levels differ (known on
+opening, `Metadata::levels`) takes the difference of log2((white − black) / (maximum −
+black)) between the two. On the 325 Canon files with a row that Adobe DNG Converter
+converted, the exposure is then within 0.1 EV of Adobe's BaselineExposure on 323, as
+it was while RAWmakase decoded with LibRaw (234 with the row alone; the white over the
+black alone leaves the bodies whose black rises with ISO speed, the 80D's, 200D's and
+800D's, 0.2 EV off). The two left are an EOS 6D at extended ISO 50 (Adobe takes a stop
+off) and an EOS 1300D frame 0.11 EV off. Other makes' BaselineExposure does not follow their white
+(the ILCE-7RM4A's is 0.35 at ISO 160's white of 15000 and at ISO 250's 16383), so
+their rows are Adobe's value alone. While RAWmakase decoded with LibRaw, rows added the
+difference between Adobe's white level and LibRaw's, log2((LibRaw white − black) /
+(Adobe white − black)), up to +1.1 EV (the DC-GH5S at ISO 800), and `sample` said
+"plus … for the white level"; when the decoders switched, those terms were taken out
+again (the term measured on the dataset's files at each sample's ISO was the one the
+row had added, on every row with a file at that ISO), and fitted rows lost the same
+term.
 
 Adobe's value also follows some shooting settings, which the rows leave out: Canon
 Highlight Tone Priority and Fujifilm DR200 add 1 EV, extended low ISOs (Sony ISO 50,
@@ -203,19 +221,19 @@ Sony fallback they had.
 
 ### Canon sRAW and mRAW
 
-LibRaw converts Canon's sRAW and mRAW from YCbCr itself, on a 16383 scale with its
-green 1.303 times Adobe's linear values (its stored sRAW white balance, 1336/1024), so
-a row's full-size white-level term does not hold for them. Rows give
-`sraw_baseline_exposure`: Adobe DNG Converter 18.7's sRAW BaselineExposure plus
-log2(16383 / (1.303 × its sRAW white level)). On the dataset's 37 sRAW and mRAW files
-(16 bodies) that value is one per body, the same for sRAW and mRAW and from ISO 100 to
-3200: +0.2 for most, +0.1 for the 80D and 7D Mark II, +0.35 for the 5D Mark II and
-6D Mark II, −0.05 for the 60D. A Canon body without one takes their median, 0.2; the 40D
-(−0.1), 50D (+0.45), 5DS (+0.2) and 1D Mark IV (+0.05) have no full-size row to hold
-theirs yet. Against Camera Raw 18.7 default renders of the 7 such photos the dataset
-has, median dE00 went from 2.6 to 1.1 (the two 80D frames 4.2 and 5.1 to 0.45 and
-1.4); a 5DS R mRAW and a 5D Mark III sRAW at ISO 3200 render 0.4 and 0.2 EV darker
-than Camera Raw, which renders them brighter than Adobe's own DNG of them says.
+RAWmakase converts Canon's sRAW and mRAW as Adobe DNG Converter does, on Adobe's
+linear scale and white level ([RAW decoding](raw-decoding.md)), so rows give
+`sraw_baseline_exposure`: Adobe DNG Converter 18.7's sRAW BaselineExposure. On the
+dataset's 37 sRAW and mRAW files (16 bodies) that value is one per body, the same for
+sRAW and mRAW and from ISO 100 to 3200. A Canon body without one takes their median,
+0.25; the 40D, 50D, 5DS and 1D Mark IV have no full-size row to hold theirs yet.
+LibRaw converted them on a 16383 scale with its green 1.303 times Adobe's linear values
+(its stored sRAW white balance, 1336/1024); while RAWmakase decoded with LibRaw, rows
+added log2(16383 / (1.303 × Adobe's sRAW white level)) to Adobe's value. Against Camera
+Raw 18.7 default renders of the 7 such photos the dataset has, the rows of that time
+took the median dE00 from 2.6 to 1.1 (the two 80D frames 4.2 and 5.1 to 0.45 and 1.4);
+a 5DS R mRAW and a 5D Mark III sRAW at ISO 3200 rendered 0.4 and 0.2 EV darker than
+Camera Raw, which renders them brighter than Adobe's own DNG of them says.
 
 Not in the table: cameras whose raw is a DNG (Leica M, Q, SL and CL, Ricoh GR, Sigma
 fp), which carry their own value; the Hasselblad X1D and X1D II, which LibRaw names

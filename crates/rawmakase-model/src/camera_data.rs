@@ -158,6 +158,13 @@ pub struct Metadata {
     /// metadata keeps its saved form; metadata from earlier releases reads as Raw.
     #[serde(default, skip_serializing_if = "Source::is_raw")]
     pub source: Source,
+    /// The sensor data's mean black, white and maximum (the samples' bit depth's)
+    /// where the decoder knows them on opening (Canon's mosaics, whose white
+    /// Adobe takes by ISO speed): the camera exposure follows the white as
+    /// Adobe's BaselineExposure does (`camera_profiles::reference`). Read again
+    /// on open, not saved.
+    #[serde(skip)]
+    pub levels: Option<[u32; 3]>,
     /// Imported Adobe lens profiles that fit this camera, Enable Profile Corrections'
     /// choices; rebuilt on open.
     #[serde(skip)]
@@ -213,42 +220,30 @@ impl HighlightTonePriority {
         }
     }
 }
-/// Which demosaic full-size development uses: the app's preference (Preferences >
-/// Performance), passed to each job that decodes.
+/// Which demosaic full-size development uses, passed to each job that decodes.
+/// RAWmakase's own is the only one; the preference RAWmakase once offered
+/// (LibRaw's AHD and Markesteijn, saved as `"Libraw"`) reads as it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Demosaic {
-    /// RAWmakase's own demosaic of LibRaw-unpacked data (`crate::demosaic`): about
-    /// 2–5× faster, with equal or better detail against Adobe renders.
+    /// RAWmakase's own demosaic of the unpacked sensor data (`crate::demosaic`).
     #[default]
+    #[serde(alias = "Libraw")]
     Rawmakase,
-    /// LibRaw's AHD (Bayer) and 1-pass Markesteijn (X-Trans).
-    Libraw,
-}
-impl Demosaic {
-    /// This preference, unless RAWMAKASE_LIBRAW_DEMOSAIC=1 forces LibRaw for the
-    /// whole run; the variable is read once.
-    pub fn effective(self) -> Self {
-        static FORCED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        let forced = *FORCED.get_or_init(|| {
-            std::env::var_os("RAWMAKASE_LIBRAW_DEMOSAIC").is_some_and(|v| v != "0")
-        });
-        if forced { Self::Libraw } else { self }
-    }
 }
 /// What [`Raw::develop`] makes of the sensor data. A job captures it when it is
 /// created and keys its decode-cache entry with the same value, so a preference
 /// changed while the job runs can never file one demosaic under another's key.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Decode {
-    /// A half-size draft from LibRaw's fast half-size path, whatever the demosaic.
+    /// A half-size draft: each pixel a 2 × 2 block of the mosaic.
     Half,
     /// Every pixel, demosaiced this way.
     Full(Demosaic),
 }
 impl Decode {
-    /// Full size, with `preferred` unless the environment forces LibRaw.
+    /// Full size, with `preferred`.
     pub fn full(preferred: Demosaic) -> Self {
-        Self::Full(preferred.effective())
+        Self::Full(preferred)
     }
 }
 impl crate::metadata::PhotoInfo {

@@ -105,7 +105,6 @@ const ERR: usize = 512;
 
 unsafe extern "C" {
     fn ora_version() -> *const c_char;
-    fn ora_background_thread();
     fn ora_metadata_size() -> u32;
     fn ora_open(
         path: *const c_char,
@@ -191,18 +190,77 @@ pub(super) fn header(
         lens: text(&m.lens),
         lens_id: m.lens_id,
         dng_version: m.dng_version,
+        levels: None,
     }
+}
+/// The sensor borders of a Panasonic or Leica RW2 (RWL) header, tags 4 to 7 (top,
+/// left, bottom, right), as `[left, top, width, height]` in raw coordinates.
+/// LibRaw replaces them with the camera's aspect-ratio crop (tags 47 to 50).
+pub(super) fn panasonic_sensor(path: &Path) -> Option<[u32; 4]> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut f = std::fs::File::open(path).ok()?;
+    let mut head = [0u8; 8];
+    f.read_exact(&mut head).ok()?;
+    if &head[..4] != b"IIU\0" {
+        return None;
+    }
+    f.seek(SeekFrom::Start(
+        u32::from_le_bytes(head[4..].try_into().ok()?) as u64,
+    ))
+    .ok()?;
+    let mut count = [0u8; 2];
+    f.read_exact(&mut count).ok()?;
+    let mut b = vec![0; usize::from(u16::from_le_bytes(count)).min(1024) * 12];
+    f.read_exact(&mut b).ok()?;
+    let mut border = [None; 4];
+    for e in b.as_chunks::<12>().0 {
+        let tag = u16::from_le_bytes([e[0], e[1]]);
+        if (4..=7).contains(&tag) && u16::from_le_bytes([e[2], e[3]]) == 3 {
+            border[usize::from(tag - 4)] = Some(u32::from(u16::from_le_bytes([e[8], e[9]])));
+        }
+    }
+    let [Some(top), Some(left), Some(bottom), Some(right)] = border else {
+        return None;
+    };
+    (right > left && bottom > top).then(|| [left, top, right - left, bottom - top])
+}
+/// The camera's recommended crop from the RAF header directory: tags 0x110 (top, left)
+/// and 0x111 (height, width), big-endian, which LibRaw does not report.
+pub(super) fn fuji_crop(path: &Path) -> Option<[u32; 4]> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut f = std::fs::File::open(path).ok()?;
+    let mut head = [0u8; 100];
+    f.read_exact(&mut head).ok()?;
+    if !head.starts_with(b"FUJIFILMCCD-RAW") {
+        return None;
+    }
+    let dir = u32::from_be_bytes(head[92..96].try_into().ok()?) as u64;
+    let len = u32::from_be_bytes(head[96..100].try_into().ok()?) as usize;
+    if !(4..=1 << 20).contains(&len) {
+        return None;
+    }
+    let mut b = vec![0; len];
+    f.seek(SeekFrom::Start(dir)).ok()?;
+    f.read_exact(&mut b).ok()?;
+    let be16 = |o: usize| Some(u16::from_be_bytes(b.get(o..o + 2)?.try_into().ok()?) as u32);
+    let count = u32::from_be_bytes(b[..4].try_into().ok()?) as usize;
+    let (mut o, mut origin, mut size) = (4, None, None);
+    for _ in 0..count.min(256) {
+        let (tag, n) = (be16(o)?, be16(o + 2)? as usize);
+        if n == 4 && tag == 0x110 {
+            origin = Some([be16(o + 6)?, be16(o + 4)?]);
+        } else if n == 4 && tag == 0x111 {
+            size = Some([be16(o + 6)?, be16(o + 4)?]);
+        }
+        o += 4 + n;
+    }
+    let ([left, top], [width, height]) = (origin?, size?);
+    (width > 0 && height > 0).then_some([left, top, width, height])
 }
 /// LibRaw's version string.
 pub fn version() -> String {
     // SAFETY: `ora_version` returns LibRaw's static, NUL-terminated version string.
     unsafe { CStr::from_ptr(ora_version()).to_string_lossy().into_owned() }
-}
-/// Runs the calling thread's LibRaw decodes on two OpenMP threads from now
-/// on; see `ora_background_thread`.
-pub(super) fn background_thread() {
-    // SAFETY: takes nothing and changes only the calling thread's own settings.
-    unsafe { ora_background_thread() }
 }
 
 /// `sizeof(Metadata)` on the native side.
@@ -500,6 +558,60 @@ mod tests {
     unsafe extern "C" {
         fn ora_scale_probe(wb: f32, error: *mut f32) -> i32;
         fn ora_masked_black(border: *const u16, n: usize, black: u32, maximum: u32) -> i32;
+    }
+    #[test]
+    fn reads_fujifilm_default_crop() {
+        let mut raf = b"FUJIFILMCCD-RAW 0201FF383501".to_vec();
+        raf.resize(128, 0);
+        let mut dir = 2u32.to_be_bytes().to_vec();
+        for (tag, a, b) in [(0x110u16, 16u16, 16u16), (0x111, 4000, 6000)] {
+            dir.extend(tag.to_be_bytes());
+            dir.extend(4u16.to_be_bytes());
+            dir.extend(a.to_be_bytes());
+            dir.extend(b.to_be_bytes());
+        }
+        raf[92..96].copy_from_slice(&128u32.to_be_bytes());
+        raf[96..100].copy_from_slice(&(dir.len() as u32).to_be_bytes());
+        raf.extend(dir);
+        let f = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(f.path(), raf).unwrap();
+        assert_eq!(super::fuji_crop(f.path()), Some([16, 16, 6000, 4000]));
+        std::fs::write(f.path(), b"FUJIFILMCCD-RAW").unwrap();
+        assert_eq!(super::fuji_crop(f.path()), None);
+    }
+    #[test]
+    fn reads_panasonic_sensor_borders() {
+        let mut rw2 = b"IIU\0".to_vec();
+        rw2.extend(8u32.to_le_bytes());
+        let tags = [
+            (4u16, 8u16),
+            (5, 8),
+            (6, 3656),
+            (7, 5480),
+            (0x2f, 8),
+            (0x30, 312),
+        ];
+        rw2.extend((tags.len() as u16).to_le_bytes());
+        for (tag, v) in tags {
+            rw2.extend(tag.to_le_bytes());
+            rw2.extend(3u16.to_le_bytes());
+            rw2.extend(1u32.to_le_bytes());
+            rw2.extend(u32::from(v).to_le_bytes());
+        }
+        let f = tempfile::NamedTempFile::new().unwrap();
+        std::fs::write(f.path(), &rw2).unwrap();
+        assert_eq!(super::panasonic_sensor(f.path()), Some([8, 8, 5472, 3648]));
+        // Reversed borders, without every border, or in a TIFF, there is none.
+        let right = rw2.len() - 3 * 12 + 8;
+        let mut reversed = rw2.clone();
+        reversed[right..right + 2].copy_from_slice(&0u16.to_le_bytes());
+        std::fs::write(f.path(), &reversed).unwrap();
+        assert_eq!(super::panasonic_sensor(f.path()), None);
+        std::fs::write(f.path(), &rw2[..rw2.len() - 4 * 12]).unwrap();
+        assert_eq!(super::panasonic_sensor(f.path()), None);
+        rw2[2] = b'*';
+        std::fs::write(f.path(), &rw2).unwrap();
+        assert_eq!(super::panasonic_sensor(f.path()), None);
     }
     fn masked_black(border: &[u16], black: u32) -> Option<u32> {
         // SAFETY: `border` is a live slice of `n` values, only read.

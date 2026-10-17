@@ -251,8 +251,7 @@ mod tests {
             "/../../tests/corpus/charts/synthetic-d65.dng"
         );
         let mut json =
-            serde_json::to_value(super::fingerprint(chart.as_ref(), super::Decoder::Libraw))
-                .unwrap();
+            serde_json::to_value(super::fingerprint(chart.as_ref(), super::Decoder::Own)).unwrap();
         let fields = json.as_object_mut().unwrap();
         assert_eq!(fields.remove("path").unwrap(), chart);
         assert_eq!(fields.remove("decoder").unwrap(), crate::raw::version());
@@ -273,8 +272,9 @@ mod tests {
             );
         }
         // As the generator (tests/color/dng.rs) writes it: RGGB, black 0, white
-        // 65535, no DefaultCrop (65535 marks none), no preview and a camera with
-        // no built-in matrix, whose colour is in the embedded profile.
+        // 65535, no DefaultCrop (65535 marks none), no preview and a camera
+        // Adobe does not know, whose colour is in the embedded profile; the
+        // camera matrix is the file's D65 ColorMatrix.
         let want = serde_json::json!({
             "version": 2,
             "sha256": "3b23ed9df6b4e9ce0f504f8e01ad9b3c3d105d11bf177dac95f40a99f70a0407",
@@ -289,7 +289,7 @@ mod tests {
                 "metadata": {
                     "aperture": 0.0,
                     "baseline_exposure": 0.0,
-                    "cam_xyz": [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],
+                    "cam_xyz": [[1.0800800323486328, -0.29205700755119324, -0.16179099678993225], [-0.6779360175132751, 1.6356430053710938, 0.021849999204277992], [0.0016240000259131193, -0.02789900079369545, 0.6954100131988525]],
                     "crop_height": 0,
                     "crop_left": 65535,
                     "crop_top": 65535,
@@ -344,11 +344,11 @@ mod tests {
     #[test]
     fn unreadable_and_non_raw_files_are_errors_not_failures() {
         let dir = tempfile::tempdir().unwrap();
-        let missing = super::fingerprint(&dir.path().join("missing.dng"), super::Decoder::Libraw);
+        let missing = super::fingerprint(&dir.path().join("missing.dng"), super::Decoder::Own);
         assert!(missing.sha256.is_none() && missing.failed == Some("read"));
         let text = dir.path().join("text.dng");
         std::fs::write(&text, b"not a raw file").unwrap();
-        let f = super::fingerprint(&text, super::Decoder::Libraw);
+        let f = super::fingerprint(&text, super::Decoder::Own);
         assert_eq!(
             f.sha256.as_deref(),
             Some("75d3499f372b9001c41b9ca9d7c9c5398477905e49e949746947ea7942b2f859")

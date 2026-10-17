@@ -263,6 +263,9 @@ pub(crate) enum Plan {
 pub(crate) fn open(bytes: &[u8]) -> Result<RawInfo> {
     let mut info = probe(bytes)?;
     crate::names::apply(&mut info);
+    if let Plan::Cr2(plan) = &info.plan {
+        info.levels = crate::container::cr2::levels(&info, plan, bytes);
+    }
     crate::geometry::apply(&mut info);
     crate::color::apply(&mut info);
     Ok(info)
