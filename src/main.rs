@@ -131,6 +131,15 @@ enum Command {
         #[arg(long, value_enum, default_value_t = DecoderArg::Libraw)]
         decoder: DecoderArg,
     },
+    /// Print each file's half-size check as a line of JSON: RAWmakase's
+    /// half-size decode against its full decode reduced (colour, detail) and
+    /// its time, with `--libraw` against LibRaw's half-size path's.
+    HalfCheck {
+        #[arg(required = true, num_args = 1..)]
+        files: Vec<PathBuf>,
+        #[arg(long)]
+        libraw: bool,
+    },
     Benchmark {
         input: PathBuf,
         #[arg(long, default_value_t = 20)]
@@ -505,6 +514,12 @@ fn main() -> Result<()> {
             for path in &files {
                 let dump = rawmakase::decode_dump::dump(path, floats.as_deref(), decoder.into());
                 println!("{}", serde_json::to_string(&dump)?);
+            }
+        }
+        Some(Command::HalfCheck { files, libraw }) => {
+            for path in &files {
+                let check = rawmakase::half_check::check(path, libraw);
+                println!("{}", serde_json::to_string(&check)?);
             }
         }
         Some(Command::Benchmark { input, iterations }) => {

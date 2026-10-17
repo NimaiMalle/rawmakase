@@ -18,6 +18,10 @@ disk, they are large.
 
   python3 scripts/corpus/dataset-develop.py record --reason "oracle" --floats ~/oracle-floats
   python3 scripts/corpus/dataset-develop.py check
+  python3 scripts/corpus/dataset-develop.py check --half size   # drafts by size only
+
+The recordings are LibRaw's; RAWmakase's half-size drafts are its own, so
+against them `--half size` leaves the drafts' pixels, means and scale out.
 
 Exit status: 0 no difference, 1 differences, 2 the run could not be made.
 """
@@ -37,6 +41,8 @@ spec.loader.exec_module(fingerprints)
 Setup = fingerprints.Setup
 ROOT = fingerprints.ROOT
 BATCH = 8
+# What `--half size` still compares of a half-size draft.
+HALF_SIZE = {'half.size', 'half.error'}
 # A full and a half decode of the largest files take a minute.
 BATCH_TIMEOUT = 1800
 FILE_TIMEOUT = 600
@@ -126,6 +132,8 @@ def check(args, samples, results, problems):
             changes[group].append(('no baseline', s, None))
             continue
         for field in fingerprints.compare(old, new, h, deltas):
+            if getattr(args, 'half', 'all') == 'size' and field[0].startswith('half.') and field[0] not in HALF_SIZE:
+                continue
             changes[group].append(('changed', s, field))
     # With every file selected, a baseline file the dataset no longer has is a problem.
     if not args.manifest:
@@ -160,6 +168,9 @@ def main():
     p.add_argument('--manifest', type=Path, help='a dataset.py manifest; default: every file')
     p.add_argument('--decoder', help="the build's decoder to use, when it has more than one")
     p.add_argument('--floats', type=Path, help='write full decodes that are not mosaics here')
+    p.add_argument('--half', choices=['all', 'size'], default='all',
+                   help="what to compare of half-size drafts: everything, or size and error only "
+                        "(RAWmakase's drafts against LibRaw's recordings)")
     p.add_argument('--jobs', type=int, default=3, help='rawmakase processes at a time (each uses every core)')
     p.add_argument('--reason', help='why the baseline changes (record)')
     p.add_argument('--public', action='store_true', help='name only raw.pixls.us CC0 files')
