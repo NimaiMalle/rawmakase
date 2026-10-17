@@ -30228,3 +30228,238 @@ before = 1250.0
 after = 1600.0
 evidence = "Pentax K-S2 IMGP3369.PEF: the file's EXIF ISO speed 1600, which Adobe DNG Converter 18.7 keeps (its DNG of the K-5 II and K-S2 PEFs: ExifIFD ISO 400 and 1600); LibRaw took the maker note's ISO code (1250)"
 approval = "Piotr 2026-10-17: Adobe parity with RAWs (Adobe value as evidence)"
+
+# CHDK PowerShots record no white balance: the daylight balance from the
+# camera's matrix, where LibRaw applies its own per-camera factor.
+
+[[delta]]
+sha256 = "d1d7516b20058a6bcaad3161574cc39a38f712a4a121ebba48828023747c8ee2"
+field = "header.metadata.wb"
+before = [1.525721549987793, 1.0, 1.865659475326538]
+after = [1.5731804370880127, 1.0, 1.9236923456192017]
+evidence = "Canon PowerShot SX30 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "dceb1c207067575f415b0da676723bcd9a0acd143eee8f200a1ef8a1c762ac23"
+field = "header.metadata.wb"
+before = [0.3902515172958374, 1.0, 0.5114041566848755]
+after = [1.4887173175811768, 1.0, 1.9508860111236572]
+evidence = "Canon PowerShot SX40 HS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "e428ca084aee67ea4b03aba412d3ddffa2dda2888e9e8a1c2e363274ddf0dfa9"
+field = "header.metadata.wb"
+before = [1.6141270399093628, 1.0, 2.115302562713623]
+after = [1.6484588384628296, 1.0, 2.1602942943573]
+evidence = "Canon PowerShot SX110 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "04d44870a6dfae9eecdafa91b26da9271ded7cba75212e8019e667afea8616d3"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "1036d879db9dae674e96e0743aec6e6357d924eee1ab616b64c44573c63b58e2"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "1f77043031e1039ff8c4245ddfd98e95f3c7675c59927355a618fd0388d9ec33"
+field = "header.metadata.wb"
+before = [1.6496975421905518, 1.0, 1.6169649362564087]
+after = [1.7122762203216553, 1.0, 1.6783019304275513]
+evidence = "Canon IXUS 160 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "23da9dec85ebccc06a133c26a1f52e6d52ba5358c657b3e2e1843f6126e80c23"
+field = "header.metadata.wb"
+before = [1.7873905897140503, 1.0, 1.5102362632751465]
+after = [1.8643404245376587, 1.0, 1.575254201889038]
+evidence = "Canon PowerShot SX710 HS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "277051362e01f3dc07e28a6ec89b3693cb556205c28a70262920db40d531ef63"
+field = "header.metadata.wb"
+before = [1.5169763565063477, 1.0, 1.6470997333526611]
+after = [1.5827573537826538, 1.0, 1.7185232639312744]
+evidence = "Canon PowerShot S3 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "4946a2dcc321865f833b34c204a2a50de2832d609a56819823c582ca32b2f60a"
+field = "header.metadata.wb"
+before = [1.5169763565063477, 1.0, 1.6470997333526611]
+after = [1.5827573537826538, 1.0, 1.7185232639312744]
+evidence = "Canon PowerShot S3 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "55e0ebb0bcf6adebd01f3397b0c34e07a3ecf4fbeaade98a9a54a9836e4c6ca9"
+field = "header.metadata.wb"
+before = [1.4956923723220825, 1.0, 1.9716267585754395]
+after = [1.524725079536438, 1.0, 2.0098977088928223]
+evidence = "Canon PowerShot A720 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "5f290cd30bbe86a4fe57aba164bbb92d3e59a7d084dc35c190b8ee0d2ff18c02"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "674c11f81cdfba54d4680c0e3a4c8882cc4db49f4224d0452fb78f773b67a9b4"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "7e3aae5b3232a4dd4e63c81ad3a59f53ab6521b6cfbdc6c17969c2b20cea1795"
+field = "header.metadata.wb"
+before = [1.6141270399093628, 1.0, 2.115302562713623]
+after = [1.6484588384628296, 1.0, 2.1602942943573]
+evidence = "Canon PowerShot SX110 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "85236abaab2c27372dd29ea0fdbe94acaf585d1f195e513fcc0c1bdfb44ded67"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "8d5580666f63211342a6a43ce0388e184107e298f624d3a54e47599b4743c952"
+field = "header.metadata.wb"
+before = [2.786126136779785, 1.0, 3.1278271675109863]
+after = [1.5973416566848755, 1.0, 1.7932456731796265]
+evidence = "Canon PowerShot SX20 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "8fff7b8e186c8a852cce3f0090aa928603c2bd2be8878c4d6bf068cce7734875"
+field = "header.metadata.wb"
+before = [1.5106821060180664, 1.0, 1.5435253381729126]
+after = [1.5686712265014648, 1.0, 1.6027752161026]
+evidence = "Canon PowerShot A620 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "94d5cf5c4d0bd8489ae9910c9f801dcef360f9114261daed6e04b7a6a83ef4f2"
+field = "header.metadata.wb"
+before = [1.4559608697891235, 1.0, 1.6763643026351929]
+after = [1.545163631439209, 1.0, 1.7790706157684326]
+evidence = "Canon PowerShot D10 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "96d336b0e55f96f38932137b722ea8bd86875ee4dd4f84dd6d384bda6ea80e07"
+field = "header.metadata.wb"
+before = [2.049225330352783, 1.0, 1.718809962272644]
+after = [2.1104137897491455, 1.0, 1.7701324224472046]
+evidence = "Canon PowerShot A650 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "99e4c54af137ee4f8b922b01a7b891e0c5be9669a4bf67b3d23467ea10213f32"
+field = "header.metadata.wb"
+before = [1.8109660148620605, 1.0, 1.562598466873169]
+after = [1.870646357536316, 1.0, 1.6140938997268677]
+evidence = "Canon PowerShot A3300 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "9a2b6555f4752480e731120767bf968239c9fcdc480e5c2f87be51c1404b8471"
+field = "header.metadata.wb"
+before = [2.3170411586761475, 1.0, 1.8439475297927856]
+after = [2.479820489883423, 1.0, 1.973490595817566]
+evidence = "Canon PowerShot S100 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "ab537c3a4f140924077f4725ec5369372b9493d9c1c43cc24d8dd59beafe4055"
+field = "header.metadata.wb"
+before = [1.77572762966156, 1.0, 1.5038098096847534]
+after = [1.8380722999572754, 1.0, 1.5566076040267944]
+evidence = "Canon PowerShot A640 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "b8e5727ddddfcc1100e363dae8d95d7de32e12ad5397cae31ba9158369b072d9"
+field = "header.metadata.wb"
+before = [0.3902515172958374, 1.0, 0.5114041566848755]
+after = [1.4887173175811768, 1.0, 1.9508860111236572]
+evidence = "Canon PowerShot SX40 HS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "cfb727216be6f678f04688f133b45816c1bfc821193003317252fe87b1b2dfa2"
+field = "header.metadata.wb"
+before = [1.8109660148620605, 1.0, 1.562598466873169]
+after = [1.870646357536316, 1.0, 1.6140938997268677]
+evidence = "Canon PowerShot A3300 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "d6cc860653bbd32b5565998b262a0163c0adbecc22fb6447f43a2bca0d57c2ab"
+field = "header.metadata.wb"
+before = [1.5169763565063477, 1.0, 1.6470997333526611]
+after = [1.5827573537826538, 1.0, 1.7185232639312744]
+evidence = "Canon PowerShot S3 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "d7328e5a31c02c4fc01230cd9b1bff00dbe7d058aa6f4e14d39c7a0e572be464"
+field = "header.metadata.wb"
+before = [1.4956923723220825, 1.0, 1.9716267585754395]
+after = [1.524725079536438, 1.0, 2.0098977088928223]
+evidence = "Canon PowerShot A720 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "dca734570b532771ae94e8b8b3171d13c1a19cd670f5b450e307845ac2407ca6"
+field = "header.metadata.wb"
+before = [1.77572762966156, 1.0, 1.5038098096847534]
+after = [1.8380722999572754, 1.0, 1.5566076040267944]
+evidence = "Canon PowerShot A640 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "df1c5fc1b1ea13619cae0f3af0fac54b837ac06ede830258cc7e577f07298a23"
+field = "header.metadata.wb"
+before = [3.716636896133423, 1.0, 2.7442004680633545]
+after = [2.0139808654785156, 1.0, 1.487034559249878]
+evidence = "Canon PowerShot S2 IS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "e0c8ae8fb8583694c7b7c8b93178370fa9e8782d523d163cc53e1e19206b3811"
+field = "header.metadata.wb"
+before = [1.5932320356369019, 1.0, 1.4607958793640137]
+after = [1.6644699573516846, 1.0, 1.5261121988296509]
+evidence = "Canon PowerShot A630 (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
+
+[[delta]]
+sha256 = "e33100a4f7dddd78d1b3d2734e2e32cdccce31d28d21f821b840cb7d4ee5813f"
+field = "header.metadata.wb"
+before = [1.52483332157135, 1.0, 1.7722320556640625]
+after = [1.5531651973724365, 1.0, 1.8051607608795166]
+evidence = "Canon PowerShot SX220 HS (CHDK, no white balance recorded): LibRaw applies its own per-camera factor; no file or Adobe source. RAWmakase takes the daylight balance from the camera's matrix"
+approval = "Piotr 2026-10-17: daylight white balance when the file records none"
