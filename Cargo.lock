@@ -3483,6 +3483,7 @@ dependencies = [
  "bytemuck",
  "cc",
  "image",
+ "libc",
  "moxcms",
  "pkg-config",
  "rawmakase-engine",
@@ -3494,6 +3495,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tempfile",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
