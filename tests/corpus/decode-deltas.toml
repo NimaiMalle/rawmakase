@@ -30196,3 +30196,35 @@ before = [0, 0, 0, 0]
 after = [1024, 1024, 1024, 1024]
 evidence = "no Adobe DNG Converter BlackLevel for this body; RAWmakase's is the IIQ block's BlackLevel (0 without one), as for the body's other IIQ formats; Adobe DNG Converter 18.7 converts no IIQ Sv2 file of the dataset"
 approval = "pending"
+
+[[delta]]
+sha256 = "aa41f0d9ab8d3e21e468b4c61d4d1ddae6a4fbe37f629b78159246cbb94dd56b"
+field = "header.metadata.iso"
+before = 500.0
+after = 400.0
+evidence = "Pentax K-5 II IMGP2032.DNG: the file's EXIF ISO speed 400, which Adobe DNG Converter 18.7 keeps (its DNG of the K-5 II and K-S2 PEFs: ExifIFD ISO 400 and 1600); LibRaw took the maker note's ISO code (500)"
+approval = "Piotr 2026-10-17: Adobe parity with RAWs (Adobe value as evidence)"
+
+[[delta]]
+sha256 = "54fd06e1ae77210fd46d01adc17b31c276dec19ed32b5b04b2f6f43695cb85b7"
+field = "header.metadata.iso"
+before = 500.0
+after = 400.0
+evidence = "Pentax K-5 II IMGP2033.PEF: the file's EXIF ISO speed 400, which Adobe DNG Converter 18.7 keeps (its DNG of the K-5 II and K-S2 PEFs: ExifIFD ISO 400 and 1600); LibRaw took the maker note's ISO code (500)"
+approval = "Piotr 2026-10-17: Adobe parity with RAWs (Adobe value as evidence)"
+
+[[delta]]
+sha256 = "5557016b2712b621befdb05731923562a802beafd13e0f366737390a8f7b3286"
+field = "header.metadata.iso"
+before = 320.0
+after = 400.0
+evidence = "Samsung GX20 _G205027.DNG: the file's EXIF ISO speed 400, which Adobe DNG Converter 18.7 keeps (its DNG of the K-5 II and K-S2 PEFs: ExifIFD ISO 400 and 1600); LibRaw took the maker note's ISO code (320)"
+approval = "Piotr 2026-10-17: Adobe parity with RAWs (Adobe value as evidence)"
+
+[[delta]]
+sha256 = "3500ca81f7025037c4a3fc5202b6a0df08724ab56dcfd57fbea3f64c599f3e40"
+field = "header.metadata.iso"
+before = 1250.0
+after = 1600.0
+evidence = "Pentax K-S2 IMGP3369.PEF: the file's EXIF ISO speed 1600, which Adobe DNG Converter 18.7 keeps (its DNG of the K-5 II and K-S2 PEFs: ExifIFD ISO 400 and 1600); LibRaw took the maker note's ISO code (1250)"
+approval = "Piotr 2026-10-17: Adobe parity with RAWs (Adobe value as evidence)"

@@ -234,7 +234,8 @@ pub(crate) fn open(bytes: &[u8], t: TiffFile) -> Result<RawInfo> {
     super::tiff_exif::read(&t, &mut info);
     if let Some(notes) = crate::vendor::pentax::dng_notes(&t) {
         info.lens_id = notes.lens_id;
-        if let Some(iso) = notes.iso {
+        // The note's ISO code only without an EXIF ISO speed, as for PEFs.
+        if let Some(iso) = notes.iso.filter(|_| info.iso <= 0.) {
             info.iso = iso;
         }
     } else if let Some(entry) = ifd0.entries.get(&50740)

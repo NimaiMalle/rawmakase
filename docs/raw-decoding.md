@@ -690,7 +690,8 @@ level its low-pass band is coded at an odd length too, its last sample unused
 vertically, are `Unsupported` (no file of the test dataset has them).
 
 Pentax (`vendor::pentax`): white balance, presets (WBLevels' records where
-the note has them), black, the ISO code, the lens ID (LensType's two bytes as
+the note has them), black, the ISO code (where EXIF has no ISO speed: Adobe
+keeps EXIF's where they differ), the lens ID (LensType's two bytes as
 one number) and the default crop (ImageAreaOffset and RawImageSize, starting
 on even rows and columns, in sensor coordinates) come from the maker note
 (its Huffman coding written from prior general knowledge of the format, no

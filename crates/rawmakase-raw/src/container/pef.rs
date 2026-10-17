@@ -106,7 +106,9 @@ pub(crate) fn open(t: TiffFile) -> Result<RawInfo> {
     info.cam_mul = notes.cam_mul;
     info.presets = notes.presets;
     info.lens_id = notes.lens_id;
-    if let Some(iso) = notes.iso {
+    // The note's ISO code only without an EXIF ISO speed, which Adobe DNG
+    // Converter keeps where the two differ.
+    if let Some(iso) = notes.iso.filter(|_| info.iso <= 0.) {
         info.iso = iso;
     }
     // The visible area first: the note's crop is in sensor coordinates.
@@ -305,8 +307,8 @@ mod tests {
         );
         assert_eq!(&s.data[..4], &[3, 1, 3, 1]);
         assert_eq!(info.lens_id, 7 * 256 + 222);
-        // ISO code 13 is 500, over EXIF's 400.
-        assert_eq!(info.iso, 500.);
+        // EXIF's 400 over the note's ISO code 13 (500), as Adobe takes it.
+        assert_eq!(info.iso, 400.);
         assert_eq!(info.cam_mul, [10656., 8448., 25216., 8448.]);
         assert_eq!(info.presets.daylight, [100., 8192., 200.]);
         assert_eq!(info.presets.shade, [300., 8192., 400.]);
