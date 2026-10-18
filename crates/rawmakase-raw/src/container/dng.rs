@@ -104,7 +104,8 @@ pub(crate) fn open(bytes: &[u8], t: TiffFile) -> Result<RawInfo> {
     info.margins = [left, top];
     info.width = active[3] - left;
     info.height = active[2] - top;
-    info.cfa = Some(cfa.shifted(top as usize, left as usize));
+    // CFAPattern starts at the active area's corner, the visible area's.
+    info.cfa = Some(cfa);
     let origin = t.reals(ifd, 50719, 2).filter(|v| v.len() == 2);
     let size = t.reals(ifd, 50720, 2).filter(|v| v.len() == 2);
     // The default crop in sensor coordinates, starting on even rows and
@@ -488,9 +489,8 @@ fn layout(t: &TiffFile, ifd: &Ifd, width: u32, height: u32) -> Result<([u32; 2],
 }
 
 /// The colour filter over the raw image from CFARepeatPatternDim, CFAPattern
-/// and CFAPlaneColor, in the visible area's coordinates once the active area's
-/// offset is applied by the caller. The green sharing a row with blue is the
-/// second green (3).
+/// and CFAPlaneColor, from the active area's top-left corner (the visible
+/// area's). The green sharing a row with blue is the second green (3).
 fn cfa(t: &TiffFile, ifd: &Ifd) -> Result<Cfa> {
     let dim = t
         .ints(ifd, 33421, 2)
@@ -1021,6 +1021,19 @@ pub(crate) mod tests {
         );
         assert_eq!((s.black, s.white), ([0; 4], 65535));
         assert_eq!(s.black_pattern, (1, 2, vec![0, 0]));
+    }
+
+    /// CFAPattern starts at the active area's top-left corner, as Camera Raw
+    /// reads it (a Canon DNG whose active area starts on row 51): an odd
+    /// active area offset does not move the filter.
+    #[test]
+    fn the_cfa_pattern_starts_at_the_active_area() {
+        let le32s = |v: &[u32]| v.iter().flat_map(|x| x.to_le_bytes()).collect::<Vec<u8>>();
+        // Active area from row 1, column 1; RGGB.
+        let info = crate::open(&dng(6, 4, &[(50829, 4, 4, le32s(&[1, 1, 4, 6]))])).unwrap();
+        let cfa = info.cfa.unwrap();
+        assert_eq!(info.margins, [1, 1]);
+        assert_eq!((cfa.color(0, 0), cfa.color(1, 1)), (0, 2));
     }
 
     /// OpcodeList1 works on the stored image (its coordinates include the
