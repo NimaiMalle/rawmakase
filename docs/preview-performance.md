@@ -448,6 +448,14 @@ Through the real loader, in a folder of three X100F photos: the first open showe
 the half-size image at 166 ms and the full image at 884 ms; reopening it showed the
 full image at 140 ms, and the two prefetched neighbours opened in 190 and 300 ms.
 
+## Decoder speed — 2026-10-18
+
+RAWmakase's own decoders against LibRaw, measured at the switch to them on 45
+dataset files (three per format), the median of RAWmakase's time over LibRaw's:
+0.79 to open and decode, 0.80 to open and develop at full and half size. No
+format is slower beyond noise; the largest gains are compressed RAF (0.25),
+IIQ and 3FR (0.45) and PEF (0.53).
+
 ## Stored Standard previews — 2026-10-08
 
 A photo with a Standard preview built (Library › Previews, see
