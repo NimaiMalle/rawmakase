@@ -52,9 +52,8 @@ def baseline_path(dataset, sample):
     return dataset / 'baselines/develop' / f'{sample["source"]}.json'
 
 
-def run(rawmakase, files, timeout, floats, decoder):
-    command = [str(rawmakase), 'decode-dump', *(['--decoder', decoder] if decoder else []),
-               *(['--floats', str(floats)] if floats else []), *map(str, files)]
+def run(rawmakase, files, timeout, floats):
+    command = [str(rawmakase), 'decode-dump', *(['--floats', str(floats)] if floats else []), *map(str, files)]
     try:
         p = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -76,12 +75,12 @@ def develop(args, samples):
     results, problems, done = {}, [], 0
 
     def batch(chunk):
-        lines, error = run(args.rawmakase, [s['file'] for s in chunk], BATCH_TIMEOUT, args.floats, args.decoder)
+        lines, error = run(args.rawmakase, [s['file'] for s in chunk], BATCH_TIMEOUT, args.floats)
         if lines is not None:
             return list(zip(chunk, lines)), None
         out = []
         for s in chunk:
-            alone, why = run(args.rawmakase, [s['file']], FILE_TIMEOUT, args.floats, args.decoder)
+            alone, why = run(args.rawmakase, [s['file']], FILE_TIMEOUT, args.floats)
             out.append((s, alone[0] if alone else {'error': f'crash: {why}'}))
         return out, f'a batch of {len(chunk)} files failed ({error}); its files were run one by one'
 
@@ -166,7 +165,6 @@ def main():
     p.add_argument('--dataset', type=Path, default=os.environ.get('RAWMAKASE_DATASET'))
     p.add_argument('--rawmakase', type=Path, default=ROOT / 'target/release/rawmakase')
     p.add_argument('--manifest', type=Path, help='a dataset.py manifest; default: every file')
-    p.add_argument('--decoder', help="the build's decoder to use, when it has more than one")
     p.add_argument('--floats', type=Path, help='write full decodes that are not mosaics here')
     p.add_argument('--half', choices=['all', 'size'], default='all',
                    help="what to compare of half-size drafts: everything, or size and error only "

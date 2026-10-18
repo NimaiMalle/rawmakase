@@ -2,13 +2,12 @@
 
 RAWmakase decodes RAW files with its own decoders, in pure Rust:
 `crates/rawmakase-raw`, reached through `rawmakase-native`'s `raw` adapter.
-LibRaw, which they replace, is still linked as the oracle of the commands that
-compare decoders (`rawmakase fingerprint --decoder libraw`, `rawmakase
-decode-dump --decoder libraw`) until it is removed; no other path calls it. A
-file in a variant the crate does not decode fails to open (or, for a known
-container, to develop) with an error that names it. This page describes the
-crate, how it is checked against LibRaw, and how to add a camera or a
-variant.
+They replaced LibRaw, which RAWmakase no longer builds or links; LibRaw's
+output on the test dataset, recorded before, stays the oracle the decoders are
+checked against. A file in a variant the crate does not decode fails to open
+(or, for a known container, to develop) with an error that names it. This page
+describes the crate, how it is checked against LibRaw's recordings, and how to
+add a camera or a variant.
 
 ## Boundaries
 
@@ -776,19 +775,24 @@ Known: a DNG without a D65 matrix is read with its ColorMatrix1, which for
 GoPro's GPRs (illuminants Standard A and D50) and Leica's Q and SL DNGs is
 the tungsten one, not the D50 one Camera Raw would use at D65.
 
-## Checking against LibRaw
+## Checking against LibRaw's recordings
 
-LibRaw is the oracle, never a fallback. Its results on the test dataset are
-recorded once (`tests/corpus/README.md`, *Decode fingerprints*), and each
-variant is done when every dataset file of it matches them:
-`scripts/corpus/dataset-fingerprints.py check` and `dataset-develop.py check`
-(RAWmakase's decoders are the default; `--decoder libraw` runs the oracle
-live). A difference made on purpose is approved in
+LibRaw is the oracle, never a fallback, and no longer part of RAWmakase: its
+results on the test dataset were recorded once (`tests/corpus/README.md`,
+*Decode fingerprints*), and each variant is done when every dataset file of it
+matches them: `scripts/corpus/dataset-fingerprints.py check` and
+`dataset-develop.py check`. A difference made on purpose is approved in
 `tests/corpus/decode-deltas.toml` with its evidence. Half-size drafts are
 RAWmakase's own (`docs/demosaic.md`), not LibRaw's, so every mosaic's half-size
 pixels differ from the recordings: `dataset-develop.py check --half size`
 compares them by size (and error) only, and `dataset-half.py` checks them
-against the full decode reduced to their size (colour, detail) and LibRaw's time.
+against the full decode reduced to their size (colour, detail) and their
+time over the full develop's, each held to the file's reference: LibRaw's
+half-size decode of the same file, recorded once with the last build that
+linked LibRaw (`tests/corpus/dataset/pixls-half.json` and the dataset's local
+recordings; RAWmakase's own measures where LibRaw's half is not a draft of
+the same samples). X-Trans drafts are the full demosaic reduced, which keeps
+them free of moiré, so their time is held to the full develop's.
 
 ## Provenance
 

@@ -1,30 +1,21 @@
 //! RAW files: opening them with RAWmakase's own decoders (`rawmakase-raw`,
 //! through [`own`]), reading their metadata, development into linear
 //! camera-space pixels and the embedded preview. The values they produce are
-//! [`crate::camera_data`]'s. LibRaw ([`ffi`]) is reached only by the commands
-//! that compare decoders (`--decoder libraw`), until it is removed.
+//! [`crate::camera_data`]'s.
 use anyhow::{Result, ensure};
 use rayon::prelude::*;
 use std::{
     path::Path,
     sync::atomic::{AtomicBool, Ordering},
 };
-mod ffi;
 mod own;
 mod priority;
 use crate::camera_data::{
-    CameraImage, Decode, Demosaic, HighlightTonePriority, Metadata, Source, WhiteBalancePresets,
+    CameraImage, Decode, HighlightTonePriority, Metadata, Source, WhiteBalancePresets,
 };
 /// The version of the decoder photos open with.
 pub fn version() -> String {
-    version_of(Decoder::Own)
-}
-/// The version of `decoder`, for fingerprints.
-pub fn version_of(decoder: Decoder) -> String {
-    match decoder {
-        Decoder::Libraw => ffi::version(),
-        Decoder::Own => rawmakase_raw::VERSION.to_string(),
-    }
+    rawmakase_raw::VERSION.to_string()
 }
 /// What a developed image depends on in the decoder, for identities of
 /// developed images kept across runs (stored previews): the decoding, bumped
@@ -68,24 +59,10 @@ fn background_thread() {
     priority::lower();
 }
 pub struct Raw {
-    backend: Backend,
+    // Boxed: the decoder's state is large, and a `Raw` travels in enums.
+    own: Box<own::Own>,
     pub metadata: Metadata,
     pub facts: Facts,
-}
-/// The decoder behind a [`Raw`]. Every photo the app opens is RAWmakase's
-/// own decoders'; LibRaw is reached only through [`Raw::open_with`], by the
-/// commands that compare the two (`fingerprint`, `decode-dump`).
-enum Backend {
-    Libraw(ffi::Handle),
-    Own(Box<own::Own>),
-}
-/// Which decoder reads a file: RAWmakase's own; LibRaw only for the commands
-/// that compare decoders, until it is removed.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Decoder {
-    Libraw,
-    #[default]
-    Own,
 }
 /// What the decoder read about a file beyond [`Metadata`], before any of
 /// RAWmakase's own crop rules: for decode fingerprints, which compare decoders.
@@ -134,8 +111,7 @@ pub(crate) struct Sensor {
     /// without one.
     pub pattern: Vec<Vec<u8>>,
 }
-/// A decoder's header facts, as both decoders report them: what [`Metadata`] is
-/// made of.
+/// The decoder's header facts: what [`Metadata`] is made of.
 pub(crate) struct Header {
     pub make: String,
     pub model: String,
@@ -180,21 +156,7 @@ impl Raw {
     /// beyond them (lens tables, a DNG's profile and hints) and the imported
     /// lens profiles are `crate::photo::open`'s.
     pub fn open_file(path: &Path) -> Result<Self> {
-        Self::open_with(path, Decoder::Own)
-    }
-    /// The file at `path` read by `decoder`; see [`Decoder`].
-    pub fn open_with(path: &Path, decoder: Decoder) -> Result<Self> {
-        let (backend, h) = match decoder {
-            Decoder::Libraw => {
-                let (handle, m) = ffi::Handle::open(path)?;
-                let h = ffi::header(&m, ffi::panasonic_sensor(path), ffi::fuji_crop(path));
-                (Backend::Libraw(handle), h)
-            }
-            Decoder::Own => {
-                let (own, h) = own::Own::open(path)?;
-                (Backend::Own(Box::new(own)), h)
-            }
-        };
+        let (own, h) = own::Own::open(path)?;
         let adobe_names = rawmakase_model::cameras::adobe_names(
             &h.make,
             &h.model,
@@ -208,15 +170,7 @@ impl Raw {
             normalized: h.normalized.clone(),
             dng_version: h.dng_version,
         };
-        let (frame, aspect) = sensor_frame(
-            h.dng_version == 0 && h.make.eq_ignore_ascii_case("sony"),
-            h.sensor_borders,
-            h.frame,
-            h.aspect,
-            [h.width, h.height],
-            margin,
-        );
-        let [crop_left, crop_top, crop_width, crop_height] = visible(frame, margin);
+        let ([crop_left, crop_top, crop_width, crop_height], camera_crop) = crops(&h);
         let mut metadata = Metadata {
             width: h.width,
             height: h.height,
@@ -226,7 +180,7 @@ impl Raw {
             crop_height,
             crop_left,
             crop_top,
-            camera_crop: camera_crop(frame, aspect, [h.width, h.height], margin),
+            camera_crop,
             flip: h.flip,
             xtrans: h.xtrans,
             fuji_dynamic_range: h.fuji_dynamic_range,
@@ -268,65 +222,39 @@ impl Raw {
             metadata.apply_default_crop(visible(crop, margin));
         }
         Ok(Self {
-            backend,
+            own: Box::new(own),
             metadata,
             facts,
         })
     }
     /// The embedded JPEG preview, as stored.
     pub fn thumbnail(&mut self) -> Result<Vec<u8>> {
-        match &mut self.backend {
-            Backend::Libraw(handle) => handle.thumbnail(),
-            Backend::Own(own) => own.thumbnail(),
-        }
+        self.own.thumbnail()
     }
     /// The unpacked sensor data as development reads it, without developing.
     pub(crate) fn sensor(&self) -> Result<Sensor> {
-        match &self.backend {
-            Backend::Libraw(handle) => handle.sensor(),
-            Backend::Own(own) => own.sensor(),
-        }
+        self.own.sensor()
     }
     pub fn develop(self, decode: Decode, cancel: &AtomicBool) -> Result<CameraImage> {
-        if let Backend::Own(own) = &self.backend {
-            // Small RAWs develop at full size in either mode, as they always have.
-            if let Some((width, height, pixels)) = own.rgb(self.metadata.wb, cancel)? {
-                ensure!(!cancel.load(Ordering::Relaxed), "Development cancelled");
-                return Ok(CameraImage {
-                    recovered: Default::default(),
-                    width,
-                    height,
-                    pixels,
-                    metadata: self.metadata,
-                    fast: decode == Decode::Half,
-                    // Developed in floating point: nothing is scaled down to
-                    // integers, so nothing saturates.
-                    scale_factor: 1.,
-                    scale_clipped: 0,
-                });
-            }
-            let cfa = own.cfa(cancel)?;
-            return self
-                .develop_mosaic(cfa, decode == Decode::Half, cancel)?
-                .ok_or_else(|| anyhow::anyhow!("Sensor data RAWmakase cannot develop"));
+        // Small RAWs develop at full size in either mode, as they always have.
+        if let Some((width, height, pixels)) = self.own.rgb(self.metadata.wb, cancel)? {
+            ensure!(!cancel.load(Ordering::Relaxed), "Development cancelled");
+            return Ok(CameraImage {
+                recovered: Default::default(),
+                width,
+                height,
+                pixels,
+                metadata: self.metadata,
+                fast: decode == Decode::Half,
+                // Developed in floating point: nothing is scaled down to
+                // integers, so nothing saturates.
+                scale_factor: 1.,
+                scale_clipped: 0,
+            });
         }
-        // LibRaw, for the commands that compare decoders.
-        match decode {
-            Decode::Half => self.develop_libraw(true, cancel),
-            // LibRaw's demosaic when the file is not Bayer or X-Trans data.
-            Decode::Full(Demosaic::Rawmakase) => match self.develop_cfa(cancel)? {
-                Some(image) => Ok(image),
-                None => self.develop_libraw(false, cancel),
-            },
-        }
-    }
-    /// Unpacked CFA data demosaiced by `crate::demosaic`; `None` when the file is not
-    /// single-channel Bayer or X-Trans data.
-    fn develop_cfa(&self, cancel: &AtomicBool) -> Result<Option<CameraImage>> {
-        let Backend::Libraw(handle) = &self.backend else {
-            return Ok(None);
-        };
-        self.develop_mosaic(handle.cfa()?, false, cancel)
+        let cfa = self.own.cfa(cancel)?;
+        self.develop_mosaic(cfa, decode == Decode::Half, cancel)?
+            .ok_or_else(|| anyhow::anyhow!("Sensor data RAWmakase cannot develop"))
     }
     /// The mosaic white balanced and demosaiced, or at half size (`half`,
     /// `demosaic::half`); `None` without a mosaic.
@@ -385,28 +313,6 @@ impl Raw {
             scale_clipped: clipped,
         }))
     }
-    fn develop_libraw(self, fast: bool, cancel: &AtomicBool) -> Result<CameraImage> {
-        let Backend::Libraw(handle) = &self.backend else {
-            anyhow::bail!("Not a LibRaw file");
-        };
-        let ffi::Developed {
-            width: w,
-            height: h,
-            scale,
-            clipped,
-            pixels,
-        } = handle.develop(fast, cancel)?;
-        Ok(CameraImage {
-            recovered: Default::default(),
-            width: w,
-            height: h,
-            pixels,
-            metadata: self.metadata,
-            fast,
-            scale_factor: scale,
-            scale_clipped: clipped,
-        })
-    }
 }
 /// Sensor data that is not a mosaic developed: `rows` of `channels` samples
 /// per pixel (red, green, blue first), each channel (raw − black) / (white −
@@ -427,6 +333,23 @@ pub(crate) fn develop_rgb(
             })
         })
         .collect()
+}
+/// The frame of a header: its default crop in the decoded image
+/// (`[left, top, width, height]`, as [`Metadata`]'s `crop_*`, before a RAF
+/// header's recommended crop) and the camera's aspect-ratio crop in it.
+fn crops(h: &Header) -> ([u32; 4], Option<[f32; 4]>) {
+    let (frame, aspect) = sensor_frame(
+        h.dng_version == 0 && h.make.eq_ignore_ascii_case("sony"),
+        h.sensor_borders,
+        h.frame,
+        h.aspect,
+        [h.width, h.height],
+        h.margins,
+    );
+    (
+        visible(frame, h.margins),
+        camera_crop(frame, aspect, [h.width, h.height], h.margins),
+    )
 }
 /// LibRaw's crop `[left, top, width, height]` in raw coordinates, in the decoded
 /// image's, which start `margin` into the raw data. A crop without a position
@@ -781,28 +704,13 @@ mod tests {
         );
         assert_eq!(got, olympus);
     }
-    /// Photos open, preview and develop with RAWmakase's decoders; LibRaw is
-    /// only the comparison commands' (`Decoder::Libraw`).
-    #[test]
-    fn photos_open_with_rawmakases_decoders() {
-        let chart = concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../tests/corpus/charts/synthetic-d65.dng"
-        );
-        assert_eq!(super::Decoder::default(), super::Decoder::Own);
-        assert!(super::developed().starts_with("rawmakase-raw"));
-        let raw = super::Raw::open_file(chart.as_ref()).unwrap();
-        assert!(matches!(raw.backend, super::Backend::Own(_)));
-        let opened = crate::photo::open(chart.as_ref()).unwrap();
-        assert!(matches!(opened.backend, super::Backend::Own(_)));
-    }
     #[test]
     fn corrupt_raw_is_an_error() {
         let f = tempfile::NamedTempFile::new().unwrap();
         std::fs::write(f.path(), b"not a raw file").unwrap();
         assert!(super::Raw::open_file(f.path()).is_err());
     }
-    /// A 64×64 NEF from `model` whose raw data, Nikon-compressed for LibRaw, starts with `data`.
+    /// A 64×64 NEF from `model` whose raw data, tagged Nikon-compressed, starts with `data`.
     fn nef(model: &str, data: &[u8]) -> (tempfile::TempDir, std::path::PathBuf) {
         fn dir(f: &mut Vec<u8>, entries: &[(u16, u16, u32, Vec<u8>)]) {
             let mut extra = f.len() + 2 + 12 * entries.len() + 4;
@@ -862,7 +770,7 @@ mod tests {
         );
         assert_eq!(f.len(), data_offset);
         f.extend(raw);
-        // A closed file: Windows' LibRaw cannot open one a NamedTempFile holds open.
+        // A closed file, written and closed before it is opened.
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("photo.nef");
         std::fs::write(&path, f).unwrap();
@@ -872,16 +780,13 @@ mod tests {
     fn nikon_high_efficiency_raws_are_decoded_on_every_body() {
         use crate::camera_data::{Decode, Demosaic};
         use std::sync::atomic::AtomicBool;
-        // Zeros after it: without maker notes, LibRaw's open reads a Nikon curve
-        // length from file offset 2120, inside this small file's raw data.
+        // Zeros after it, inside this small file's raw data.
         let stream = [
             rawmakase_raw::nikon_high_efficiency_test_support::blank_codestream(64, 64),
             vec![0; 2048],
         ]
         .concat();
-        // LibRaw knows the Z 8's High Efficiency raws but cannot decode them, and
-        // reads the Z5_2's as lossless compressed: noise and a warning, not an error
-        // (issue #411).
+        // Both bodies' High Efficiency raws decode, the Z5_2's too (issue #411).
         for model in ["NIKON Z5_2", "NIKON Z 8"] {
             let (_dir, path) = nef(model, &stream);
             let sensor = super::Raw::open_file(&path).unwrap().sensor().unwrap();
@@ -917,8 +822,7 @@ mod tests {
                 let (_dir, path) = nef(model, &JPEG_XS);
                 // Opened, so the embedded preview can stand in.
                 let raw = super::Raw::open_file(&path).unwrap();
-                // LibRaw recycles itself after a failed unpack; trying again
-                // fails the same way.
+                // Trying again after a failed unpack fails the same way.
                 for _ in 0..2 {
                     let error = raw.sensor().err().expect("unpacked");
                     assert!(error.to_string().contains("JPEG XS"), "{error}");

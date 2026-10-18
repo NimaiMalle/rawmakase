@@ -1,31 +1,75 @@
 //! The half-size checks: a photo's half-size decode against its full decode
-//! reduced to the same size, and its time against LibRaw's half-size path,
+//! reduced to the same size, and its time,
 //! for `rawmakase half-check` and `scripts/corpus/dataset-half.py`.
 //!
 //! - Colour: the CIEDE2000 difference of blocks of [`BLOCK`] × [`BLOCK`]
 //!   half-size pixels (each block's mean colour, through the photo's camera
-//!   to sRGB matrix to CIELAB), mean at most [`MAX_MEAN`] and 95th
-//!   percentile at most [`MAX_P95`].
+//!   to sRGB matrix to CIELAB): mean and 95th percentile at most
+//!   [`REFERENCE_SLACK`] above the file's reference.
 //! - Detail: the energy of the luminance Laplacian, half-size over the full
-//!   decode reduced, within [`DETAIL`].
-//! - Time: opening and decoding at half size at most [`MAX_TIME`] times
-//!   LibRaw's (when measured), the faster of two runs each.
+//!   decode reduced: its distance from 1 at most [`REFERENCE_SLACK`] above
+//!   the reference's.
+//! - Time: opening and decoding at half size over opening and developing at
+//!   full size, each the fastest of [`RUNS`] runs in the same check: the half
+//!   size time at most [`MAX_TIME`] times the reference ratio times the full
+//!   time, plus [`TIME_SLACK`] (so files decoded in a few milliseconds do not
+//!   fail on noise). Ratios of one run on one machine, so the gate holds on
+//!   any machine.
+//!
+//! The references ([`Reference`]) are LibRaw's half-size decode of the same
+//! file, measured the same way, judged with RAWmakase's camera matrix, and
+//! recorded once while RAWmakase still linked LibRaw
+//! (`tests/corpus/dataset/pixls-half.json` and the dataset's local
+//! recordings; the caller passes them). Without a reference a file is held to
+//! the absolute limits [`MAX_MEAN`], [`MAX_P95`], [`DETAIL`] and
+//! [`FALLBACK_RATIO`]. Two kinds of file take their own time reference: a
+//! small RAW develops at full size in both modes, and an X-Trans draft is the
+//! full demosaic reduced (it keeps the directional demosaic's freedom from
+//! moiré, which a cheaper draft would lose), so their half-size path may cost
+//! their full develop: a reference ratio of 1.
 //!
 //! The full decode is reduced as the half-size decode is laid out: half-size
 //! pixel (i, j) is the mean of the full decode's 2 × 2 block at (2i, 2j),
 //! reaching one pixel back where an odd side leaves one row or column.
 use crate::camera_data::{CameraImage, Decode, Demosaic};
-use crate::raw::Decoder;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::time::Instant;
 
 /// Side of the colour check's blocks, in half-size pixels.
 pub const BLOCK: usize = 16;
+/// Limits of a file without a reference.
 pub const MAX_MEAN: f64 = 0.3;
 pub const MAX_P95: f64 = 1.;
 pub const DETAIL: std::ops::RangeInclusive<f64> = 0.8..=1.25;
+/// How far the colour differences and the detail ratio's distance from 1 may
+/// exceed the reference's.
+pub const REFERENCE_SLACK: f64 = 0.1;
+/// How much the half ÷ full time may exceed its reference ratio.
 pub const MAX_TIME: f64 = 1.1;
+/// Seconds the half-size time may exceed its limit by.
+pub const TIME_SLACK: f64 = 0.02;
+/// Runs of each decode; the fastest is timed.
+pub const RUNS: usize = 3;
+/// The reference ratio of a file without a recorded one: a half-size draft
+/// costs no more than the full develop. Above 95% of LibRaw's recorded ratios
+/// (median 0.72, 95th percentile 0.86).
+pub const FALLBACK_RATIO: f64 = 1.;
+
+/// LibRaw's half-size decode of a file, as the check measures ours: what the
+/// gates hold ours to. Each value is optional.
+#[derive(Clone, Copy, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Reference {
+    /// Half-size time over full develop time.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ratio: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub de_mean: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub de_p95: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detail: Option<f64>,
+}
 
 /// One photo's half-size check.
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
@@ -43,17 +87,24 @@ pub struct HalfCheck {
     /// on their time only.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub halved: Option<bool>,
+    /// Whether the photo is X-Trans data.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub xtrans: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub de_mean: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub de_p95: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<f64>,
-    /// Seconds to open and decode at half size, RAWmakase's and LibRaw's.
+    /// Seconds to open and decode at half size, and to open and develop at
+    /// full size, in the same check.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seconds: Option<f64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub libraw_seconds: Option<f64>,
+    pub full_seconds: Option<f64>,
+    /// The file's reference, when one was recorded.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reference: Option<Reference>,
 }
 
 impl HalfCheck {
@@ -64,21 +115,30 @@ impl HalfCheck {
             out.push("error");
         }
         // Every file is timed, small RAWs too.
-        let slow = matches!((self.seconds, self.libraw_seconds),
-            (Some(own), Some(libraw)) if own > MAX_TIME * libraw);
+        let slow = match (self.seconds, self.full_seconds, self.time_limit()) {
+            (Some(half), Some(full), Some(limit)) => half > limit * full + TIME_SLACK,
+            _ => false,
+        };
         if self.halved == Some(false) {
             if slow {
                 out.push("time");
             }
             return out;
         }
-        if self.de_mean.is_some_and(|v| v > MAX_MEAN) {
+        let reference = self.reference.unwrap_or_default();
+        let colour = |value: Option<f64>, reference: Option<f64>, absolute: f64| {
+            value.is_some_and(|v| v > reference.map_or(absolute, |r| r + REFERENCE_SLACK))
+        };
+        if colour(self.de_mean, reference.de_mean, MAX_MEAN) {
             out.push("colour mean");
         }
-        if self.de_p95.is_some_and(|v| v > MAX_P95) {
+        if colour(self.de_p95, reference.de_p95, MAX_P95) {
             out.push("colour p95");
         }
-        if self.detail.is_some_and(|v| !DETAIL.contains(&v)) {
+        if self.detail.is_some_and(|v| match reference.detail {
+            Some(r) => (v - 1.).abs() > (r - 1.).abs() + REFERENCE_SLACK,
+            None => !DETAIL.contains(&v),
+        }) {
             out.push("detail");
         }
         if slow {
@@ -86,39 +146,55 @@ impl HalfCheck {
         }
         out
     }
+
+    /// The half-size time over the full develop time.
+    pub fn time_ratio(&self) -> Option<f64> {
+        let (half, full) = (self.seconds?, self.full_seconds?);
+        (full > 0.).then(|| half / full)
+    }
+
+    /// The most [`Self::time_ratio`] may be before [`TIME_SLACK`]:
+    /// [`MAX_TIME`] times the reference ratio (see the module's documentation).
+    pub fn time_limit(&self) -> Option<f64> {
+        let own = !self.halved? || self.xtrans == Some(true);
+        let reference = match own {
+            true => 1.,
+            false => self
+                .reference
+                .and_then(|r| r.ratio)
+                .unwrap_or(FALLBACK_RATIO),
+        };
+        Some(MAX_TIME * reference)
+    }
 }
 
-fn develop(path: &Path, decoder: Decoder, decode: Decode) -> anyhow::Result<(CameraImage, f64)> {
+fn develop(path: &Path, decode: Decode) -> anyhow::Result<(CameraImage, f64)> {
     let mut best = f64::INFINITY;
     let mut image = None;
-    for _ in 0..2 {
+    for _ in 0..RUNS {
         let t = Instant::now();
-        let im =
-            crate::photo::open_with(path, decoder)?.develop(decode, &AtomicBool::new(false))?;
+        let im = crate::photo::open(path)?.develop(decode, &AtomicBool::new(false))?;
         best = best.min(t.elapsed().as_secs_f64());
         image = Some(im);
     }
-    Ok((image.expect("developed twice"), best))
+    Ok((image.expect("developed at least once"), best))
 }
 
-/// Checks the photo at `path`; with `libraw`, also times LibRaw's half-size path.
-pub fn check(path: &Path, libraw: bool) -> HalfCheck {
+/// Checks the photo at `path` against its `reference`, when there is one.
+pub fn check(path: &Path, reference: Option<Reference>) -> HalfCheck {
     let mut c = HalfCheck {
         path: path.to_path_buf(),
+        reference,
         ..Default::default()
     };
     let result = (|| -> anyhow::Result<()> {
-        let (half, seconds) = develop(path, Decoder::Own, Decode::Half)?;
+        let (half, seconds) = develop(path, Decode::Half)?;
         c.half = Some([half.width, half.height]);
         c.seconds = Some(seconds);
-        if libraw {
-            c.libraw_seconds = develop(path, Decoder::Libraw, Decode::Half)
-                .ok()
-                .map(|(_, s)| s);
-        }
-        let full = crate::photo::open_with(path, Decoder::Own)?
-            .develop(Decode::Full(Demosaic::Rawmakase), &AtomicBool::new(false))?;
+        let (full, full_seconds) = develop(path, Decode::Full(Demosaic::Rawmakase))?;
         c.full = Some([full.width, full.height]);
+        c.full_seconds = Some(full_seconds);
+        c.xtrans = Some(full.metadata.xtrans);
         let halved = [half.width, half.height] == [full.width.div_ceil(2), full.height.div_ceil(2)];
         c.halved = Some(halved);
         if halved {
@@ -350,21 +426,128 @@ mod tests {
         let flat = image(32, 32, |_, _| [0.35, 0.315, 0.28]);
         let (_, _, detail) = compare(&full, &flat);
         assert!(detail < 0.01, "{detail}");
-        let slow = HalfCheck {
-            seconds: Some(1.2),
-            libraw_seconds: Some(1.),
+    }
+
+    fn reference(ratio: Option<f64>) -> Option<Reference> {
+        Some(Reference {
+            ratio,
+            de_mean: Some(0.4),
+            de_p95: Some(1.2),
+            detail: Some(1.3),
+        })
+    }
+
+    /// Colour and detail against the file's reference, plus 0.1; without one,
+    /// the absolute limits.
+    #[test]
+    fn colour_and_detail_are_judged_against_the_reference() {
+        let judged = |de_mean, de_p95, detail, reference| HalfCheck {
+            halved: Some(true),
+            de_mean: Some(de_mean),
+            de_p95: Some(de_p95),
+            detail: Some(detail),
+            reference,
             ..Default::default()
         };
-        assert_eq!(slow.failures(), ["time"]);
-        // A small RAW (not halved) skips the image gates but not the time.
+        // Within LibRaw's own values plus 0.1, though above the absolute limits.
+        assert!(
+            judged(0.49, 1.29, 1.39, reference(None))
+                .failures()
+                .is_empty()
+        );
+        // The detail ratio's distance from 1, either side.
+        assert!(
+            judged(0.2, 0.5, 0.61, reference(None))
+                .failures()
+                .is_empty()
+        );
+        assert_eq!(
+            judged(0.51, 1.31, 1.41, reference(None)).failures(),
+            ["colour mean", "colour p95", "detail"]
+        );
+        assert_eq!(
+            judged(0.2, 0.5, 0.59, reference(None)).failures(),
+            ["detail"]
+        );
+        // Without a reference, the absolute limits.
+        assert_eq!(
+            judged(0.31, 1.01, 1.26, None).failures(),
+            ["colour mean", "colour p95", "detail"]
+        );
+        assert!(judged(0.29, 0.99, 0.81, None).failures().is_empty());
+    }
+
+    /// Time: half ≤ 1.1 × reference ratio × full + 20 ms.
+    #[test]
+    fn time_is_judged_against_the_reference_ratio_with_slack() {
+        let timed = |halved, xtrans, seconds, full: f64, reference| HalfCheck {
+            halved: Some(halved),
+            xtrans: Some(xtrans),
+            seconds: Some(seconds),
+            full_seconds: Some(full),
+            reference,
+            ..Default::default()
+        };
+        // 1.1 × 0.4 × 1 s + 20 ms = 0.46 s.
+        assert!(
+            timed(true, false, 0.459, 1., reference(Some(0.4)))
+                .failures()
+                .is_empty()
+        );
+        assert_eq!(
+            timed(true, false, 0.461, 1., reference(Some(0.4))).failures(),
+            ["time"]
+        );
+        // A fast file: 1.1 × 0.4 × 50 ms + 20 ms = 42 ms.
+        assert!(
+            timed(true, false, 0.041, 0.05, reference(Some(0.4)))
+                .failures()
+                .is_empty()
+        );
+        assert_eq!(
+            timed(true, false, 0.043, 0.05, reference(Some(0.4))).failures(),
+            ["time"]
+        );
+        // Without a recording, the fallback ratio.
+        let fallback = MAX_TIME * FALLBACK_RATIO + TIME_SLACK;
+        assert!(
+            timed(true, false, fallback - 0.01, 1., None)
+                .failures()
+                .is_empty()
+        );
+        assert_eq!(
+            timed(true, false, fallback + 0.01, 1., None).failures(),
+            ["time"]
+        );
+        // X-Trans drafts are the full demosaic reduced: their own full develop
+        // is the reference, whatever LibRaw's ratio.
+        assert!(
+            timed(true, true, 1.1, 1., reference(Some(0.27)))
+                .failures()
+                .is_empty()
+        );
+        assert_eq!(
+            timed(true, true, 1.2, 1., reference(Some(0.27))).failures(),
+            ["time"]
+        );
+        // A small RAW (not halved) skips the image gates but not the time: it
+        // develops at full size in both modes, so its half-size path may cost
+        // its full develop.
         let small = HalfCheck {
-            halved: Some(false),
             de_p95: Some(9.),
-            seconds: Some(2.),
-            libraw_seconds: Some(1.),
-            ..Default::default()
+            ..timed(false, false, 1.1, 1., reference(Some(0.3)))
         };
-        assert_eq!(small.failures(), ["time"]);
+        assert!(small.failures().is_empty());
+        assert_eq!(
+            timed(false, false, 1.2, 1., reference(Some(0.3))).failures(),
+            ["time"]
+        );
+        // Untimed (an error before the full develop): no time gate.
+        let untimed = HalfCheck {
+            full_seconds: None,
+            ..timed(true, false, 9., 1., reference(Some(0.4)))
+        };
+        assert!(untimed.failures().is_empty());
     }
 
     #[test]
@@ -373,8 +556,11 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../tests/corpus/charts/synthetic-d65.dng"
         );
-        let c = check(chart.as_ref(), false);
+        let c = check(chart.as_ref(), reference(Some(0.5)));
         assert!(c.error.is_none(), "{:?}", c.error);
+        assert_eq!(c.reference, reference(Some(0.5)));
+        assert_eq!(c.xtrans, Some(false));
+        assert!(c.time_ratio().is_some_and(|r| r > 0.));
         assert_eq!(
             (c.full, c.half, c.halved),
             (Some([970, 742]), Some([485, 371]), Some(true))

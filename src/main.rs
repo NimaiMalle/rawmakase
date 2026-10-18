@@ -115,9 +115,6 @@ enum Command {
     Fingerprint {
         #[arg(required = true, num_args = 1..)]
         files: Vec<PathBuf>,
-        /// The decoder to read them with.
-        #[arg(long, value_enum, default_value_t = DecoderArg::Own)]
-        decoder: DecoderArg,
     },
     /// Print each file's develop fingerprint as a line of JSON: the image each
     /// decode mode (full, half) makes, hashed, for decoder regression checks.
@@ -127,18 +124,18 @@ enum Command {
         /// Also write each full decode that is not a mosaic here, as raw floats.
         #[arg(long)]
         floats: Option<PathBuf>,
-        /// The decoder to read them with.
-        #[arg(long, value_enum, default_value_t = DecoderArg::Own)]
-        decoder: DecoderArg,
     },
     /// Print each file's half-size check as a line of JSON: RAWmakase's
     /// half-size decode against its full decode reduced (colour, detail) and
-    /// its time, with `--libraw` against LibRaw's half-size path's.
+    /// its time over the full develop's.
     HalfCheck {
         #[arg(required = true, num_args = 1..)]
         files: Vec<PathBuf>,
-        #[arg(long)]
-        libraw: bool,
+        /// The files' reference as JSON (`{"ratio":…,"de_mean":…,"de_p95":…,
+        /// "detail":…}`): LibRaw's half-size decode, recorded, which
+        /// scripts/corpus/dataset-half.py passes. Without one, absolute limits.
+        #[arg(long, value_parser = parse_reference)]
+        reference: Option<rawmakase::half_check::Reference>,
     },
     Benchmark {
         input: PathBuf,
@@ -146,20 +143,9 @@ enum Command {
         iterations: usize,
     },
 }
-/// The decoders the comparison commands can read a RAW with: RAWmakase's own, or
-/// LibRaw (the oracle) until it is removed.
-#[derive(Clone, Copy, Debug, clap::ValueEnum)]
-enum DecoderArg {
-    Libraw,
-    Own,
-}
-impl From<DecoderArg> for raw::Decoder {
-    fn from(d: DecoderArg) -> Self {
-        match d {
-            DecoderArg::Libraw => raw::Decoder::Libraw,
-            DecoderArg::Own => raw::Decoder::Own,
-        }
-    }
+/// A half-size check's `--reference`.
+fn parse_reference(json: &str) -> Result<rawmakase::half_check::Reference, String> {
+    serde_json::from_str(json).map_err(|e| e.to_string())
 }
 /// A stage `render --tap` writes.
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
@@ -496,30 +482,21 @@ fn main() -> Result<()> {
                 im.scale_clipped
             );
         }
-        Some(Command::Fingerprint { files, decoder }) => {
-            // One file at a time: LibRaw opening files side by side can give one
-            // of them different white balance multipliers (issue #420).
+        Some(Command::Fingerprint { files }) => {
             for path in &files {
-                let line = serde_json::to_string(&rawmakase::fingerprint::fingerprint(
-                    path,
-                    decoder.into(),
-                ))?;
+                let line = serde_json::to_string(&rawmakase::fingerprint::fingerprint(path))?;
                 println!("{line}");
             }
         }
-        Some(Command::DecodeDump {
-            files,
-            floats,
-            decoder,
-        }) => {
+        Some(Command::DecodeDump { files, floats }) => {
             for path in &files {
-                let dump = rawmakase::decode_dump::dump(path, floats.as_deref(), decoder.into());
+                let dump = rawmakase::decode_dump::dump(path, floats.as_deref());
                 println!("{}", serde_json::to_string(&dump)?);
             }
         }
-        Some(Command::HalfCheck { files, libraw }) => {
+        Some(Command::HalfCheck { files, reference }) => {
             for path in &files {
-                let check = rawmakase::half_check::check(path, libraw);
+                let check = rawmakase::half_check::check(path, reference);
                 println!("{}", serde_json::to_string(&check)?);
             }
         }

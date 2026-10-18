@@ -44,13 +44,7 @@ pub fn open_source(path: &Path, cancel: &AtomicBool) -> Result<Opened> {
 
 /// The photo at `path`, opened for developing.
 pub fn open(path: &Path) -> Result<Raw> {
-    open_with(path, crate::raw::Decoder::Own)
-}
-
-/// The photo at `path` read by `decoder`, for the commands that compare
-/// decoders; see [`crate::raw::Decoder`].
-pub fn open_with(path: &Path, decoder: crate::raw::Decoder) -> Result<Raw> {
-    let mut raw = Raw::open_with(path, decoder)?;
+    let mut raw = Raw::open_file(path)?;
     let metadata = &mut raw.metadata;
     metadata.lens = crate::lens::embedded::read(path);
     if let Some(dng) = crate::dng::read(path) {
@@ -218,7 +212,7 @@ mod tests {
         let entry = [0x2a, 0xc6, 10, 0, 1, 0, 0, 0];
         let at = bytes.windows(8).position(|w| w == entry).unwrap();
         bytes[at + 2] = 0;
-        // A closed file: Windows' LibRaw cannot open one a NamedTempFile holds open.
+        // A closed file, written and closed before it is opened.
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("no-baseline.dng");
         std::fs::write(&path, bytes).unwrap();

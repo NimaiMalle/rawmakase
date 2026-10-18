@@ -2,20 +2,23 @@
 # Checks that the extracted crates keep out what they are extracted to avoid:
 # the app crate, the GPU and GUI stacks, and the native imaging libraries. Cargo
 # already forbids a cycle back to the app; nothing else stops a leaf crate
-# from gaining wgpu, egui or a LibRaw binding as a dependency.
+# from gaining wgpu, egui or a C RAW library binding as a dependency.
 #
 #     scripts/crate-closures.sh
 #
 # The catalog's bundled SQLite (libsqlite3-sys) is intended and allowed. The
-# renderer has wgpu for its GPU preview port. LibRaw and Little CMS are linked
-# by rawmakase-native's own build script, not a crate, so the crates above it
-# are kept from depending on rawmakase-native instead. Export reads Inter and
+# renderer has wgpu for its GPU preview port. RAW files are read by
+# RAWmakase's own decoders (rawmakase-raw) and colour is managed in Rust
+# (moxcms): no crate may bring a C RAW library (LibRaw) or Little CMS back,
+# whether as a crate or linked by a build script. Export reads Inter and
 # the installed-font directories from fastframe-fonts, which brings egui (but
 # no window or GPU backend) along.
 set -euo pipefail
 
 gui='egui.*|eframe|epaint|winit|fastframe-fonts'
-native='rawmakase-native|rawmakase-raw|lcms2.*|libraw.*'
+# C RAW decoders and Little CMS, under any binding's name.
+c_imaging='lcms2.*|.*lcms.*|libraw.*|.*-libraw.*|rsraw.*'
+native="rawmakase-native|rawmakase-raw|$c_imaging"
 # The ONNX Runtime binding opens a library at run time. Only the app composes it: no
 # value, file-format, catalog or rendering crate may reach it, so saved masks render
 # without any inference installed.
@@ -37,8 +40,9 @@ for crate in rawmakase-tiff rawmakase-model rawmakase-interop rawmakase-catalog 
     check "$crate" "$leaf"
 done
 check rawmakase-engine "rawmakase|rawmakase-catalog|rawmakase-export|$gui|$native|$inference"
-check rawmakase-native "rawmakase|rawmakase-catalog|rawmakase-export|$gui|$inference"
-check rawmakase-export "rawmakase|eframe|winit|egui-wgpu|egui-winit|egui_extras|lcms2.*|libraw.*|$inference"
+# The decoding boundary is Rust alone: nothing in it is built from C.
+check rawmakase-native "rawmakase|rawmakase-catalog|rawmakase-export|cc|cmake|pkg-config|$gui|$c_imaging|$inference"
+check rawmakase-export "rawmakase|eframe|winit|egui-wgpu|egui-winit|egui_extras|$c_imaging|$inference"
 # Inference itself is a leaf: it takes pixels and returns coverage, and knows no
 # workspace crate, window, GPU or imaging library.
 check rawmakase-inference "rawmakase|rawmakase-model|rawmakase-catalog|rawmakase-engine|rawmakase-export|rawmakase-interop|rawmakase-native|rawmakase-protocol|wgpu.*|naga|$gui|$native"
@@ -49,8 +53,31 @@ check rawmakase-remote "rawmakase|rawmakase-model|rawmakase-catalog|rawmakase-en
 # RAWmakase's own RAW decoders sit on the TIFF reader alone: no workspace crate
 # above them, no GPU, GUI or inference, and nothing built from C (no build
 # script crates).
-check rawmakase-raw "rawmakase|rawmakase-model|rawmakase-interop|rawmakase-catalog|rawmakase-engine|rawmakase-export|rawmakase-native|rawmakase-protocol|rawmakase-remote|wgpu.*|naga|cc|pkg-config|$gui|lcms2.*|libraw.*|$inference"
+check rawmakase-raw "rawmakase|rawmakase-model|rawmakase-interop|rawmakase-catalog|rawmakase-engine|rawmakase-export|rawmakase-native|rawmakase-protocol|rawmakase-remote|wgpu.*|naga|cc|pkg-config|$gui|$c_imaging|$inference"
 check rawmakase-tiff "rawmakase|rawmakase-model|rawmakase-raw|rawmakase-native|cc|pkg-config|$gui|$native|$inference"
+# No crate of the workspace, the app with every feature and platform included,
+# reaches a C RAW library or Little CMS.
+found=$(cargo tree --locked --workspace --all-features --target all -e normal,build,dev \
+    --prefix none --format '{p}' | sort -u | grep -E "^($c_imaging) " || true)
+if [ -n "$found" ]; then
+    echo "No workspace crate may depend on a C RAW library or Little CMS:" >&2
+    echo "$found" | sed 's/^/    /' >&2
+    status=1
+fi
+# Nor does a build script link one: rawmakase-native has no build script, and
+# no other build script names LibRaw or Little CMS.
+if [ -e crates/rawmakase-native/build.rs ] \
+    || grep -Eq '^[[:space:]]*(build|links)[[:space:]]*=|^\[(target\..*\.)?build-dependencies\]' \
+        crates/rawmakase-native/Cargo.toml; then
+    echo "rawmakase-native must not have a build script or build dependencies" >&2
+    status=1
+fi
+linking=$(git ls-files '*build.rs' | xargs grep -Eil 'libraw|lcms|raw_r|rustc-link-lib=(dylib=|static=)?(raw|lcms)' || true)
+if [ -n "$linking" ]; then
+    echo "Build scripts must not link a C RAW library or Little CMS:" >&2
+    echo "$linking" | sed 's/^/    /' >&2
+    status=1
+fi
 # The app and export reach the decoders only through rawmakase-native's raw
 # adapter: no direct dependency and no rawmakase_raw path anywhere else.
 for manifest in Cargo.toml crates/*/Cargo.toml tools/*/Cargo.toml; do
@@ -67,5 +94,5 @@ if [ -n "$paths" ]; then
     echo "$paths" | sed 's/^/    /' >&2
     status=1
 fi
-[ "$status" -eq 0 ] && echo "The extracted crates depend on no app, GPU, GUI or native imaging crate beyond their own."
+[ "$status" -eq 0 ] && echo "The extracted crates depend on no app, GPU, GUI or native imaging crate beyond their own, and nothing links a C RAW library or Little CMS."
 exit "$status"

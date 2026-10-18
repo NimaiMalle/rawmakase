@@ -26,10 +26,10 @@ use tempfile::NamedTempFile;
 /// What an export embeds besides pixels.
 #[derive(Clone, Debug)]
 pub struct Embed {
-    /// The camera's EXIF, read from the RAW; LibRaw's capture settings stand in
+    /// The camera's EXIF, read from the RAW; the decoder's capture settings stand in
     /// when it could not be read.
     pub camera: Option<crate::exif::CameraExif>,
-    /// Make, model and lens model from LibRaw's metadata where the camera's EXIF
+    /// Make, model and lens model from the decoder's metadata where the camera's EXIF
     /// has none: the camera's information is included.
     pub camera_fallback: bool,
     /// An XMP packet, e.g. the edit as Camera Raw settings.

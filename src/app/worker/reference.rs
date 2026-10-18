@@ -99,7 +99,7 @@ fn develop(
     let full_size = FullSize::with_cache(&job.path, job.demosaic, cache.clone());
     if let Some(image) = full_size.cached(&raw.metadata) {
         // Closed before the reference is ready: Windows refuses to rename or
-        // replace a file LibRaw still has open.
+        // replace a file that is still open.
         drop(raw);
         ready(ReferenceImage {
             image: Arc::new(image),
@@ -171,7 +171,7 @@ mod tests {
     }
 
     /// Once the reference is ready its file can be renamed: Windows refuses
-    /// while LibRaw still has it open.
+    /// while it is still open.
     #[test]
     fn the_file_is_closed_when_the_reference_is_ready() -> anyhow::Result<()> {
         let chart = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

@@ -542,7 +542,7 @@ crops, regions, spatial effects, cancellation and fallback. The neutral-color CP
 fast path is also checked against its general processing path.
 
 Full-quality rendering still takes seconds on this photograph. The GPU work does
-not accelerate LibRaw decoding or the complete color pipeline. High-resolution
+not accelerate RAW decoding or the complete color pipeline. High-resolution
 color processing, local effects and memory transfers remain targets for future
 profiling. Cancellation now interrupts recovery, local-tone and sharpening CPU
 work; an already-submitted GPU command must finish, after which a stale result is

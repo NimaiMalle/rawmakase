@@ -4,8 +4,8 @@
 Runs `rawmakase fingerprint` on the dataset's RAW files and compares what
 opening and unpacking each one yields (whether it opens, sizes, crop,
 orientation, levels, CFA, white balance, matrix and a checksum of the unpacked
-data) with a recorded baseline. Run it on every LibRaw update and before
-releases.
+data) with a recorded baseline. Run it on every change to the RAW decoders and
+before releases.
 
   check    fingerprint the files and report every difference from the baselines,
            grouped by make and format; exits 1 when anything changed
@@ -23,7 +23,7 @@ fingerprinted; --manifest takes the files of a `dataset.py manifest` output.
 Run from the repository root with a release build (--rawmakase):
 
   python3 scripts/corpus/dataset-fingerprints.py check
-  python3 scripts/corpus/dataset-fingerprints.py record --reason "LibRaw 0.23"
+  python3 scripts/corpus/dataset-fingerprints.py record --reason "Nikon HE decoder"
 
 Exit status: 0 no difference, 1 differences, 2 the run could not be made
 (no dataset, no baseline, files missing).
@@ -34,7 +34,6 @@ import datetime
 import json
 import os
 import platform
-import re
 import sqlite3
 import subprocess
 import sys
@@ -102,10 +101,10 @@ def load_samples(dataset, manifest):
     return samples
 
 
-def run(rawmakase, files, timeout, decoder=None):
+def run(rawmakase, files, timeout):
     """One JSON object per file, in order; None when the process failed or its
     output does not match the files."""
-    command = [str(rawmakase), 'fingerprint', *(['--decoder', decoder] if decoder else []), *map(str, files)]
+    command = [str(rawmakase), 'fingerprint', *map(str, files)]
     try:
         p = subprocess.run(command, capture_output=True,
                            text=True, timeout=timeout)
@@ -123,7 +122,7 @@ def run(rawmakase, files, timeout, decoder=None):
     return lines, None
 
 
-def fingerprint(rawmakase, samples, jobs, decoder=None):
+def fingerprint(rawmakase, samples, jobs):
     """Fingerprints by SHA-256, and the run's problems as (publishable, text).
     A batch that fails is
     run again file by file: a file that fails alone gets the failure as its
@@ -134,12 +133,12 @@ def fingerprint(rawmakase, samples, jobs, decoder=None):
     results, problems, done = {}, [], 0
 
     def batch(chunk):
-        lines, error = run(rawmakase, [s['file'] for s in chunk], BATCH_TIMEOUT, decoder)
+        lines, error = run(rawmakase, [s['file'] for s in chunk], BATCH_TIMEOUT)
         if lines is not None:
             return list(zip(chunk, lines)), None
         out = []
         for s in chunk:
-            alone, why = run(rawmakase, [s['file']], FILE_TIMEOUT, decoder)
+            alone, why = run(rawmakase, [s['file']], FILE_TIMEOUT)
             out.append((s, alone[0] if alone else {'failed': 'crash', 'error': why}))
         return out, f'a batch of {len(chunk)} files failed ({error}); its files were run one by one'
 
@@ -191,12 +190,8 @@ def recorded_by(results, reason):
     dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT,
                            capture_output=True, text=True).stdout.strip()
     decoder = sorted({r.get('decoder') for r in results.values() if r.get('decoder')})
-    # LibRaw's version string does not name a master commit; this is the one
-    # packaging/native-deps.sh builds, which the build is expected to link.
-    pinned = re.search(r'^libraw=(\w+)', (ROOT / 'packaging/native-deps.sh').read_text(), re.M)
     return {'reason': reason, 'date': datetime.date.today().isoformat(),
             'rawmakase': commit + ('-dirty' if dirty else ''), 'decoder': ', '.join(decoder),
-            'libraw_pinned': pinned[1] if pinned else None,
             'platform': f'{platform.system()} {platform.machine()}'}
 
 
@@ -277,7 +272,7 @@ def check(args, samples, results, problems):
             raise Setup(f'No baseline at {path}: record one with `record --reason …`')
         baselines[path] = loaded[1]
         here = recorded_by(results, None)
-        for key in ('decoder', 'libraw_pinned', 'platform'):
+        for key in ('decoder', 'platform'):
             if loaded[0].get(key) != here[key]:
                 notes.append(f'{path.name} was recorded with {key} {loaded[0].get(key)}; this run has {here[key]}')
     # Every change, by (make, format): (kind, sample, detail).
@@ -355,7 +350,6 @@ def main():
                    help='the dataset checkout (default: $RAWMAKASE_DATASET)')
     p.add_argument('--rawmakase', type=Path, default=ROOT / 'target/release/rawmakase')
     p.add_argument('--manifest', type=Path, help='a dataset.py manifest; default: every file')
-    p.add_argument('--decoder', help="the build's decoder to use, when it has more than one")
     # Each process takes its files one at a time (see `rawmakase fingerprint`).
     p.add_argument('--jobs', type=int, default=min(8, os.cpu_count() or 4), help='rawmakase processes at a time')
     p.add_argument('--reason', help='why the baseline changes (record)')
@@ -371,7 +365,7 @@ def main():
         if not os.access(args.rawmakase, os.X_OK):
             raise Setup(f'No rawmakase build at {args.rawmakase}: cargo build --release, or pass --rawmakase')
         samples = load_samples(args.dataset, args.manifest)
-        results, problems = fingerprint(args.rawmakase, samples, args.jobs, args.decoder)
+        results, problems = fingerprint(args.rawmakase, samples, args.jobs)
         if args.command == 'record':
             if problems:
                 raise Setup('Not recording a run with problems:\n  ' + '\n  '.join(visible(problems, args.public)))

@@ -19,7 +19,7 @@ pub use rawmakase_catalog::{catalog, edits};
 pub use rawmakase_engine::develop;
 // Developing and writing exports, with their watermarks (crates/rawmakase-export).
 pub use rawmakase_export::{export, watermark};
-// LibRaw and Little CMS, demosaicing, opening and decoding a photo
+// RAW decoding, colour management, demosaicing, opening and decoding a photo
 // (crates/rawmakase-native).
 pub use rawmakase_native::{
     color_management, decode_cache, decode_dump, fingerprint, half_check, photo, raw,

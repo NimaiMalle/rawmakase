@@ -1,7 +1,7 @@
 //! RAWmakase's own decoders (`rawmakase-raw`) behind [`super::Raw`]: the file
 //! is read into memory and closed, its header facts mapped to the [`Header`]
-//! both decoders report, and its sensor data to the [`Sensor`] and [`Cfa`]
-//! development reads, with the same arithmetic as LibRaw's bridge.
+//! a [`super::Raw`] is made of, and its sensor data to the [`Sensor`] and [`Cfa`]
+//! development reads.
 use super::{Cfa, Header, Sensor};
 use anyhow::{Result, ensure};
 use rawmakase_raw::RawInfo;
@@ -416,7 +416,7 @@ mod tests {
     #[test]
     fn x_trans_develops_through_the_x_trans_demosaic() {
         use crate::camera_data::{Decode, Demosaic};
-        use crate::raw::{Decoder, Raw};
+        use crate::raw::Raw;
         // An X-Trans period, rows top first (0 red, 1 green, 2 blue); the
         // XTransLayout record lists it last colour first.
         let period: [u8; 36] = [
@@ -441,13 +441,11 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("x-trans.raf");
         std::fs::write(&path, file).unwrap();
-        let open = || Raw::open_with(&path, Decoder::Own).unwrap();
+        let open = || Raw::open_file(&path).unwrap();
         let raw = open();
         assert!(raw.metadata.xtrans);
         let wb = raw.metadata.wb;
-        let super::super::Backend::Own(own) = &raw.backend else {
-            panic!("not RAWmakase's decoders");
-        };
+        let own = &raw.own;
         let mut cfa = own.cfa(&AtomicBool::new(false)).unwrap().unwrap();
         let n = crate::demosaic::PATTERN;
         for (i, v) in cfa.data.iter_mut().enumerate() {
@@ -498,7 +496,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("tall.raf");
         std::fs::write(&path, file).unwrap();
-        let raw = crate::raw::Raw::open_with(&path, crate::raw::Decoder::Own).unwrap();
+        let raw = crate::raw::Raw::open_file(&path).unwrap();
         assert_eq!([raw.metadata.width, raw.metadata.height], [32770, 32769]);
         let developed = raw.develop(
             crate::camera_data::Decode::Full(crate::camera_data::Demosaic::Rawmakase),

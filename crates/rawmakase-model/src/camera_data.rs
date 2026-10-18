@@ -1,6 +1,6 @@
 //! What a camera captured, as values: a RAW's metadata as RAWmakase keeps it,
 //! the demosaic and decode choices, and the decoded camera-space image. Reading
-//! them through LibRaw is [`crate::raw`]'s; nothing here needs native code.
+//! them from a file is the RAW decoders'; nothing here needs native code.
 use serde::{Deserialize, Serialize};
 
 /// A DNG's illuminant-independent diagonal camera calibration. The signature
@@ -11,7 +11,7 @@ pub struct NeutralCalibration {
     pub signature: String,
 }
 
-/// What kind of file a photo's pixels come from: a camera RAW (LibRaw), or a
+/// What kind of file a photo's pixels come from: a camera RAW, or a
 /// rendered JPEG, PNG or TIFF decoded through its colour profile. A rendered file's
 /// develop [`CameraImage`] holds its pseudo-scene: linear ProPhoto values whose
 /// Camera Raw default rendering is the file (see `develop::rendered`), not the
@@ -101,8 +101,8 @@ pub struct Metadata {
     /// Canon Highlight Tone Priority, from the maker notes; `Off` for other makes.
     #[serde(default)]
     pub highlight_tone_priority: HighlightTonePriority,
-    /// A Canon sRAW or mRAW (or Nikon sRAW): stored as YCbCr, which LibRaw converts
-    /// to camera RGB on a scale of its own.
+    /// A Canon sRAW or mRAW (or Nikon sRAW): stored as YCbCr, which the decoder
+    /// converts to camera RGB on a scale of its own.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub sraw: bool,
     /// Fujifilm's exposure midpoint shift in EV (maker note ExpoMidPointShift): about
@@ -247,7 +247,7 @@ impl Decode {
     }
 }
 impl crate::metadata::PhotoInfo {
-    /// From a RAW's metadata, as LibRaw reads it.
+    /// From a RAW's metadata, as the decoder reads it.
     pub fn from_metadata(m: &Metadata) -> Self {
         let positive = |v: f32| (v > 0.).then_some(v as f64);
         let text = |t: &str| (!t.trim().is_empty()).then(|| t.trim().to_string());

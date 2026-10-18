@@ -1,4 +1,4 @@
-//! RAWmakase's own demosaicing of unpacked sensor data (LibRaw only unpacks).
+//! RAWmakase's own demosaicing of unpacked sensor data.
 //!
 //! Input is the visible-area CFA, black-subtracted, normalized to white and white
 //! balanced, with a 48×48 colour pattern (0 red, 1 green, 2 blue), which covers Bayer

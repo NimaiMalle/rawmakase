@@ -1,9 +1,8 @@
 //! Decode fingerprints: what opening and unpacking a RAW file yields, as plain
-//! values, so a LibRaw update or a change to opening photos shows up as a changed
+//! values, so a decoder update or a change to opening photos shows up as a changed
 //! field (`rawmakase fingerprint`, `scripts/corpus/dataset-fingerprints.py`).
 //! The file is opened by [`crate::photo::open`] and unpacked as development
 //! unpacks it; nothing is demosaiced, so every value is exact on any machine.
-use crate::raw::Decoder;
 use serde::Serialize;
 use std::path::Path;
 
@@ -88,8 +87,8 @@ pub struct Preview {
     pub error: Option<String>,
 }
 
-/// The unpacked sensor data and its levels. Per-channel values are in LibRaw's
-/// order: red, green, blue, second green.
+/// The unpacked sensor data and its levels. Per-channel values are in the order
+/// the recordings use (LibRaw's): red, green, blue, second green.
 #[derive(Debug, Serialize)]
 pub struct SensorData {
     /// 1 for a mosaic, 3 or 4 for small RAW files.
@@ -119,11 +118,11 @@ pub struct BlackPattern {
 
 /// The fingerprint of the file at `path`. A file that cannot be read, opened or
 /// unpacked gives a fingerprint with its error, not an `Err`.
-pub fn fingerprint(path: &Path, decoder: Decoder) -> Fingerprint {
+pub fn fingerprint(path: &Path) -> Fingerprint {
     let mut f = Fingerprint {
         path: path.to_path_buf(),
         version: VERSION,
-        decoder: crate::raw::version_of(decoder),
+        decoder: crate::raw::version(),
         sha256: None,
         failed: None,
         error: None,
@@ -132,7 +131,7 @@ pub fn fingerprint(path: &Path, decoder: Decoder) -> Fingerprint {
         sensor: None,
     };
     let before = identity(path);
-    if let Err((step, e)) = describe(path, decoder, &mut f) {
+    if let Err((step, e)) = describe(path, &mut f) {
         f.failed = Some(step);
         f.error = Some(format!("{e:#}"));
     }
@@ -162,25 +161,20 @@ pub(crate) fn identity(path: &Path) -> Option<(u64, std::time::SystemTime, u64, 
     Some((m.len(), m.modified().ok()?, dev, ino))
 }
 
-fn describe(
-    path: &Path,
-    decoder: Decoder,
-    f: &mut Fingerprint,
-) -> Result<(), (&'static str, anyhow::Error)> {
+fn describe(path: &Path, f: &mut Fingerprint) -> Result<(), (&'static str, anyhow::Error)> {
     use sha2::Digest;
     let read = |e: std::io::Error| ("read", e.into());
     f.sha256 = Some(hex(&sha2::Sha256::digest(
         std::fs::read(path).map_err(read)?,
     )));
-    let mut raw = crate::photo::open_with(path, decoder).map_err(|e| ("open", e))?;
+    let mut raw = crate::photo::open(path).map_err(|e| ("open", e))?;
     f.header = Some(Header {
         facts: raw.facts.clone(),
         metadata: serde_json::to_value(&raw.metadata).map_err(|e| ("open", e.into()))?,
         unsaved: Unsaved::of(&raw.metadata),
     });
     let sensor = raw.sensor();
-    // After unpacking: LibRaw reads a few files' levels differently once it has
-    // read the preview (a Sinarback's white).
+    // After unpacking, as the recordings were made.
     f.preview = Some(match raw.thumbnail() {
         Ok(jpeg) => Preview {
             size: Some(jpeg.len()),
@@ -250,8 +244,7 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../tests/corpus/charts/synthetic-d65.dng"
         );
-        let mut json =
-            serde_json::to_value(super::fingerprint(chart.as_ref(), super::Decoder::Own)).unwrap();
+        let mut json = serde_json::to_value(super::fingerprint(chart.as_ref())).unwrap();
         let fields = json.as_object_mut().unwrap();
         assert_eq!(fields.remove("path").unwrap(), chart);
         assert_eq!(fields.remove("decoder").unwrap(), crate::raw::version());
@@ -344,11 +337,11 @@ mod tests {
     #[test]
     fn unreadable_and_non_raw_files_are_errors_not_failures() {
         let dir = tempfile::tempdir().unwrap();
-        let missing = super::fingerprint(&dir.path().join("missing.dng"), super::Decoder::Own);
+        let missing = super::fingerprint(&dir.path().join("missing.dng"));
         assert!(missing.sha256.is_none() && missing.failed == Some("read"));
         let text = dir.path().join("text.dng");
         std::fs::write(&text, b"not a raw file").unwrap();
-        let f = super::fingerprint(&text, super::Decoder::Own);
+        let f = super::fingerprint(&text);
         assert_eq!(
             f.sha256.as_deref(),
             Some("75d3499f372b9001c41b9ca9d7c9c5398477905e49e949746947ea7942b2f859")

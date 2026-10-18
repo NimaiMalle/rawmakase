@@ -3,12 +3,9 @@ name = "rawmakase-native"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.98"
-description = "RAWmakase's native boundary: LibRaw through a small C++ bridge, colour management, RAWmakase's own demosaicing, opening a photo and its full-size decode with the decode cache"
+description = "RAWmakase's native boundary: RAW files through RAWmakase's own decoders, colour management, RAWmakase's own demosaicing, opening a photo and its full-size decode with the decode cache"
 license = "MIT"
 publish = false
-# The C++ bridge to LibRaw is built and linked here, so only crates
-# that depend on this one link it.
-build = "build.rs"
 
 [features]
 # The model's fixtures, for tests that share them.
@@ -18,8 +15,7 @@ test-support = ["rawmakase-model/test-support", "rawmakase-engine/test-support"]
 rawmakase-engine = { path = "../rawmakase-engine", version = "0.1.0" }
 rawmakase-interop = { path = "../rawmakase-interop", version = "0.1.0" }
 rawmakase-model = { path = "../rawmakase-model", version = "0.1.0" }
-# RAWmakase's own RAW decoders; until they replace LibRaw, only the commands
-# that compare decoders reach them (raw::Decoder::Own).
+# RAWmakase's own RAW decoders, reached through the raw adapter (raw::own).
 rawmakase-raw = { path = "../rawmakase-raw", version = "0.1.0" }
 anyhow = "1"
 bytemuck = { version = "1.25", features = ["derive"] }
@@ -43,7 +39,3 @@ windows-sys = { version = "0.61", features = ["Win32_System_Threading"] }
 [dev-dependencies]
 rawmakase-raw = { path = "../rawmakase-raw", version = "0.1.0", features = ["test-support"] }
 rawmakase-model = { path = "../rawmakase-model", version = "0.1.0", features = ["test-support"] }
-
-[build-dependencies]
-cc = "1"
-pkg-config = "0.3"

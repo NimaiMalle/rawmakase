@@ -3481,11 +3481,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cc",
  "image",
  "libc",
  "moxcms",
- "pkg-config",
  "rawmakase-engine",
  "rawmakase-interop",
  "rawmakase-model",
