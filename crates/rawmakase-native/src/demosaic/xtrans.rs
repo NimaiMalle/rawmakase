@@ -26,6 +26,8 @@ const MARGIN: usize = 10;
 const REACH: isize = 4;
 /// Horizontal, vertical and the two diagonals as (dx, dy).
 const DIRECTIONS: [(isize, isize); 4] = [(1, 0), (0, 1), (1, 1), (1, -1)];
+/// The directional candidates and the isotropic one.
+const CANDIDATES: usize = DIRECTIONS.len() + 1;
 /// Floor of the variation measure, in white-normalised units, so that noise on a
 /// flat area does not pick a direction.
 const VARIATION_FLOOR: f32 = 1e-3;
@@ -166,17 +168,16 @@ fn band_candidates(cfa: &Cfa, y0: usize, out: &mut [[f32; 3]]) {
     for (r, row) in out.chunks_mut(w).enumerate() {
         for (x, px) in row.iter_mut().enumerate() {
             let i = (r + MARGIN) * pw + x + MARGIN;
-            let windows: Vec<f32> = candidates
-                .iter()
-                .map(|(_, variation)| {
-                    let window: f32 = [-1isize, 0, 1]
-                        .iter()
-                        .flat_map(|dy| [-1isize, 0, 1].map(|dx| dy * pw as isize + dx))
-                        .map(|o| variation[(i as isize + o) as usize])
-                        .sum();
-                    window + VARIATION_FLOOR
-                })
-                .collect();
+            // On the stack: one allocation per pixel cost as much as the blend.
+            let windows: [f32; CANDIDATES] = std::array::from_fn(|k| {
+                let variation = &candidates[k].1;
+                let window: f32 = [-1isize, 0, 1]
+                    .iter()
+                    .flat_map(|dy| [-1isize, 0, 1].map(|dx| dy * pw as isize + dx))
+                    .map(|o| variation[(i as isize + o) as usize])
+                    .sum();
+                window + VARIATION_FLOOR
+            });
             // Relative to the smoothest candidate, so the best always weighs 1.
             let best = windows.iter().fold(f32::INFINITY, |a, b| a.min(*b));
             let mut sum = [0f32; 3];
