@@ -20,11 +20,11 @@ pub use rawmakase_engine::develop;
 // Developing and writing exports, with their watermarks (crates/rawmakase-export).
 pub use rawmakase_export::{export, watermark};
 // RAW decoding, colour management, demosaicing, opening and decoding a photo
-// (crates/rawmakase-native).
-pub use rawmakase_native::{
+// (crates/rawmakase-decode).
+pub use rawmakase_decode::{
     color_management, decode_cache, decode_dump, fingerprint, half_check, photo, raw,
 };
-pub(crate) use rawmakase_native::{decode, raster};
+pub(crate) use rawmakase_decode::{decode, raster};
 // File formats and presets over the model (crates/rawmakase-interop).
 pub use rawmakase_interop::{exif, export_settings, jpeg, lr_develop, presets, raw_defaults, xmp};
 pub(crate) use rawmakase_model::time;

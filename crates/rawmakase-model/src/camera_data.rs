@@ -132,7 +132,7 @@ pub struct Metadata {
     pub lens: Option<crate::optics::LensCorrection>,
     /// Lens model as recorded by the camera, e.g. "FE 55mm F1.8 ZA". A file that
     /// records only `lens_id` takes the name of the imported lens profile that
-    /// identifies it (see `rawmakase_native::photo::open`).
+    /// identifies it (see `rawmakase_decode::photo::open`).
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub lens_model: String,
     /// The maker's numeric lens ID from the maker notes (Nikon's `LensIDNumber`,

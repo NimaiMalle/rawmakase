@@ -40,7 +40,7 @@ Each worker the exit hook waits for keeps its `JoinHandle`, and hands it over as
 `task::Stopping` when asked to stop.
 
 Workers that read or decode photos behind the user's back start from
-`raw::spawn_background` or `raw::background_pool` (`crates/rawmakase-native`):
+`raw::spawn_background` or `raw::background_pool` (`crates/rawmakase-decode`):
 their threads run at a lower scheduling priority (Linux and Windows), and parallel
 work they start runs on a pool of two background threads, never the shared pool.
 That pool belongs to the worker: dropping it, when the worker's work returns, lets

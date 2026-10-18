@@ -19,7 +19,7 @@ Develop edits a JPEG, PNG or TIFF from its own pixels, as Lightroom does, throug
 
 ## Native development boundary
 
-RAW files are decoded by RAWmakase's own decoders (`crates/rawmakase-raw`, see [RAW decoding](raw-decoding.md)) and developed in `rawmakase-native`'s `raw` module: each sample of the visible area becomes (raw − black) / (white − black) in floating point, with the decoder's per-channel black and black pattern, then is white balanced by the as-shot multipliers and demosaiced ([demosaicing](demosaic.md)); nothing is scaled to integers, so nothing saturates before the renderer, and values above one are kept. Half-size drafts are 2 × 2 blocks of the mosaic. Small RAWs (Canon sRAW and mRAW, Nikon's and Sony's) are converted to camera RGB by the decoder and develop without demosaicing, at full size in both modes. Only three-colour Bayer and X-Trans mosaics and those small RAWs develop; any other file fails with an error that names what it is. Orientation is handled by Rust exactly once. LibRaw, which developed photos before, is linked only as the oracle of the decoder-comparison commands until it is removed.
+RAW files are decoded by RAWmakase's own decoders (`crates/rawmakase-raw`, see [RAW decoding](raw-decoding.md)) and developed in `rawmakase-decode`'s `raw` module: each sample of the visible area becomes (raw − black) / (white − black) in floating point, with the decoder's per-channel black and black pattern, then is white balanced by the as-shot multipliers and demosaiced ([demosaicing](demosaic.md)); nothing is scaled to integers, so nothing saturates before the renderer, and values above one are kept. Half-size drafts are 2 × 2 blocks of the mosaic. Small RAWs (Canon sRAW and mRAW, Nikon's and Sony's) are converted to camera RGB by the decoder and develop without demosaicing, at full size in both modes. Only three-colour Bayer and X-Trans mosaics and those small RAWs develop; any other file fails with an error that names what it is. Orientation is handled by Rust exactly once. LibRaw, which developed photos before, is linked only as the oracle of the decoder-comparison commands until it is removed.
 
 ## White balance
 
@@ -87,7 +87,7 @@ one from its floating-point result. Synthetic LUT profiles with raised blacks mi
 that in 0.01–0.05% of the grid, saturated shadows where moxcms's resampling of the
 profile's table differs by up to 6.5 code values (Little CMS's own 8-bit result is up
 to 7 from its floating-point one there). `color_management`'s tests hold the
-committed fixtures (`crates/rawmakase-native/tests/data/monitor`) to this; an
+committed fixtures (`crates/rawmakase-decode/tests/data/monitor`) to this; an
 ignored test runs the dense grid over a folder of profiles and Little CMS results.
 Choosing this manual override on macOS leaves the Metal surface unmanaged to
 avoid applying a second conversion; choosing Use sRGB restores system color

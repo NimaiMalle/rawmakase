@@ -102,7 +102,7 @@ jobs:
       # Tests that need private RAW files, camera profiles or a GPU are #[ignore]d.
       # exiftool reads exported metadata back as an independent reader; Arch
       # installs it in vendor_perl, outside PATH.
-      - run: PATH="/usr/bin/vendor_perl:$PATH" cargo test --locked -p rawmakase -p rawmakase-native -p rawmakase-export
+      - run: PATH="/usr/bin/vendor_perl:$PATH" cargo test --locked -p rawmakase -p rawmakase-decode -p rawmakase-export
         env:
           RAWMAKASE_REQUIRE_EXIFTOOL: "1"
       - name: Validate desktop entry
@@ -287,7 +287,7 @@ jobs:
       - run: scripts/crate-closures.sh
       - run: cargo test --locked -p rawmakase-model --all-features
       - run: cargo test --locked -p rawmakase-tiff -p rawmakase-raw -p rawmakase-interop -p rawmakase-catalog -p rawmakase-engine -p rawmakase-protocol
-      - run: cargo test --locked -p rawmakase-native
+      - run: cargo test --locked -p rawmakase-decode
 
   postgres:
     name: Portable catalog SQL

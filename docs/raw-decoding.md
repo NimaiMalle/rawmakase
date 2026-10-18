@@ -1,7 +1,7 @@
 # RAW decoding
 
 RAWmakase decodes RAW files with its own decoders, in pure Rust:
-`crates/rawmakase-raw`, reached through `rawmakase-native`'s `raw` adapter.
+`crates/rawmakase-raw`, reached through `rawmakase-decode`'s `raw` adapter.
 They replaced LibRaw, which RAWmakase no longer builds or links; LibRaw's
 output on the test dataset, recorded before, stays the oracle the decoders are
 checked against. A file in a variant the crate does not decode fails to open
@@ -21,10 +21,10 @@ add a camera or a variant.
   limit), so records of any declared length cost `open` no more; the test
   that counts its allocations (`tests/hostile_records.rs`, a counting global
   allocator, the only unsafe code and outside the library) keeps it so.
-  Nothing above `rawmakase-native` depends on it
+  Nothing above `rawmakase-decode` depends on it
   directly, and no `rawmakase_raw::` path appears outside native's `raw`
   adapter (`scripts/crate-closures.sh`).
-- `rawmakase-native`'s `raw` maps its results to `camera_data` (`Metadata`,
+- `rawmakase-decode`'s `raw` maps its results to `camera_data` (`Metadata`,
   `CameraImage`) with the same code for both decoders (`raw::Header`), and
   develops them; no format or camera rule lives there.
 

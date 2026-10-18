@@ -9,7 +9,7 @@ Develop settings, presets, raw defaults, EXIF and JPEG, export settings),
 built the same way, and `crates/rawmakase-catalog`: the SQLite catalog, Lightroom
 catalog import and which edit a photo develops with. Above the model,
 `crates/rawmakase-engine` is the renderer (`develop`, CPU and the GPU preview port),
-built without the RAW decoders, the catalog or the GUI; `crates/rawmakase-native` is the only
+built without the RAW decoders, the catalog or the GUI; `crates/rawmakase-decode` is the only
 crate that reaches RAWmakase's own RAW decoders (`crates/rawmakase-raw`) and does
 colour management (`raw`, `demosaic`, `photo`,
 and the full-size decode in `decode` and `decode_cache`, which uses the engine's
@@ -133,7 +133,7 @@ inject a temporary file, without changing the process-wide environment.
   rules out a dependency back on the app. `scripts/crate-closures.sh` (CI and
   `make check`) fails when one of them gains the app, a GPU or GUI crate, or a
   C RAW library or Little CMS binding, and when any workspace crate depends on
-  one or a build script links one (`rawmakase-native` has no build script). The
+  one or a build script links one (`rawmakase-decode` has no build script). The
   whole workspace is Rust apart from the catalog's bundled SQLite, which is
   intended.
 - Keep `eframe`, `egui` and native chooser code in `app`. The CLI must be able to

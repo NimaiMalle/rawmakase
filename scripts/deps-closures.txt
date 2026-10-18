@@ -5,7 +5,7 @@
 # File formats and presets are crates/rawmakase-interop, and the catalog with edit
 # resolution crates/rawmakase-catalog, both built without the RAW decoders, the
 # renderer or the app. Rendering is crates/rawmakase-engine, built without the RAW
-# decoders, the catalog or the app, and decoding crates/rawmakase-native. A rule may
+# decoders, the catalog or the app, and decoding crates/rawmakase-decode. A rule may
 # name a module the app re-exports from those crates: the app crate depends on
 # all of them, so only this check keeps an app module from using one.
 edit_session never raw photo develop decode decode_cache app

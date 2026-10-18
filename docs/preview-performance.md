@@ -413,7 +413,7 @@ Clarity drags.
 ## Decode cache and prefetch
 
 Opening a photo stores the developed camera image, exactly as decoded, in a disk
-cache (`crates/rawmakase-native/src/decode_cache.rs`), together with the pixels highlight recovery changed
+cache (`crates/rawmakase-decode/src/decode_cache.rs`), together with the pixels highlight recovery changed
 (0.7% of pixels on DSCF7853, 46 pixels on the A7CR file), so the recovered image is
 restored without recomputing it. The loader recovers highlights itself before
 announcing the full image, which the first render would otherwise do. A later open
