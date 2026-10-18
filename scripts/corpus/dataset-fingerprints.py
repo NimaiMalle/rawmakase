@@ -43,7 +43,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 COMMITTED = ROOT / 'tests/corpus/dataset/pixls-decode.json'
 PUBLIC_LICENSE = 'CC0-1.0'
-DELTAS = ROOT / 'tests/corpus/decode-deltas.toml'
 # Facts about the run rather than the file, kept out of the comparison.
 NOT_COMPARED = {'path', 'libraw', 'decoder'}
 BATCH = 32
@@ -221,42 +220,11 @@ def flatten(fingerprint, prefix=''):
     return out
 
 
-ABSENT = {'absent': True}
-
-
-def load_deltas(path=DELTAS):
-    """Approved decode differences, by (file SHA-256, field): (before, after).
-    A difference whose approval is "pending" is listed but not approved. A
-    field the fingerprint does not have (null in its JSON) is written
-    `{ absent = true }`, as TOML has no null."""
-    import tomllib
-    if not path.is_file():
-        return {}
-    deltas = {}
-    for d in tomllib.loads(path.read_text()).get('delta', []):
-        for key in ('sha256', 'field', 'before', 'after', 'evidence', 'approval'):
-            if key not in d:
-                raise Setup(f'{path.name}: a delta without {key}')
-        values = []
-        for key in ('before', 'after'):
-            v = d[key]
-            if isinstance(v, dict) and v != ABSENT:
-                raise Setup(f'{path.name}: {key} of {d["field"]} is a table other than {{ absent = true }}')
-            values.append(None if v == ABSENT else v)
-        if d['approval'] == 'pending':
-            continue
-        deltas[(d['sha256'], d['field'])] = tuple(values)
-    return deltas
-
-
-def compare(old, new, sha256=None, deltas=None):
-    """The changed fields: name, before, after; a change the delta file
-    approves (the same before and after) is not one."""
+def compare(old, new):
+    """The changed fields: name, before, after."""
     old, new = flatten(old), flatten(new)
     keys = sorted(old.keys() | new.keys())
-    deltas = deltas or {}
-    return [(k, old.get(k), new.get(k)) for k in keys
-            if old.get(k) != new.get(k) and deltas.get((sha256, k)) != (old.get(k), new.get(k))]
+    return [(k, old.get(k), new.get(k)) for k in keys if old.get(k) != new.get(k)]
 
 
 def check(args, samples, results, problems):
@@ -277,7 +245,6 @@ def check(args, samples, results, problems):
                 notes.append(f'{path.name} was recorded with {key} {loaded[0].get(key)}; this run has {here[key]}')
     # Every change, by (make, format): (kind, sample, detail).
     changes = defaultdict(list)
-    deltas = load_deltas()
     for h, s in samples.items():
         old, new = baselines[baseline_path(args.dataset, s)].get(h), results[h]
         group = (s['make'] or '?', (s['ext'] or Path(s['path']).suffix[1:]).lower())
@@ -288,7 +255,7 @@ def check(args, samples, results, problems):
         elif 'failed' not in old and 'failed' in new:
             changes[group].append(('stops opening', s, new.get('error')))
         else:
-            for field in compare(old, new, h, deltas):
+            for field in compare(old, new):
                 changes[group].append(('changed', s, field))
     # With every file selected, a baseline file the dataset no longer has is a change too.
     if not args.manifest:

@@ -21,41 +21,6 @@ class Compare(unittest.TestCase):
             ('sensor.cfa', None, 'RG/gB'),
         ])
 
-    def test_an_approved_delta_is_no_change_but_another_value_is(self):
-        new = {**self.old, 'sensor': {'white': 4000}}
-        deltas = {('h', 'sensor.white'): (4095, 4000)}
-        self.assertEqual(fingerprints.compare(self.old, new, 'h', deltas), [])
-        self.assertEqual(len(fingerprints.compare(self.old, new, 'other', deltas)), 1)
-        moved = {**self.old, 'sensor': {'white': 3900}}
-        self.assertEqual(len(fingerprints.compare(self.old, moved, 'h', deltas)), 1)
-
-    def test_deltas_need_evidence_and_approval(self):
-        with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / 'deltas.toml'
-            path.write_text('[[delta]]\nsha256 = "h"\nfield = "sensor.white"\nbefore = 1\nafter = 2\n')
-            with self.assertRaises(fingerprints.Setup):
-                fingerprints.load_deltas(path)
-            path.write_text(path.read_text() + 'evidence = "e"\napproval = "a"\n')
-            self.assertEqual(fingerprints.load_deltas(path), {('h', 'sensor.white'): (1, 2)})
-            path.write_text(path.read_text().replace('approval = "a"', 'approval = "pending"'))
-            self.assertEqual(fingerprints.load_deltas(path), {})
-            # An absent field (null in the fingerprint) is { absent = true }.
-            path.write_text('[[delta]]\nsha256 = "h"\nfield = "sensor.black_pattern.rows"\n'
-                            'before = { absent = true }\nafter = 1\nevidence = "e"\napproval = "a"\n')
-            deltas = fingerprints.load_deltas(path)
-            self.assertEqual(deltas, {('h', 'sensor.black_pattern.rows'): (None, 1)})
-            old = {'sensor': {'black_pattern': None}}
-            new = {'sensor': {'black_pattern': {'rows': 1}}}
-            self.assertEqual(fingerprints.compare(old, new, 'h', deltas), [])
-            path.write_text(path.read_text().replace('{ absent = true }', '{ missing = 1 }'))
-            with self.assertRaises(fingerprints.Setup):
-                fingerprints.load_deltas(path)
-        # The repository's own deltas load: every entry complete, one per field.
-        import tomllib
-        entries = tomllib.loads(fingerprints.DELTAS.read_text()).get('delta', [])
-        approved = [d for d in entries if d['approval'] != 'pending']
-        self.assertEqual(len(fingerprints.load_deltas()), len(approved))
-
 
 spec = importlib.util.spec_from_file_location('develop', Path(__file__).with_name('dataset-develop.py'))
 develop = importlib.util.module_from_spec(spec)
@@ -75,23 +40,6 @@ class DevelopCheck(unittest.TestCase):
                 args = types.SimpleNamespace(dataset=dataset, manifest=manifest, public=False)
                 result = develop.check(args, {'a' * 64: sample}, {'a' * 64: {'sha256': 'a' * 64, 'full': {}}}, [])
                 self.assertEqual(result, status)
-
-    def test_half_size_compares_drafts_by_size_only(self):
-        import types
-        with tempfile.TemporaryDirectory() as d:
-            dataset = Path(d)
-            h = 'a' * 64
-            sample = {'sha256': h, 'source': 's', 'make': 'X', 'model': 'Y', 'ext': 'raw', 'path': 'p.raw',
-                      'license': 'x'}
-            old = {'sha256': h, 'full': {'pixels_sha256': '1'}, 'half': {'size': [2, 1], 'pixels_sha256': '1'}}
-            fingerprints.write_baseline(dataset / 'baselines/develop/s.json', {}, {h: old})
-            other_pixels = {**old, 'half': {'size': [2, 1], 'pixels_sha256': '2'}}
-            other_size = {**old, 'half': {'size': [1, 1], 'pixels_sha256': '1'}}
-            other_full = {**old, 'full': {'pixels_sha256': '2'}}
-            for half, new, status in (('all', other_pixels, 1), ('size', other_pixels, 0),
-                                      ('size', other_size, 1), ('size', other_full, 1)):
-                args = types.SimpleNamespace(dataset=dataset, manifest=Path('m.json'), public=False, half=half)
-                self.assertEqual(develop.check(args, {h: sample}, {h: new}, []), status, (half, new))
 
 
 spec = importlib.util.spec_from_file_location('half', Path(__file__).with_name('dataset-half.py'))

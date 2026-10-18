@@ -4,8 +4,8 @@
 
 Runs `rawmakase decode-dump` on the dataset's files and compares each mode's
 size, scale, pixel and metadata hashes with a recorded baseline, as
-dataset-fingerprints.py does for decoding (whose file selection, batching and
-approved deltas, tests/corpus/decode-deltas.toml, it shares).
+dataset-fingerprints.py does for decoding (whose file selection and batching
+it shares).
 
   check    develop the files and report every difference; exits 1 on any
   record   write the baselines from this build; --reason is required
@@ -16,12 +16,8 @@ each full decode that is not a mosaic (small RAWs) as raw floats, for a
 per-pixel comparison (`rawmakase decode-diff`); keep them off the dataset's
 disk, they are large.
 
-  python3 scripts/corpus/dataset-develop.py record --reason "oracle" --floats ~/oracle-floats
+  python3 scripts/corpus/dataset-develop.py record --reason "…" --floats ~/develop-floats
   python3 scripts/corpus/dataset-develop.py check
-  python3 scripts/corpus/dataset-develop.py check --half size   # drafts by size only
-
-The recordings are LibRaw's; RAWmakase's half-size drafts are its own, so
-against them `--half size` leaves the drafts' pixels, means and scale out.
 
 Exit status: 0 no difference, 1 differences, 2 the run could not be made.
 """
@@ -41,8 +37,6 @@ spec.loader.exec_module(fingerprints)
 Setup = fingerprints.Setup
 ROOT = fingerprints.ROOT
 BATCH = 8
-# What `--half size` still compares of a half-size draft.
-HALF_SIZE = {'half.size', 'half.error'}
 # A full and a half decode of the largest files take a minute.
 BATCH_TIMEOUT = 1800
 FILE_TIMEOUT = 600
@@ -115,7 +109,6 @@ def record(args, samples, results):
 
 
 def check(args, samples, results, problems):
-    deltas = fingerprints.load_deltas()
     baselines = {}
     changes = defaultdict(list)
     for h, s in samples.items():
@@ -130,9 +123,7 @@ def check(args, samples, results, problems):
         if old is None:
             changes[group].append(('no baseline', s, None))
             continue
-        for field in fingerprints.compare(old, new, h, deltas):
-            if getattr(args, 'half', 'all') == 'size' and field[0].startswith('half.') and field[0] not in HALF_SIZE:
-                continue
+        for field in fingerprints.compare(old, new):
             changes[group].append(('changed', s, field))
     # With every file selected, a baseline file the dataset no longer has is a problem.
     if not args.manifest:
@@ -166,9 +157,6 @@ def main():
     p.add_argument('--rawmakase', type=Path, default=ROOT / 'target/release/rawmakase')
     p.add_argument('--manifest', type=Path, help='a dataset.py manifest; default: every file')
     p.add_argument('--floats', type=Path, help='write full decodes that are not mosaics here')
-    p.add_argument('--half', choices=['all', 'size'], default='all',
-                   help="what to compare of half-size drafts: everything, or size and error only "
-                        "(RAWmakase's drafts against LibRaw's recordings)")
     p.add_argument('--jobs', type=int, default=3, help='rawmakase processes at a time (each uses every core)')
     p.add_argument('--reason', help='why the baseline changes (record)')
     p.add_argument('--public', action='store_true', help='name only raw.pixls.us CC0 files')

@@ -316,7 +316,7 @@ and on synthetic NEFs that probe one code word, key or tag at a time):
   0.008% and 0.001% of the values are one or a few curve steps off (at most 4
   of 16383), so their data hashes differ: D810 `DSC_1888.NEF` (0cb5b819…,
   3013 of 36152320 values) and D4S `FU9_3802.NEF` (c8256566…, 161 of
-  16163840). This is to be an approved delta at the switch.
+  16163840), a departure from LibRaw accepted at the switch.
 
 Fujifilm (`container::raf`, `vendor::fujifilm`): the camera name is the RAF
 header's, without its "FinePix" series name. The colour filter is X-Trans's
@@ -495,7 +495,7 @@ verified by an exact match with LibRaw's output on every IIQ L, L16 and
 first IIQ S file of the dataset; IIQ S maps values below 256 through
 v² / 3.969, rounded. Black is BlackLevel (0 without one) and white 65535,
 Adobe DNG Converter's WhiteLevel for every IIQ; LibRaw subtracts its black on
-development and reports 0 and 0xFFFC less it (approved decode deltas; the
+development and reports 0 and 0xFFFC less it (departures from LibRaw; the
 black ones stay pending where Adobe writes calibrated data with a black of
 0). Not applied: the per-row and per-column black offsets the block may
 carry (BlackLevelData, up to a few hundred levels on some backs), which
@@ -535,7 +535,7 @@ for the first). The coding was written from prior general knowledge of the
 format (no decoder source consulted) and verified by an exact match with
 LibRaw's output on every compressed file of the dataset but one, an H4D-60
 3FR whose every sample LibRaw raises by 256 (taking 256 as its black;
-Adobe's black on RAWmakase's samples is 0: a pending delta). Black is the
+Adobe's black on RAWmakase's samples is 0: left unresolved at the switch). Black is the
 file's BlackLevel and white 96% of its WhiteLevel, as Adobe DNG Converter
 takes them (fitted to RAWmakase's samples on every body measured). The
 camera is the model without what follows a "/", looked up with the sensor's
@@ -565,7 +565,7 @@ of 16-bit words with its CFAPattern and orientation. The as-shot white
 balance is the Neutral line of the last settings tag (0xC517, else 0xC516),
 as RAWmakase has always read it; black 0 and white 16383 are what it has
 always read (Adobe DNG Converter does not read the format). The ISO speed
-is IFD0's ISOSpeedRatings, which LibRaw does not read (a pending delta).
+is IFD0's ISOSpeedRatings, which LibRaw does not read (left unresolved at the switch).
 
 Raspberry Pi (`container::brcm`): raspistill's and picamera's raw files are
 a JPEG (the preview, its EXIF the exposure, its maker note the ISP's
@@ -595,7 +595,7 @@ as another than 0xFF and read as 0xFF, as Epson's); the sensor data follows
 the blocks. Exposure times and apertures the EXIF gives only as APEX values
 are read from those. Black is 0; white is Adobe DNG Converter's (`adobe-dng`
 rows: 3965 for the DiMAGE bodies), else the samples' 12-bit range, Adobe's
-for the Dynax and Alpha bodies (approved deltas; Adobe's levels and white
+for the Dynax and Alpha bodies (departures from LibRaw; Adobe's levels and white
 balance match RAWmakase's samples exactly on every body measured). The
 bodies sold under several names have `[[canonical]]` rows (DG-7D, DG-5D).
 The Kodak C603's (and C643's) raw files are `[[headerless]]` rows of 8-bit
@@ -655,9 +655,9 @@ starts 64 bytes after the first of the 16-row strips a SubIFD's tag 0xFD04
 lists from its seventeenth value on (our measurements). White is Adobe's
 (`adobe-dng` rows for the P712 and Z990), else 4095; black 0.
 
-Canon files whose values differ from LibRaw's on purpose are approved in
-`tests/corpus/decode-deltas.toml`, with Adobe DNG Converter's value as the
-evidence: the levels above; the sRAW and mRAW samples (Adobe's conversion);
+Canon files whose values differ from LibRaw's on purpose were approved at
+the switch ([Departures from LibRaw](#departures-from-libraw)), with Adobe
+DNG Converter's value as the evidence: the levels above; the sRAW and mRAW samples (Adobe's conversion);
 three CRW files (PowerShot G5, S50, S60) whose samples LibRaw raises by 2
 below 512, where Adobe's equal RAWmakase's; and multiple exposures, whose
 as-shot white balance LibRaw sets to 1. Still open: the as-shot white balance of nine
@@ -676,11 +676,11 @@ Converter's WhiteLevel follows, but for the cameras whose data Adobe reads
 unclipped at that level (EOS R5, R5 Mark II, R6, R7, R8, R10, R50, R50 V and
 1D X Mark III): their `adobe-dng` rows give Adobe's level. LibRaw read every
 CR3 with the bit depth's range (16383), so CR3 files develop on a different
-normalized scale than before (approved decode deltas, Adobe's values as
+normalized scale than before (departures from LibRaw, Adobe's values as
 evidence). Black is ColorData's per-channel
 levels (PerChannelBlackLevel), which Adobe DNG Converter's BlackLevel follows
 on our files; where LibRaw measured the black in the masked border instead,
-the difference is an approved decode delta (three EOS M50 files, where
+the difference is a departure from LibRaw (three EOS M50 files, where
 Adobe measures a fractional black, are pending). Without
 those levels, black is each channel's mean, rounded down, in the masked
 columns from the third to 26 short of the visible (or active, if earlier) area
@@ -730,8 +730,8 @@ balance RAWmakase reads.
 
 Values observed from LibRaw other than geometry and names are checked
 against the file and Adobe DNG Converter: where both disagree with LibRaw,
-the file's value is read and the change recorded in
-`tests/corpus/decode-deltas.toml`. White levels the file does not give
+the file's value is read (a [departure from
+LibRaw](#departures-from-libraw)). White levels the file does not give
 are Adobe DNG Converter's (`adobe-dng` rows, in the files' sample units, by
 bit depth where a body writes two), as are the 14-bit Olympus bodies' black
 (the note's 0x0606) and the white balance scale of the SP-350, SP-500UZ,
@@ -797,24 +797,62 @@ Known: a DNG without a D65 matrix is read with its ColorMatrix1, which for
 GoPro's GPRs (illuminants Standard A and D50) and Leica's Q and SL DNGs is
 the tungsten one, not the D50 one Camera Raw would use at D65.
 
-## Checking against LibRaw's recordings
+## Checking decodes
 
-LibRaw is the oracle, never a fallback, and no longer part of RAWmakase: its
-results on the test dataset were recorded once (`tests/corpus/README.md`,
-*Decode fingerprints*), and each variant is done when every dataset file of it
-matches them: `scripts/corpus/dataset-fingerprints.py check` and
-`dataset-develop.py check`. A difference made on purpose is approved in
-`tests/corpus/decode-deltas.toml` with its evidence. Half-size drafts are
-RAWmakase's own (`docs/demosaic.md`), not LibRaw's, so every mosaic's half-size
-pixels differ from the recordings: `dataset-develop.py check --half size`
-compares them by size (and error) only, and `dataset-half.py` checks them
-against the full decode reduced to their size (colour, detail) and their
-time over the full develop's, each held to the file's reference: LibRaw's
+The decoders were built against LibRaw's recorded output on the test dataset,
+each variant done when every dataset file of it matched or departed on
+purpose. Since LibRaw was removed, the baselines are RAWmakase's own decoders'
+(`tests/corpus/README.md`, *Decode fingerprints*):
+`scripts/corpus/dataset-fingerprints.py check` and `dataset-develop.py check`
+report every difference from them, and a difference is a regression or a
+change made on purpose, recorded as a new baseline in a commit that says why.
+`dataset-half.py` checks the half-size drafts against the full decode reduced
+to their size (colour, detail) and their time over the full develop's, each
+held to the file's reference, the one piece of LibRaw data kept: LibRaw's
 half-size decode of the same file, recorded once with the last build that
-linked LibRaw (`tests/corpus/dataset/pixls-half.json` and the dataset's local
-recordings; RAWmakase's own measures where LibRaw's half is not a draft of
-the same samples). X-Trans drafts are the full demosaic reduced, which keeps
+linked it (`tests/corpus/dataset/pixls-half.json` and the dataset's local
+recordings; RAWmakase's own measures where LibRaw's half is not a draft of the
+same samples). X-Trans drafts are the full demosaic reduced, which keeps
 them free of moiré, so their time is held to the full develop's.
+
+## Departures from LibRaw
+
+One file LibRaw decoded no longer opens: a Minolta RD 175 (`.mdc`, 1995), a
+single-file format of its own, accepted as a loss.
+
+At the switch, 8,293 fields of 2,021 of the dataset's 2,947 files decoded
+differently from LibRaw's recordings, each approved with its evidence. The
+rule: decode facts follow Adobe (Adobe DNG Converter's DNG, or the file
+itself where Adobe reads it) wherever they differ from LibRaw; LibRaw's values
+were kept only where neither the file nor Adobe tells (geometry, names and
+levels observed from LibRaw, `compat-observed` rows). By kind:
+
+| Fields | Count | Why |
+| --- | ---: | --- |
+| Full-size develop (`full.*`) | 4,848 | Follow the decode changes below |
+| White and black levels (`sensor.white`, `black`, `black_pattern`) | 2,218 | Adobe's levels |
+| Unpacked samples (`sensor.data_sha256`) | 273 | Adobe's conversion (sRAW, linearisation, lossy and other codecs) |
+| Colour (`cam_xyz`, `matrix`, `daylight_wb`, `wb`, presets) | 881 | Adobe's DNG matrices and the file's white balance |
+| Capture facts and names (ISO, lens, model, aperture) | 67 | The file's EXIF or Adobe's names |
+| DNG crops (`header.facts.frame`, `aspect`) | 6 | The DNG's DefaultCrop and DefaultUserCrop |
+
+By camera group (files): Canon 605, Nikon 434, Sony 334, Panasonic 190,
+Olympus and OM System 105, Fujifilm 68, Phase One and Leaf 52, Pentax 38,
+Hasselblad 24, Samsung 24, phones, drones and others 147.
+
+Frames did not change at the switch; files that give no crop of their own
+were framed at the camera's image size after it (see [Frames](#frames)).
+
+Owner decisions among them: a file that records no daylight white balance
+(CHDK's PowerShot files) gets the daylight balance of the camera's matrix,
+not LibRaw's per-camera factor (29 fields); a Pentax's ISO speed comes from
+EXIF before its maker note, as Adobe DNG Converter keeps it; and no data
+comes from Adobe's camera profiles (18 fields: matrices from the file
+instead). 56 fields of 52 files were still unresolved when the
+baselines changed (mostly Phase One, Leaf and Hasselblad black levels, and
+three Blackmagic DNGs' samples); they are RAWmakase's values now. The
+per-file evidence (`tests/corpus/decode-deltas.toml`, Adobe DNG Converter's
+values) is in the Git history of this change and its pull request.
 
 ## Provenance
 

@@ -18,9 +18,8 @@ ratio of 1). X-Trans files and small RAWs take a time ratio of 1: an X-Trans
 draft is the full demosaic reduced, which keeps it free of moiré, and a
 small RAW develops at full size in both modes.
 
-The develop recordings hold LibRaw's half-size decodes, which RAWmakase's are
-not, so `dataset-develop.py check --half size` compares them by size only and
-this is the check of their pixels.
+`dataset-develop.py` checks that the drafts do not change; this checks what
+they are.
 
   python3 scripts/corpus/dataset-half.py                  # 3 files per make and format
   python3 scripts/corpus/dataset-half.py --per-group 0    # every file (hours)
