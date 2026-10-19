@@ -270,10 +270,11 @@ and on synthetic NEFs that probe one code word, key or tag at a time):
   value), 0x44 0x40 at i·m / 1024, linearly interpolated and rounded half up;
   0x44 0x10 stores the curve's start; past the last point, its value. LibRaw
   spaced the points 2^bits / 256 apart (0.4% higher values). The D3, D300
-  and D700's 12-bit lossy files Adobe reads with the standard curve of the
-  first kind's files (683 points) instead of their own, which they do not
-  hold: `data/raw-curves.toml` keeps it (`adobe-dng`, written by
-  `scripts/cameras/raw-curves.py` from Adobe's DNGs). The D1X keeps its table (version 0x44 0x58) in tag
+  and D700's 12-bit lossy files are read, as Adobe reads them, with Nikon's
+  standard 12-bit curve instead of their own points: the 683 points every
+  file of table version 0x44 0x10 stores (`codec::nikon::STANDARD_CURVE`;
+  the dataset's D40X, D50, D60, D70, D70s, D80, D200, D2H, D2X, D2Xs and
+  D3000 files, all equal). The D1X keeps its table (version 0x44 0x58) in tag
   0x008c, its predictions 2110 bytes on.
 - The maker note's encrypted blocks (ColorBalance 02xx, LensData 02xx and
   08xx) are XORed after their version with a running sum: a step from the

@@ -373,12 +373,12 @@ pub(crate) fn decode(
                     points: &curve.points,
                     split: curve.split,
                     bits: plan.bits,
-                    // The curve Adobe DNG Converter reads the camera's files
-                    // with, where it is not theirs.
+                    // Nikon's standard curve, where the camera's files are
+                    // read with it instead of their own.
                     table: {
                         let make = crate::names::make(&info.make);
                         let model = crate::names::model(&make, &info.make, &info.model);
-                        crate::facts::curve(&make, &model, plan.bits, curve.version)
+                        nikon::standard_curve(&model, plan.bits, curve.version)
                     },
                 },
                 // Without a table: no curve, predictions of zero.
