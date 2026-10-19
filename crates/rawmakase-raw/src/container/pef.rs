@@ -130,7 +130,13 @@ pub(crate) fn open(t: TiffFile) -> Result<RawInfo> {
     if black.iter().any(|&b| b > 0xffff) {
         return Err(corrupt("PEF black level"));
     }
-    let white = rows().find_map(|c| c.white).unwrap_or((1 << bits) - 1);
+    // The camera table's (Adobe DNG Converter's, where it is not the file's),
+    // else the white the maker note records, within the data's range.
+    let full = (1 << bits) - 1;
+    let white = rows()
+        .find_map(|c| c.white)
+        .or(notes.white.filter(|&w| w <= full))
+        .unwrap_or(full);
     info.plan = Plan::Pef(PefPlan {
         offset: t.base + u64::from(offset),
         width,
@@ -318,6 +324,27 @@ mod tests {
         // An odd crop corner moves on by one, keeping its end.
         assert_eq!(info.frame, [4, 2, 1, 1]);
         assert_eq!(info.cfa.as_ref().unwrap().colors, [0, 1, 3, 2]);
+    }
+
+    /// The white level the note records is the white of a camera the table
+    /// has no row for, within the data's range; without it, the full range.
+    #[test]
+    fn the_notes_white_level_is_the_white() {
+        let strip = [0b1111_1010, 0];
+        for (white, want) in [(Some(16124), 16124), (Some(20000), 16383), (None, 16383)] {
+            let mut entries = vec![E(0x0220, 7, table())];
+            if let Some(w) = white {
+                entries.push(long(LE, 0x007e, &[w]));
+            }
+            let file = pef(
+                ["RICOH IMAGING COMPANY, LTD.", "PENTAX K-TEST"],
+                [4, 4, 14, 65535],
+                &strip,
+                vec![],
+                note(entries),
+            );
+            assert_eq!(decode(&file).unwrap().1.white, want, "{white:?}");
+        }
     }
 
     #[test]

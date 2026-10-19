@@ -6,7 +6,7 @@
 //! DNGs) and a byte order mark (its offsets from the note's start).
 //!
 //! Sources: ExifTool's Pentax tag documentation (the notes' headers,
-//! ISO 0x0014 and its codes, ImageAreaOffset 0x0038, RawImageSize 0x0039, LensType 0x003F, BlackPoint 0x0200, WhitePoint 0x0201,
+//! ISO 0x0014 and its codes, ImageAreaOffset 0x0038, RawImageSize 0x0039, LensType 0x003F, WhiteLevel 0x007E, BlackPoint 0x0200, WhitePoint 0x0201,
 //! WB_RGGBLevelsDaylight 0x020D, Shade 0x020E, FluorescentN 0x0212,
 //! WBLevels 0x022D,
 //! HuffmanTable 0x0220); our own measurements of which values RAWmakase has
@@ -26,6 +26,8 @@ const ISO_SPEEDS: [u32; 43] = [
 /// ImageAreaOffset and RawImageSize: the default crop's corner and size.
 const AREA: [u16; 2] = [0x0038, 0x0039];
 const LENS_TYPE: u16 = 0x003f;
+/// WhiteLevel: the sensor data's white level.
+const WHITE_LEVEL: u16 = 0x007e;
 const BLACK: u16 = 0x0200;
 const WHITE_BALANCE: u16 = 0x0201;
 /// The presets RAWmakase reads as daylight, shade and D65.
@@ -44,6 +46,8 @@ pub(crate) struct Notes {
     pub presets: Presets,
     /// Black of red, green, blue and the second green.
     pub black: Option<[u32; 4]>,
+    /// The white level the camera records.
+    pub white: Option<u32>,
     pub lens_id: u32,
     /// The ISO speed, when given.
     pub iso: Option<f32>,
@@ -132,6 +136,7 @@ fn notes(v: &TiffFile, ifd: &Ifd) -> Notes {
         };
     }
     out.black = rggb(BLACK).map(|l| [l[0], l[1], l[3], l[2]]);
+    out.white = v.int(ifd, WHITE_LEVEL).filter(|&w| w > 0);
     if let Some(l) = v.ints_upto(ifd, LENS_TYPE, 2).filter(|l| l.len() >= 2) {
         out.lens_id = (l[0] & 0xff) << 8 | (l[1] & 0xff);
     }

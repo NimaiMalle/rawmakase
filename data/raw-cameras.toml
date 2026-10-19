@@ -7663,20 +7663,6 @@ source = "adobe-dng"
 
 [[camera]]
 make = "Pentax"
-model = "645D"
-dng = false
-white = 15767
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "645Z"
-dng = false
-white = 16316
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
 model = "K-1"
 dng = false
 white = 16315
@@ -7719,44 +7705,9 @@ source = "adobe-dng"
 
 [[camera]]
 make = "Pentax"
-model = "K-5 II"
-dng = false
-white = 16124
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "K-5 II s"
-dng = false
-white = 16315
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
 model = "K-70"
 dng = false
 white = 16315
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "K-S1"
-dng = false
-white = 4078
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "K-S2"
-dng = false
-white = 3839
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "K-r"
-dng = false
-white = 4030
 source = "adobe-dng"
 
 [[camera]]
@@ -7778,13 +7729,6 @@ make = "Pentax"
 model = "KF"
 dng = false
 white = 16315
-source = "adobe-dng"
-
-[[camera]]
-make = "Pentax"
-model = "KP"
-dng = false
-white = 16254
 source = "adobe-dng"
 
 [[camera]]

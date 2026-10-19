@@ -703,7 +703,11 @@ on even rows and columns, in sensor coordinates) come from the maker note
 decoder source consulted, and verified by an exact match with LibRaw's output
 on every PEF of our dataset);
 Pentax DNGs' lens ID and ISO from the same note in DNGPrivateData. Samsung's
-GX PEFs read the note too, but not its crop. Ricoh Imaging's bodies are
+GX PEFs read the note too, but not its crop. White is the camera table's
+where Adobe DNG Converter's WhiteLevel is not the file's (a fixed 16315 on
+most 14-bit bodies, where WhiteLevel 0x007E reads a few codes higher), else
+WhiteLevel, else the data's full range: the 645D, 645Z, K-5 II, K-5 II s,
+K-S1, K-S2, K-r and KP record Adobe's own. Ricoh Imaging's bodies are
 named Pentax. The visible areas and the canonical
 names (`*ist DL` is `*istDL`) are `compat-observed` rows. A PEF of linear
 (monochrome) data is `Unsupported`.
