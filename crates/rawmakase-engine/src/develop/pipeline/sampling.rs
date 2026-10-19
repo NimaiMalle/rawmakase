@@ -146,8 +146,14 @@ pub(super) fn footprint_sample(im: Source, x: f32, y: f32, _r: &Recipe, spread: 
     sum
 }
 /// Tap offset for [`footprint_sample`] when one output pixel covers `footprint`
-/// source pixels: the four taps add the variance a box of that width has beyond a
-/// single bilinear sample's.
+/// source pixels: the four taps add the variance the area average over that
+/// footprint has (a box of its width over source pixels one wide) beyond a single
+/// bilinear sample's. It grows from none at 1:1, so a slight reduction (a view at
+/// 80%) is filtered too; a single bilinear tap there is a point sample at some
+/// output pixels and an average of two at others, which folds fine detail and the
+/// demosaic's residual colour into dots.
 pub(crate) fn footprint_spread(footprint: f32) -> f32 {
-    (footprint * footprint / 12. - 1. / 6.).max(0.).sqrt()
+    ((footprint * footprint + 1.) / 12. - 1. / 6.)
+        .max(0.)
+        .sqrt()
 }

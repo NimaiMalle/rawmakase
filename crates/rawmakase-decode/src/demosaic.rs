@@ -303,6 +303,86 @@ mod tests {
         }
     }
     #[test]
+    fn thin_lines_across_fine_stripes_stay_neutral_on_xtrans() {
+        // Louvres about 3.4 pixels apart, slightly tilted, crossed by bright mullions
+        // 1.5 pixels wide (X100F DSCF8231): every line through a pixel next to a
+        // mullion crosses either it or the louvres. Area-sampled, as a lens would.
+        let pattern = xtrans_pattern();
+        let (w, h) = (192, 192);
+        let scene = |x: f32, y: f32| {
+            if x % 23. < 1.5 {
+                0.85
+            } else if ((y + 0.03 * x) / 3.4 * std::f32::consts::TAU).sin() > 0. {
+                0.765
+            } else {
+                0.135
+            }
+        };
+        let data = mosaic(&pattern, w, h, |x, y| {
+            let mut sum = 0.;
+            for sy in 0..4 {
+                for sx in 0..4 {
+                    sum += scene(x as f32 + sx as f32 / 4., y as f32 + sy as f32 / 4.);
+                }
+            }
+            [sum / 16.; 3]
+        });
+        let cfa = Cfa {
+            data: &data,
+            width: w,
+            height: h,
+            pattern: &pattern,
+        };
+        let out = demosaic(&cfa);
+        let cast = |p: [f32; 3]| (p[0] - p[1]).abs().max((p[2] - p[1]).abs());
+        let summary = |mut casts: Vec<f32>| {
+            casts.sort_by(f32::total_cmp);
+            let mean = casts.iter().sum::<f32>() / casts.len() as f32;
+            (mean, casts[casts.len() * 99 / 100])
+        };
+        let full = summary(
+            (12..h - 12)
+                .flat_map(|y| (12..w - 12).map(move |x| (x, y)))
+                .map(|(x, y)| cast(out[y * w + x]))
+                .collect(),
+        );
+        // The viewport at 80%: bilinear sampling, which folds what is left into dots.
+        let scale = 0.8;
+        let (sw, sh) = ((w as f32 * scale) as usize, (h as f32 * scale) as usize);
+        let reduced = summary(
+            (10..sh - 10)
+                .flat_map(|y| (10..sw - 10).map(move |x| (x, y)))
+                .map(|(x, y)| {
+                    let (fx, fy) = (
+                        (x as f32 + 0.5) / scale - 0.5,
+                        (y as f32 + 0.5) / scale - 0.5,
+                    );
+                    let (x0, y0) = (fx.floor() as usize, fy.floor() as usize);
+                    let (ax, ay) = (fx - x0 as f32, fy - y0 as f32);
+                    let mut p = [0f32; 3];
+                    for (dx, dy, weight) in [
+                        (0, 0, (1. - ax) * (1. - ay)),
+                        (1, 0, ax * (1. - ay)),
+                        (0, 1, (1. - ax) * ay),
+                        (1, 1, ax * ay),
+                    ] {
+                        let q = out[(y0 + dy) * w + x0 + dx];
+                        for c in 0..3 {
+                            p[c] += q[c] * weight;
+                        }
+                    }
+                    cast(p)
+                })
+                .collect(),
+        );
+        for (mean, p99) in [full, reduced] {
+            assert!(
+                mean < 0.015 && p99 < 0.2,
+                "colour cast: mean {mean}, p99 {p99}"
+            );
+        }
+    }
+    #[test]
     fn extreme_samples_do_not_make_non_finite_pixels() {
         let pattern = xtrans_pattern();
         let (w, h) = (32, 40);

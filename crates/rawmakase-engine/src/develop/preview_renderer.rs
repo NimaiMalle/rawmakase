@@ -399,6 +399,38 @@ mod tests {
                 .pixels
         );
     }
+    /// At 80% each output pixel covers 1.25 photo pixels. Colour detail finer than the
+    /// output can show (X-Trans residue on fine louvres) must be averaged over that
+    /// footprint, not point-sampled at some pixels and averaged at others, which folds
+    /// it into coloured dots.
+    #[test]
+    fn a_slight_reduction_averages_detail_finer_than_the_output() {
+        let (w, h) = (400, 300);
+        let mut im = image(w, h, 0.);
+        for (i, p) in im.pixels.iter_mut().enumerate() {
+            let x = (i as u32 % w) as f32;
+            let c = 0.1 * (x / 2.3 * std::f32::consts::TAU).sin();
+            *p = [0.3 + c, 0.3, 0.3 - c];
+        }
+        let r = Recipe::default();
+        let cancel = AtomicBool::new(false);
+        let amplitude = |out: &Rendered| {
+            let row = (out.height / 2 * out.width) as usize;
+            let colour: Vec<f32> = (10..out.width as usize - 10)
+                .map(|x| {
+                    let p = out.pixels[row + x];
+                    p[0] - p[2]
+                })
+                .collect();
+            let mean = colour.iter().sum::<f32>() / colour.len() as f32;
+            (colour.iter().map(|c| (c - mean).powi(2)).sum::<f32>() / colour.len() as f32).sqrt()
+        };
+        let mut p = PreviewRenderer::default();
+        let full = amplitude(&p.render(&im, &r, 400, None, &cancel).unwrap());
+        let reduced = amplitude(&p.render(&im, &r, 320, None, &cancel).unwrap());
+        eprintln!("{reduced} of {full}");
+        assert!(reduced < 0.5 * full, "{reduced} of {full}");
+    }
     /// A textured photo with detail, local and spatial effects: the pyramid Fit stays
     /// close to the export render resized to the same size.
     #[test]

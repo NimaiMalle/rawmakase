@@ -31,7 +31,10 @@ renders then use a pyramid of that image: each level halves the previous one wit
 2×2 box average in linear camera space, and levels are built on first use and kept
 while the photo is open. A render takes the smallest level with at least one pixel
 per output pixel and develops each output pixel exactly once, averaging four
-bilinear taps over the pixel's footprint. Before, Fit developed a camera image
+bilinear taps over the pixel's footprint: spread to the variance of the area the
+output pixel covers, from none at 1:1, so a view just below 100% is filtered too
+(a single bilinear tap at 80% folds fine detail, such as an X-Trans photo's
+residual colour on louvres, into coloured dots). Before, Fit developed a camera image
 reduced to twice the output size (four times the pixels) and resized it afterwards.
 
 Radius-based effects are scaled to the output: sharpening uses the full-resolution
