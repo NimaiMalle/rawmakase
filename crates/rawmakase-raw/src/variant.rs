@@ -267,6 +267,7 @@ pub(crate) fn open(bytes: &[u8]) -> Result<RawInfo> {
         info.levels = crate::container::cr2::levels(&info, plan, bytes);
     }
     crate::geometry::apply(&mut info);
+    crate::geometry::camera_frame(&mut info, bytes);
     crate::color::apply(&mut info);
     Ok(info)
 }

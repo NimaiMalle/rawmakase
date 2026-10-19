@@ -30,6 +30,13 @@ pub(crate) fn read(t: &TiffFile, info: &mut RawInfo) {
             info.lens = v;
         }
     }
+    if let Some(exif) = &t.exif
+        && let (Some(w), Some(h)) = (t.int(exif, 40962), t.int(exif, 40963))
+        && w > 0
+        && h > 0
+    {
+        info.image_size = Some([w, h]);
+    }
     // Without an FNumber or ExposureTime, the APEX values (Exif 2.3:
     // ApertureValue = 2 log2 F, ShutterSpeedValue = −log2 t), as Adobe DNG
     // Converter derives them (Blackmagic's DNGs, Leica M's, the Sigma fp's

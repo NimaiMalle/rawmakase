@@ -94,6 +94,9 @@ pub struct RawInfo {
     /// The canonical name the file itself gives (Hasselblad's sensor
     /// names), where the camera table has none.
     pub(crate) canonical: Option<[String; 2]>,
+    /// The image size the camera records for the shot (EXIF's
+    /// PixelXDimension and PixelYDimension), width then height.
+    pub(crate) image_size: Option<[u32; 2]>,
 }
 
 /// How a Fujifilm Super CCD's stored rows develop: each a diagonal of the
@@ -198,6 +201,7 @@ pub(crate) fn base(variant: Variant) -> RawInfo {
         as_shot_xy: None,
         file_matrix: None,
         canonical: None,
+        image_size: None,
     }
 }
 

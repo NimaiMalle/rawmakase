@@ -741,6 +741,28 @@ decode facts only (black and white levels, the as-shot white balance scale),
 never geometry (visible area, default crop, orientation, colour filter), which
 stays the file's or `compat-observed`; the facts test enforces this.
 
+## Frames
+
+A photo's frame is the default crop of its decoded image: what Develop shows
+uncropped, and what an edit's positions are relative to. It is the crop the
+file gives (a maker note's, a DNG's DefaultCrop), else the visible area. A
+camera file that gives none is framed at the image size the camera records
+for the shot (`geometry::camera_frame`): EXIF's PixelXDimension and
+PixelYDimension, else the size of its largest embedded JPEG, centred in the
+visible area on even rows and columns, where that size is within a tenth of
+the visible area on each side (either way round). A size further off is
+another crop (the camera's aspect ratio, a small preview), and the visible
+area stays the frame.
+
+Lightroom's crops and local adjustments are relative to Adobe's default crop,
+which no RAW file but a DNG records. Measured locally against Adobe DNG
+Converter 18.7's DefaultCrop on the test dataset (2026-10-19; nothing of it
+is kept here), the rule moves 368 files' frames: the 332 that could be compared
+come nearer Adobe's, none further. Of the 2,372 non-DNG files compared, 1,938
+frames are Adobe's exactly (1,791 without the rule); where they differ, by a
+few pixels a side (Nikon's median 2, Sony's 8), more on Samsung's NX bodies
+(9). Lightroom edits of the other files land that much off.
+
 ## Colour matrices
 
 A camera's XYZ (D65) to camera matrix is Adobe's, from `data/raw-matrices.toml`

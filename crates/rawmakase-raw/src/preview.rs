@@ -30,6 +30,41 @@ pub(crate) fn is_jpeg(bytes: &[u8], at: u64) -> bool {
         .is_some_and(|b| b[..2] == [0xff, 0xd8] || b[..2] == [0xee, 0xd8] || b[1..] == [0xd8, 0xff])
 }
 
+/// The width and height of the JPEG `len` bytes at `at`, from its first
+/// start-of-frame segment (ITU T.81 B.2.2); `None` when the markers before
+/// it do not lead there within the JPEG.
+pub(crate) fn jpeg_size(bytes: &[u8], at: u64, len: u64) -> Option<[u32; 2]> {
+    let start = usize::try_from(at).ok()?;
+    let end = start.checked_add(usize::try_from(len).ok()?)?;
+    let jpeg = bytes.get(start..end.min(bytes.len()))?;
+    let mut i = 2;
+    while let [0xff, marker, ..] = *jpeg.get(i..)? {
+        match marker {
+            // Fill bytes before a marker.
+            0xff => i += 1,
+            // Start of frame, other than DHT, JPG and DAC: precision, then
+            // height and width.
+            0xc0..=0xcf if !matches!(marker, 0xc4 | 0xc8 | 0xcc) => {
+                let f = jpeg.get(i + 4..i + 9)?;
+                let (h, w) = (
+                    u16::from_be_bytes([f[1], f[2]]),
+                    u16::from_be_bytes([f[3], f[4]]),
+                );
+                return (w > 0 && h > 0).then_some([u32::from(w), u32::from(h)]);
+            }
+            // Start of scan or end of image before a frame.
+            0xda | 0xd9 => return None,
+            // Markers without a length.
+            0x01 | 0xd0..=0xd7 => i += 2,
+            _ => {
+                let l = jpeg.get(i + 2..i + 4)?;
+                i += 2 + usize::from(u16::from_be_bytes([l[0], l[1]]));
+            }
+        }
+    }
+    None
+}
+
 /// Why a file has no preview thumbnails can use.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum NoPreview {
