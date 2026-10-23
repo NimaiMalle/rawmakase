@@ -566,20 +566,25 @@ fn local_gain(pos: vec2<f32>, lum: f32, clarity_lum: f32) -> f32 {
     let fine_top = grid[f + iy * w + ix] * (1.0 - tx) + grid[f + iy * w + jx] * tx;
     let fine_bottom = grid[f + jy * w + ix] * (1.0 - tx) + grid[f + jy * w + jx] * tx;
     let tail_base = min(base, fine_top * (1.0 - ty) + fine_bottom * ty + 0.5);
-    // Clarity's affine log-luminance response (clarity.rs), slopes then offsets.
-    // Reconstruct the response at this pixel, not a completed low-resolution gain:
-    // the latter leaks a bright edge's boost into neighbouring dark pixels.
+    // Joint bilateral upsampling of the calibrated Clarity gains. Fine luminance
+    // selects neighbouring gains without extrapolating new contrast.
     var clarity = 0.0;
     let c = offset(P_LOCAL_A + 2u);
     if c >= 0 {
-        var response = vec2(0.0);
-        for (var k = 0u; k < 2u; k++) {
-            let start = c + i32(k * w * h);
-            let top = table(start + i32(iy * w + ix)) * (1.0 - tx) + table(start + i32(iy * w + jx)) * tx;
-            let bottom = table(start + i32(jy * w + ix)) * (1.0 - tx) + table(start + i32(jy * w + jx)) * tx;
-            response[k] = top * (1.0 - ty) + bottom * ty;
+        let indices = vec4(iy * w + ix, iy * w + jx, jy * w + ix, jy * w + jx);
+        let spatial = vec4((1.0 - tx) * (1.0 - ty), tx * (1.0 - ty), (1.0 - tx) * ty, tx * ty);
+        let log_lum = log2(max(clarity_lum, LOCAL_FLOOR));
+        var gains = vec4(0.0);
+        var weights = vec4(0.0);
+        for (var k = 0u; k < 4u; k++) {
+            gains[k] = table(c + i32(indices[k]));
+            if spatial[k] > 0.0 {
+                let guide = table(c + i32(w * h + indices[k]));
+                let d = (guide - log_lum) / 0.25;
+                weights[k] = spatial[k] / (1.0 + d * d);
+            }
         }
-        clarity = response.x * log2(max(clarity_lum, LOCAL_FLOOR)) + response.y;
+        clarity = dot(gains, weights) / dot(weights, vec4(1.0));
     }
     // Positive Shadows' regional level (local_tone::LocalToneMap::lift), on the same grid.
     var region = 0.0;

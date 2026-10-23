@@ -108,7 +108,7 @@ pub(crate) struct LocalToneMap {
     /// Image keys of negative Shadows, Highlights and positive Shadows, for masks
     /// that evaluate them at their own slider values.
     pub(crate) keys: [f32; 3],
-    /// Clarity's log-luminance response coefficients on this grid (`clarity.rs`).
+    /// Clarity's measured gains and luminance guidance on this grid (`clarity.rs`).
     pub(crate) clarity: Option<super::clarity::ClarityField>,
     /// Clarity's detail, when masks change Clarity and read it at their own amount.
     pub(crate) clarity_detail: Option<super::clarity::ClarityDetail>,
@@ -469,7 +469,7 @@ impl LocalToneMap {
     ) -> f32 {
         let base = self.base(x, y, lum);
         let clarity = match &self.clarity_detail {
-            Some(d) => d.at(|v| self.bilinear(x, y, v), sliders[2], level(clarity_lum)),
+            Some(d) => d.at(self.clarity_sample(x, y), sliders[2], level(clarity_lum)),
             None => self.clarity(x, y, clarity_lum),
         };
         let lift = self.region().map_or(0., |k| {
@@ -513,7 +513,29 @@ impl LocalToneMap {
     fn clarity(&self, x: f32, y: f32, lum: f32) -> f32 {
         self.clarity
             .as_ref()
-            .map_or(0., |c| c.at(|v| self.bilinear(x, y, v), level(lum)))
+            .map_or(0., |c| c.at(self.clarity_sample(x, y), level(lum)))
+    }
+    /// The same four neighbours used by bilinear reconstruction.
+    fn clarity_sample(&self, x: f32, y: f32) -> super::clarity::ClaritySample {
+        let fx = ((x + 0.5) * self.scale[0] - 0.5).clamp(0., (self.width - 1) as f32);
+        let fy = ((y + 0.5) * self.scale[1] - 0.5).clamp(0., (self.height - 1) as f32);
+        let (ix, iy) = (fx as usize, fy as usize);
+        let (jx, jy) = ((ix + 1).min(self.width - 1), (iy + 1).min(self.height - 1));
+        let (tx, ty) = (fx - ix as f32, fy - iy as f32);
+        super::clarity::ClaritySample {
+            indices: [
+                iy * self.width + ix,
+                iy * self.width + jx,
+                jy * self.width + ix,
+                jy * self.width + jx,
+            ],
+            weights: [
+                (1. - tx) * (1. - ty),
+                tx * (1. - ty),
+                (1. - tx) * ty,
+                tx * ty,
+            ],
+        }
     }
     /// `v` on this grid at camera-image sample position `x`, `y`.
     fn bilinear(&self, x: f32, y: f32, v: &[f32]) -> f32 {
