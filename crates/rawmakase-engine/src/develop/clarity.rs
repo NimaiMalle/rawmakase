@@ -1,8 +1,9 @@
 //! Basic > Clarity, following Camera Raw 18.7 in the scene tone stage: a log2 gain of
 //! detail at four scales, each an edge-aware blur of the photo's log scene luminance,
 //! weighted by the local base level (`local_tone.rs`) relative to the photo's brightest
-//! levels. The gain is computed on the Shadows/Highlights map's grid, so previews,
-//! tiles and exports agree. See docs/scene-tone-stage.md and docs/tone-controls.md#clarity.
+//! levels. Response coefficients are computed on the Shadows/Highlights map's grid
+//! and reconstructed with each pixel's luminance in previews, tiles and exports.
+//! See docs/scene-tone-stage.md and docs/tone-controls.md#clarity.
 use crate::model::recipe::Recipe;
 use rayon::prelude::*;
 
@@ -42,63 +43,94 @@ fn weights(amount: f32) -> [[f32; KNOTS]; 4] {
     })
 }
 
-/// Clarity's detail on a map grid: the photo's log luminance less its edge-aware blurs
-/// at each scale, and the base level relative to the key, so the gain can be read at
-/// any amount (a mask's added to the global slider).
+/// Clarity's response at the four measured slider positions. Store the response
+/// as coefficients of the sample's log luminance, not as a completed gain image:
+/// interpolating a gain spreads a bright edge's boost into its dark neighbours.
 #[derive(Clone)]
 pub(crate) struct ClarityDetail {
-    details: [Vec<f32>; 4],
-    base: Vec<f32>,
+    fits: [ClarityField; 4],
+}
+
+/// A log2 gain `slope * log2(Y) + offset`, with both coefficients on the map grid.
+/// The spatial bases and their weights remain measured on the full photo's copy;
+/// the pixel's own luminance supplies the detail when the map is reconstructed.
+#[derive(Clone)]
+pub(crate) struct ClarityField {
+    slope: Vec<f32>,
+    offset: Vec<f32>,
+}
+impl ClarityField {
+    pub(crate) fn at(&self, sample: impl Fn(&[f32]) -> f32, log_lum: f32) -> f32 {
+        sample(&self.slope) * log_lum + sample(&self.offset)
+    }
+    /// GPU layout: one grid of slopes followed by one grid of offsets.
+    pub(crate) fn values(&self) -> impl Iterator<Item = f32> + '_ {
+        self.slope.iter().chain(&self.offset).copied()
+    }
+}
+
+/// Half and full measured positions, and their weights. Zero is the identity,
+/// including for a mask that cancels the global slider.
+fn bracket(amount: f32) -> (usize, [f32; 2]) {
+    let a = amount.clamp(-1., 1.);
+    let half = if a < 0. { 0 } else { 2 };
+    let a = a.abs() * 2.;
+    (half, if a <= 1. { [a, 0.] } else { [2. - a, a - 1.] })
 }
 impl ClarityDetail {
-    /// The detail of a `w` × `h` grid: `logs` is the photo's log2 scene luminance there,
+    /// The detail of a `w` × `h` grid: `logs` is log2 scene luminance there,
     /// `base` its local base level and `key` the level the weights are relative to.
     pub(crate) fn of(logs: &[f32], base: &[f32], w: usize, h: usize, key: f32) -> Self {
         let long = w.max(h) as f32;
         let blurs = bilateral(logs, w, h, SCALES.map(|s| s * long), RANGE);
         Self {
-            details: blurs.map(|b| logs.iter().zip(&b).map(|(l, b)| l - b).collect()),
-            base: base.iter().map(|b| b - key).collect(),
+            fits: [-0.5, -1., 0.5, 1.].map(|amount| {
+                let weights = weights(amount);
+                let coefficients: Vec<[f32; 2]> = base
+                    .par_iter()
+                    .enumerate()
+                    .map(|(i, b)| coefficients(&weights, b - key, blurs.each_ref().map(|v| v[i])))
+                    .collect();
+                ClarityField {
+                    slope: coefficients.iter().map(|c| c[0]).collect(),
+                    offset: coefficients.iter().map(|c| c[1]).collect(),
+                }
+            }),
         }
     }
-    /// The log2 gain of Clarity `amount` at every grid point.
-    pub(crate) fn field(&self, amount: f32) -> Vec<f32> {
-        let weights = weights(amount);
-        (0..self.base.len())
-            .into_par_iter()
-            .map(|i| {
-                gain(
-                    &weights,
-                    self.base[i],
-                    self.details.each_ref().map(|d| d[i]),
-                )
-            })
-            .collect()
+    /// Coefficients at a global slider amount, shared by CPU and GPU rendering.
+    pub(crate) fn field(&self, amount: f32) -> ClarityField {
+        let (i, [a, b]) = bracket(amount);
+        let mix = |x: &[f32], y: &[f32]| x.iter().zip(y).map(|(x, y)| a * x + b * y).collect();
+        ClarityField {
+            slope: mix(&self.fits[i].slope, &self.fits[i + 1].slope),
+            offset: mix(&self.fits[i].offset, &self.fits[i + 1].offset),
+        }
     }
-    /// The log2 gain of Clarity `amount` where `sample` reads a grid.
-    pub(crate) fn at(&self, sample: impl Fn(&[f32]) -> f32, amount: f32) -> f32 {
+    /// The same response at a mask's amount plus the global slider. Interpolation
+    /// of coefficients and slider positions commutes, so a full mask agrees with
+    /// the global control even between map samples and measured slider positions.
+    pub(crate) fn at(&self, sample: impl Fn(&[f32]) -> f32, amount: f32, log_lum: f32) -> f32 {
         if amount == 0. {
             return 0.;
         }
-        gain(
-            &weights(amount),
-            sample(&self.base),
-            self.details.each_ref().map(|d| sample(d)),
-        )
+        let (i, [a, b]) = bracket(amount);
+        a * self.fits[i].at(&sample, log_lum) + b * self.fits[i + 1].at(sample, log_lum)
     }
 }
-/// The gain of `weights` at a base level (relative to the key) and the detail at each
-/// scale.
-fn gain(weights: &[[f32; KNOTS]; 4], base: f32, details: [f32; 4]) -> f32 {
+/// Rewrite sum(weight * (log(Y) - blur)) as slope * log(Y) + offset.
+fn coefficients(weights: &[[f32; KNOTS]; 4], base: f32, blurs: [f32; 4]) -> [f32; 2] {
     let step = (KNOT_HI - KNOT_LO) / (KNOTS - 1) as f32;
     let u = ((base - KNOT_LO) / step).clamp(0., (KNOTS - 1) as f32);
     let k = (u as usize).min(KNOTS - 2);
     let t = u - k as f32;
-    details
+    weights
         .iter()
-        .zip(weights)
-        .map(|(d, w)| (w[k] * (1. - t) + w[k + 1] * t) * d)
-        .sum()
+        .zip(blurs)
+        .fold([0.; 2], |[a, b], (w, blur)| {
+            let weight = w[k] * (1. - t) + w[k + 1] * t;
+            [a + weight, b - weight * blur]
+        })
 }
 
 /// Edge-aware blurs of `x` at spatial σ `sigmas` (px) and range σ `range`: the
@@ -256,20 +288,16 @@ mod tests {
     fn flat_photos_and_zero_clarity_are_unchanged() {
         let (w, h) = (40, 30);
         let logs = vec![-2.; w * h];
-        assert!(
-            ClarityDetail::of(&logs, &logs, w, h, -1.)
-                .field(1.)
-                .iter()
-                .all(|g| g.abs() < 1e-5)
-        );
+        let field = ClarityDetail::of(&logs, &logs, w, h, -1.).field(1.);
+        assert!((0..logs.len()).all(|i| field.at(|v| v[i], logs[i]).abs() < 1e-5));
         let logs: Vec<f32> = (0..w * h)
             .map(|i| ((i * 7919) % 13) as f32 * 0.3 - 4.)
             .collect();
         assert!(
             ClarityDetail::of(&logs, &logs, w, h, -1.)
                 .field(0.)
-                .iter()
-                .all(|g| *g == 0.)
+                .values()
+                .all(|g| g == 0.)
         );
     }
     #[test]
@@ -288,7 +316,11 @@ mod tests {
             })
             .collect();
         let g = ClarityDetail::of(&logs, &logs, w, h, -1.).field(1.);
-        let out: Vec<f32> = logs.iter().zip(&g).map(|(l, g)| l + g).collect();
+        let out: Vec<f32> = logs
+            .iter()
+            .enumerate()
+            .map(|(i, l)| l + g.at(|v| v[i], *l))
+            .collect();
         // Texture inside the square grows.
         let i = 24 * w + 32;
         assert!((out[i] - out[i + 1]).abs() > (logs[i] - logs[i + 1]).abs());
@@ -307,5 +339,23 @@ mod tests {
         assert!(close(weights(0.5), WEIGHTS_50));
         assert!(close(weights(1.), WEIGHTS_100));
         assert!((weights(0.25)[1][4] - WEIGHTS_50[1][4] / 2.).abs() < 1e-6);
+    }
+
+    #[test]
+    fn masks_and_global_clarity_agree_between_map_samples() {
+        let (w, h) = (32, 16);
+        let logs: Vec<f32> = (0..w * h).map(|i| -7. + (i % 23) as f32 / 3.).collect();
+        let detail = ClarityDetail::of(&logs, &logs, w, h, -1.);
+        // Both signs, interpolated amounts, identity, and clipping the sum of a
+        // mask and global control to the supported range.
+        for amount in [-2., -1., -0.75, -0.5, -0.2, 0., 0.3, 0.5, 0.8, 1., 2.] {
+            let global = detail.field(amount);
+            for log_lum in [-14., -5., -1., 2.] {
+                let sample = |v: &[f32]| v[33] * 0.2 + v[34] * 0.3 + v[65] * 0.4 + v[66] * 0.1;
+                let a = global.at(sample, log_lum);
+                let b = detail.at(sample, amount, log_lum);
+                assert!((a - b).abs() < 2e-6, "{amount}, {log_lum}: {a} / {b}");
+            }
+        }
     }
 }
