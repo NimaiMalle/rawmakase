@@ -347,7 +347,9 @@ fn fill(r: &Recipe, lut: CurveSet, camera: Camera) -> Option<PixelParams> {
         }
         None => p.set("HAZE", &[-1., 0., 0., 0., 0.]),
     }
-    let families = p.push(crate::develop::local_tone::gpu_families());
+    let families = p.push(crate::develop::local_tone::gpu_families(
+        lut.local.as_ref().map(|local| local.highlights_family()),
+    ));
     p.set("LOCAL_FAMILIES", &[families]);
     p.table("LOOK", t.look);
     p.table("ENH", t.enhanced);

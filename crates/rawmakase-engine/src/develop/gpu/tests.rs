@@ -124,6 +124,11 @@ fn gpu_clarity_reconstructs_fine_edges_like_the_cpu() -> Result<()> {
 #[test]
 #[ignore = "Requires a hardware compute adapter; run explicitly on supported machines"]
 fn gpu_measured_tails_match_cpu_globally_and_in_masks() -> Result<()> {
+    measured_tails_case(false)?;
+    measured_tails_case(true)
+}
+
+fn measured_tails_case(plateau: bool) -> Result<()> {
     use crate::{
         camera_data::{CameraImage, Metadata},
         camera_profiles::CameraProfile,
@@ -147,6 +152,10 @@ fn gpu_measured_tails_match_cpu_globally_and_in_masks() -> Result<()> {
         pixels: (0..240 * 240)
             .map(|i| {
                 let (x, y) = (i % 240, i / 240);
+                if plateau {
+                    // A broad, flat bright decile activates the adaptive -100 row.
+                    return [if y < 29 { 2. } else { 2. * (-5.45_f32).exp2() }; 3];
+                }
                 let radius = (x as f32 - 120.).hypot(y as f32 - 120.);
                 // 10 stops over the background, past the Highlights table's top (7);
                 // the left half in 2-pixel stripes, where the tail reads the fine mean.
@@ -237,7 +246,10 @@ fn gpu_measured_tails_match_cpu_globally_and_in_masks() -> Result<()> {
                 .zip(expected.pixels.iter().flatten())
                 .map(|(a, b)| (a - b).abs())
                 .fold(0., f32::max);
-            assert!(max < 1e-4, "masked {masked}, {adjust:?}: max {max}");
+            assert!(
+                max < 1e-4,
+                "plateau {plateau}, masked {masked}, {adjust:?}: max {max}"
+            );
         }
     }
     Ok(())

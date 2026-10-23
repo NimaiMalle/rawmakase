@@ -215,6 +215,7 @@ pub(crate) struct MapBase {
     fine: Vec<f32>,
     shadow_key: f32,
     highlight_key: f32,
+    highlights: Family,
     clarity_key: f32,
     lift_offset: std::sync::OnceLock<f32>,
     region: std::sync::OnceLock<Vec<f32>>,
@@ -265,6 +266,8 @@ impl MapBase {
         let (a, b) = rayon::join(|| mean(&a), || mean(&b));
         let average = logs.iter().map(|l| l.exp2() as f64).sum::<f64>() / logs.len() as f64;
         let highlight_key = 0.5 * percentile(0.75) + 0.5 * percentile(0.01);
+        let bright = percentile(0.90);
+        let highlights = plateau_highlights(percentile(0.99) - bright, bright);
         // Clarity's weights were fitted relative to the photo's brightest levels.
         let clarity_key = 0.25 * percentile(0.999) + 0.75 * percentile(0.99);
         Self {
@@ -277,6 +280,7 @@ impl MapBase {
             fine,
             shadow_key: (average as f32).log2(),
             highlight_key,
+            highlights,
             clarity_key,
             lift_offset: Default::default(),
             region: Default::default(),
@@ -435,7 +439,7 @@ impl LocalToneMap {
             base: base.clone(),
             scale: [w as f32 / source[0] as f32, h as f32 / source[1] as f32],
             shadows: Curve::new(&SHADOWS, sliders.shadows, keys[0]),
-            highlights: Curve::new(&HIGHLIGHTS, sliders.highlights, keys[1]),
+            highlights: Curve::new(&base.highlights, sliders.highlights, keys[1]),
             regional,
             lift,
             keys,
@@ -479,7 +483,7 @@ impl LocalToneMap {
         });
         (family(&SHADOWS, sliders[0], self.keys[0], base)
             + family_t(
-                &HIGHLIGHTS,
+                &self.base.highlights,
                 sliders[1],
                 self.keys[1],
                 base,
@@ -499,6 +503,9 @@ impl LocalToneMap {
             base: self.base.clone(),
             region: self.regional,
         }
+    }
+    pub(crate) fn highlights_family(&self) -> &Family {
+        &self.base.highlights
     }
     /// The level Highlights' tail reads: the base, but no more than `TAIL_MARGIN` above
     /// the (dilated) mean of the few pixels around, so stripes and specks too fine to
@@ -598,11 +605,11 @@ pub(crate) fn family_t(f: &Family, s: f32, key: f32, base: f32, tb: f32) -> f32 
 /// The measured families for `develop.wgsl`: Shadows, Highlights, Dehaze and positive
 /// Shadows' detail and region tables, each its 6 × 48 table values, `lo` and `hi`, its
 /// six slider positions, then its six tails.
-pub(crate) fn gpu_families() -> Vec<f32> {
+pub(crate) fn gpu_families(highlights: Option<&Family>) -> Vec<f32> {
     let mut out = Vec::new();
     for f in [
         &SHADOWS,
-        &HIGHLIGHTS,
+        highlights.unwrap_or(&HIGHLIGHTS),
         &super::local_tone_data::DEHAZE,
         &SHADOWS_DETAIL,
         &SHADOWS_REGION,
@@ -613,6 +620,23 @@ pub(crate) fn gpu_families() -> Vec<f32> {
         out.extend(f.tail);
     }
     out
+}
+
+/// A narrow bright decile indicates a broad plateau. Reduce the strongest pull
+/// there, while retaining the measured key, weaker slider rows and far-bright tail.
+/// Apply this to the family once so global curves and masks interpolate the same
+/// rows, including on the GPU. The reduction never tapers back down: doing so on
+/// the flat output shoulder would reverse brightness ordering.
+fn plateau_highlights(spread: f32, bright: f32) -> Family {
+    let mut family = HIGHLIGHTS;
+    // Restrict relief to near-white plateaus: a dusk sky can be equally narrow
+    // relative to its key while the original table already pulls it correctly.
+    let relief = 0.12 * ((1.3 - spread) / 0.3).clamp(0., 1.) * (bright + 1.).clamp(0., 1.);
+    for (i, gain) in family.tables[0].iter_mut().enumerate() {
+        let x = family.lo + (family.hi - family.lo) * (i as f32 + 0.5) / 48.;
+        *gain *= 1. - relief * ((x - 4.5) / 0.5).clamp(0., 1.);
+    }
+    family
 }
 /// The largest value over a (2r+1)² window, clamped at the borders.
 fn dilate(x: &[f32], w: usize, h: usize, r: usize) -> Vec<f32> {
@@ -671,9 +695,98 @@ pub(super) fn blur(x: &[f32], w: usize, h: usize, r: usize) -> Vec<f32> {
 mod tests {
     use super::*;
     #[test]
+    fn negative_highlights_spares_a_broad_bright_plateau() {
+        // Same key and evaluation level, but a broad plateau versus a spread of
+        // bright values. The sky regression needs relief at -100, not at -50.
+        let map = |plateau: bool, s: f32| {
+            let lum = (0..10000)
+                .map(|i| {
+                    let log: f32 = if i < 8800 {
+                        -4.
+                    } else if plateau {
+                        1.45
+                    } else {
+                        -2. + 4. * (i - 8800) as f32 / 1199.
+                    };
+                    log.exp2()
+                })
+                .collect();
+            LocalToneMap::from_luminance(
+                lum,
+                [100, 100],
+                [100, 100],
+                Sliders {
+                    highlights: s,
+                    ..Default::default()
+                },
+                false,
+            )
+        };
+        for s in [-1., -0.5] {
+            let (flat, spread) = (map(true, s), map(false, s));
+            assert_eq!(flat.keys[1], spread.keys[1]);
+            let at = |m: &LocalToneMap| m.highlights.as_ref().unwrap().eval(m.keys[1] + 5.45);
+            let relief = at(&flat) - at(&spread);
+            if s == -1. {
+                assert!(relief > 0.15 && relief < 0.35, "relief {relief}");
+            } else {
+                assert!(relief.abs() < 1e-6);
+            }
+        }
+    }
+
+    #[test]
+    fn dim_plateau_keeps_the_measured_highlights_curve() {
+        // A dusk sky can have the same narrow bright decile and key-relative
+        // level as a near-white sky. It must retain the original measured pull.
+        let lum = (0..10000)
+            .map(|i| if i < 8800 { -8.45_f32 } else { -3. })
+            .map(f32::exp2)
+            .collect();
+        let map = LocalToneMap::from_luminance(
+            lum,
+            [100, 100],
+            [100, 100],
+            Sliders {
+                highlights: -1.,
+                ..Default::default()
+            },
+            false,
+        );
+        let x = map.keys[1] + 5.45;
+        let actual = map.highlights.as_ref().unwrap().eval(x);
+        let expected = family(&HIGHLIGHTS, -1., map.keys[1], x);
+        assert!(
+            (actual - expected).abs() < 1e-6,
+            "actual {actual}, expected {expected}"
+        );
+    }
+
+    #[test]
+    fn plateau_highlights_preserves_order_and_shared_slider_rows() {
+        for spread in [0., 0.7, 1., 1.1, 1.2, 1.3, 4.] {
+            let f = plateau_highlights(spread, 0.);
+            assert_eq!(f.tables[1..], HIGHLIGHTS.tables[1..]);
+            assert_eq!(f.tail, HIGHLIGHTS.tail);
+            let gpu = gpu_families(Some(&f));
+            assert_eq!(&gpu[302..590], f.tables.as_flattened());
+            for s in -100..=0 {
+                let s = s as f32 / 100.;
+                let curve = Curve::new(&f, s, 0.);
+                for i in -600..1400 {
+                    let x = i as f32 / 100.;
+                    let gain = family(&f, s, 0., x);
+                    assert!((gain - curve.as_ref().map_or(0., |c| c.eval(x))).abs() < 1e-5);
+                    assert!(x + 0.01 + family(&f, s, 0., x + 0.01) >= x + gain - 1e-5);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn measured_curves_do_not_reverse_brightness() {
         let mut failures = Vec::new();
-        let gpu = gpu_families();
+        let gpu = gpu_families(None);
         for (slot, (name, f)) in [
             ("Shadows", &SHADOWS),
             ("Highlights", &HIGHLIGHTS),

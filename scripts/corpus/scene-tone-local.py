@@ -47,6 +47,10 @@ output's white or below 2^-10 are left out of the fits.
   to half the lift of its neighbours. The photo tables are closer to Camera Raw than the
   synthetic ones on held-out photos (display ΔE00 +100 1.91 → 1.80, +50 1.69 → 1.57;
   −100 even).
+  At runtime, local_tone.rs derives a per-photo family from these projected rows:
+  a narrow p99−p90 log-luminance spread reduces the −100 row's pull above 4.5
+  stops over the key. This scene adaptation is not baked into the fitted table;
+  global sliders, masks and GPU uploads use the same adapted family.
 - Dehaze (training photos): each channel's gain as a function of its log2 level minus
   L's 99th percentile, over [-12, 1].
   Each is a 48-bin piecewise-linear table per slider position, fitted by least squares

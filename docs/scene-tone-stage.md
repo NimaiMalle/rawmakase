@@ -259,6 +259,31 @@ rule's material improvement (1.53 against engine 4's 1.67). A median key for Hig
 fitted the photos' scene gain better in cross-validation at every position but rendered
 the training photos worse (+100 1.37 → 1.44, −100 1.30 → 1.41), so the key is unchanged.
 
+**Broad bright plateaus.** A near-white sky can be over-pulled within the table,
+even when the far-bright tail is irrelevant. The measurement copy's p99−p90 spread
+in log luminance selects a bounded correction: full strength at at most 1 stop,
+fading linearly to zero at 1.3 stops. This weight is multiplied by
+`clamp(p90 + 1, 0, 1)`: no correction when the bright decile is at or below
+half scene white, fading to full strength at scene white. A narrow dusk sky
+already fits the original pull and must not receive the near-white correction.
+Only the −100 row changes. Its pull is reduced
+by up to 12%, starting at 4.5 stops over the existing key and reaching full strength
+at 5 stops. The reduction holds through the last column; tapering it back to zero
+would reverse brightness on the flat output shoulder. The tail slope stays the
+same, continuing from the corrected endpoint. Slider interpolation leaves −50 and
+weaker settings unchanged and blends the corrected row between −50 and −100.
+
+`MapBase` owns the derived family, measured from the same scene input as the base
+and key. CPU global curves, per-pixel mask evaluation and GPU family uploads all
+read it. The generator retains the original fitted rows; the correction is runtime
+scene adaptation. A narrow bright decile is an empirical predictor, not a spatial
+size measurement or a reconstruction of Camera Raw's algorithm.
+
+The spread-only prototype changed the `synthetic-d65 / highlights-100` engine
+snapshot substantially. Restricting it to near-white plateaus largely removes
+that change; the original engine snapshot is retained. Camera Raw chart and
+scene-probe references and their accepted-distance baselines are unchanged.
+
 **Negative Highlights past the table.** The table spans base levels up to 7 stops over
 the key, and past it each row used to hold its last column, so Highlights −100 stopped at
 about −3.5 EV. On synthetic probes (a flat object 2–10 stops over a flat background,

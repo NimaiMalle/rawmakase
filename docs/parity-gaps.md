@@ -265,6 +265,56 @@ airlight and haze density (fit on `dehaze-train`, check per photo before any
 validation run); Camera Raw probes for positive Blacks and Exposure against
 DefaultBlackRender None (#474, #470), which this round could not render.
 
+### Near-white sky over-pull (2026-10-23)
+
+The reported overcast sky is inside the Highlights table, about 5.4 stops over
+the measured key; extending the tail beyond 7 stops does not address it. On the
+original comparison, Highlights −100 pulled reference-default L* 95–101 pixels
+by 15.2 L* against Camera Raw's 10.2. The default-render difference must be
+separated from the slider's effect when comparing builds.
+
+A bounded correction now uses the spread of the bright decile (p99−p90 in log
+luminance) and its absolute level relative to scene white, reducing only the
+−100 row above 4.5 stops over the key. The
+[stage documentation](scene-tone-stage.md#local-operators) describes the formula
+and shared CPU/mask/GPU tables. This is an empirical scene adaptation; it does
+not resolve Camera Raw's general dependence on texture and spatial context.
+
+The spread-only candidate failed the matched-region gate on two dim scenes:
+regional errors rose by 2.49 and 3.31 ΔE00, while the retained tail-only control
+was unchanged. Their bright deciles were about three stops below scene white;
+the reported library sky is above it. Restricting the correction to near-white
+plateaus preserves the original table on these dim scenes. The revised candidate
+completed all 13 Highlights, mixed-settings and tone validation sets (1,014
+photo/settings cases) with no measured regression against the frozen metric-2
+baseline. Six sets pass in full; seven remain inconclusive because of existing
+sparse brightness strata. This is not a fully conclusive gate.
+
+A separate comparison with the retained tail-only control attributes the new
+correction: across the 56 Highlights −100 validation entries, no photo median
+worsens. Five entries change by more than 0.01 ΔE00 in a matched region; the
+largest regional increase is 0.375 and the largest improvement is 2.872. These
+figures do not credit the earlier far-bright tail improvement to this change.
+The snapshot suite checks other controls but does not include Highlights −100.
+
+On the reported photo's selected sky area, the corrected −100 render is L* 87.8
+against Camera Raw's 87.9 with Adobe Standard (the saved control is 84.9). Adobe
+Color overshoots: 89.8 against 87.9, from 86.6. Across the reference-defined
+highlights mask, ΔE00 improves from 5.3 to 3.3 for Standard and 4.7 to 2.8 for
+Color; the photo median stays 0.93 for Standard and moves from 1.22 to 1.25 for
+Color. Default and −50 scores are unchanged. These are diagnostic measurements
+at 1,024 pixels against frozen Camera Raw 18.7 references, not evidence of general
+photographic parity or a complete solution to the profile-dependent sky error.
+
+Earlier range-only bright-window corrections helped this sky but worsened other
+photos. A window that returns to the original gain at its upper end also reverses
+brightness on the projected table's flat shoulder: the tested 12% reduction over
+4.5–6.5 stops produced an output slope of about −0.59. The retained correction
+does not taper back down. Separately, reducing pull near the key improved some
+aggregate photo scores but did not fix this sky, so that midtone change is not
+included. The explored validation photos were used to choose the correction;
+they are not an independent holdout.
+
 ## Color
 
 - **Saturation** −100 renders Camera Raw's exact luminance gray ([saturation](color-mixer.md#saturation)): 0.65 mean ΔE00 on the chart, down from 3.97. Between −50 and +100 it is the photo-measured tables (chart: −50 1.21, +50 1.39, +100 2.93); Camera Raw's own blend toward luminance fits the chart better but was worse on real photos. **Vibrance** follows Camera Raw's chart measurements beyond ±50 ([vibrance](color-mixer.md#vibrance)): −100 at 0.83 and +100 at 1.00 on the chart, down from 3.90 and 1.54; up to ±50 it is the photo-measured tables.
