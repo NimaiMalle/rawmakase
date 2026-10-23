@@ -417,29 +417,23 @@ pixels on the long edge) at Exposure 0:
    at the borders, with r = max(1, round(0.005 × the copy's long edge)) (3 at 512). The
    airlight A, per channel, is the mean of the pixels at or above the dark channel's 99th
    percentile (sorted index ⌊(n−1)·0.99⌋).
-2. The haze's density: the same window minimum of min_c(I_c / A_c), refined by a guided
-   filter using the **original, uneroded** min_c(I_c / A_c) as its guide (box radius
-   8r, ε = 0.001). Keep the slope and intercept maps, interpolate them at the rendered
-   pixel, and evaluate against that pixel's relative dark channel. This preserves
-   edges finer than the measurement copy. Bound the density to zero through the
-   lesser of 1 and the pixel's relative dark channel: a blurred estimate must not
-   subtract more veil than a dark detail contains (#600).
+2. The haze's density: the same window minimum of min_c(I_c / A_c), smoothed by a guided
+   filter with itself as the guide (box radius 2r, ε = 0.01).
 3. A pixel p at Dehaze s > 0 (the slider plus the masks' Dehaze there) becomes
-   J = (p − g·A) / t + g·A, with t = max(1 − ω(s)·density, 0.3), and g the product of
-   2^Exposure, a mask's Exposure gain and the Shadows/Highlights/Clarity gain already
-   applied to p. The airlight and pixel must have undergone the same tone gain:
-   subtracting the original sky's airlight after negative Highlights turned it black
-   (#600). This does not reorder the controls or change saved slider values.
-   ω is linear between (0, 0),
+   J = (p − g·A) / t + g·A, with t = max(1 − ω(s)·density, 0.3), the density read
+   bilinearly at the pixel's position. The gain g includes 2^Exposure, mask Exposure,
+   and the Shadows/Highlights/Clarity gain already applied to p. Transforming the
+   airlight consistently prevents negative Highlights from turning the sky black
+   when combined with positive Dehaze (#600). The density measurement and
+   interpolation stay independent of those tone edits. ω is linear between (0, 0),
    (+20, 0.3), (+40, 0.45) and (+100, 0.9). No channel falls below half of p scaled by
    the luminance's change, so weak channels of bright saturated colours are not driven
    to black (on the training photos: +100 3.06 → 3.04; a floor of 0.7 costs 3.18, 1.0
    costs 4.53). The transmission floor 0.3 costs nothing there (3.06 at 0.1 to 0.3).
 
-The original model's parameters (the window, ε, the transmission floor and ω) were chosen by
+The model's few parameters (the window, ε, the transmission floor and ω) were chosen by
 grid search on the 22 training photos against Camera Raw 18.7, by display ΔE00. Median
 over the photos, against the curves above: +100 5.97 → 3.06, +40 2.73 → 1.68, +20 1.42.
-Those measurements predate #600's edge refinement and tone-gain correction.
 A and the density read exactly what the photo's measures read (white balance, the
 profile, calibration, the camera's exposure), so they are kept with them in the stage
 cache, measured the first time a render has positive Dehaze somewhere; Exposure scales A

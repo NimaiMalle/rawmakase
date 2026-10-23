@@ -626,20 +626,13 @@ fn dehaze_positive(pro: vec3<f32>, s: f32, pos: vec2<f32>, tone_gain: f32) -> ve
     let jy = min(iy + 1u, h - 1u);
     let tx = fx - f32(ix);
     let ty = fy - f32(iy);
-    let stride = i32(w * h);
-    let top_a = table(base + i32(iy * w + ix)) * (1.0 - tx) + table(base + i32(iy * w + jx)) * tx;
-    let bottom_a = table(base + i32(jy * w + ix)) * (1.0 - tx) + table(base + i32(jy * w + jx)) * tx;
-    let top_b = table(base + stride + i32(iy * w + ix)) * (1.0 - tx) + table(base + stride + i32(iy * w + jx)) * tx;
-    let bottom_b = table(base + stride + i32(jy * w + ix)) * (1.0 - tx) + table(base + stride + i32(jy * w + jx)) * tx;
-    let a = top_a * (1.0 - ty) + bottom_a * ty;
-    let b = top_b * (1.0 - ty) + bottom_b * ty;
+    let top = table(base + i32(iy * w + ix)) * (1.0 - tx) + table(base + i32(iy * w + jx)) * tx;
+    let bottom = table(base + i32(jy * w + ix)) * (1.0 - tx) + table(base + i32(jy * w + jx)) * tx;
+    let density = top * (1.0 - ty) + bottom * ty;
+    let t = max(1.0 - haze_omega(s) * density, 0.3);
     var gain = tone_gain;
     if (V_MASKS && masked) { gain *= exp2(delta[L_EXPOSURE]); }
     let air = vec3(p(P_HAZE_AIR), p(P_HAZE_AIR + 1u), p(P_HAZE_AIR + 2u)) * gain;
-    let channels = pro / air;
-    let relative = max(min(channels.x, min(channels.y, channels.z)), 0.0);
-    let density = clamp(a * relative + b, 0.0, min(relative, 1.0));
-    let t = max(1.0 - haze_omega(s) * density, 0.3);
     let j = (pro - air) / t + air;
     // haze.rs: no channel below half the colour scaled by the luminance's change.
     let lw = vec3(0.2880402, 0.7118741, 0.0000857);

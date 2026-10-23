@@ -32,8 +32,8 @@ const FIELDS: &[(&str, usize)] = &[
     // Dehaze and the level negative Dehaze's response is relative to
     // (`SceneTone::dehaze_key`).
     ("DEHAZE", 2),
-    // Positive Dehaze's haze (`scene_tone::Dehazing`): guided slope then intercept
-    // tables (one grid each), or -1, grid size and scale, and the exposed airlight.
+    // Positive Dehaze's haze (`scene_tone::Dehazing`): its density's table, or -1, the
+    // grid's size and scale, then the airlight at the render's Exposure.
     ("HAZE", 5),
     ("HAZE_AIR", 3),
     ("LOOK", 5),
@@ -332,7 +332,7 @@ fn fill(r: &Recipe, lut: CurveSet, camera: Camera) -> Option<PixelParams> {
     p.set("DEHAZE", &[lut.scene.dehaze, lut.scene.dehaze_key]);
     match &lut.scene.haze {
         Some(h) => {
-            let density = p.push(h.haze.slope.iter().chain(&h.haze.intercept).copied());
+            let density = p.push(h.haze.density.iter().copied());
             p.set(
                 "HAZE",
                 &[
