@@ -10,8 +10,8 @@ use std::sync::Arc;
 
 /// Window radius of the dark channel, relative to the measurement copy's long edge.
 const RADIUS: f32 = 0.005;
-/// The guided filter's ε (on the dark channel relative to A, 0 to 1).
-const EPSILON: f32 = 0.01;
+/// The guided filter's ε on the original pixel's dark channel relative to A.
+const EPSILON: f32 = 0.001;
 /// The lowest transmission: densest haze is removed by at most this factor.
 const MIN_TRANSMISSION: f32 = 0.3;
 /// The share of the colour-preserving result no channel falls below.
@@ -26,9 +26,11 @@ pub(crate) struct Haze {
     pub(crate) height: usize,
     /// The airlight per channel, linear ProPhoto at Exposure 0.
     pub(crate) air: [f32; 3],
-    /// The haze's density on the copy's grid: the guided-filtered dark channel of the
-    /// photo relative to `air`.
-    pub(crate) density: Vec<f32>,
+    /// Guided filter slope, evaluated against the original
+    /// pixel's dark channel relative to `air`, including at full resolution.
+    pub(crate) slope: Vec<f32>,
+    /// Guided filter intercept on the same grid as `slope`.
+    pub(crate) intercept: Vec<f32>,
 }
 impl Haze {
     /// The haze of `scene`, `width` × `height` linear ProPhoto values.
@@ -60,11 +62,16 @@ impl Haze {
             .map(|p| (p[0] / air[0]).min(p[1] / air[1]).min(p[2] / air[2]))
             .collect();
         let raw = min_filter(&relative, width, height, r);
+        // The window minimum expands dark objects. Guide by the original scene,
+        // not that expanded silhouette, and fit over a wider neighbourhood so
+        // the eroded strip does not dominate the edge's regression (#600).
+        let (slope, intercept) = guided(&raw, &relative, width, height, 8 * r, EPSILON);
         Self {
             width,
             height,
             air,
-            density: guided(&raw, width, height, 2 * r, EPSILON),
+            slope,
+            intercept,
         }
     }
 }
@@ -105,15 +112,30 @@ impl Dehazing {
     /// Pixel `p` at camera-image sample position `pos` with Dehaze `s` > 0 removed:
     /// J = (p − A) / t + A, with t = 1 − ω(s) · density, at least `MIN_TRANSMISSION`,
     /// each channel at least `CHANNEL_FLOOR` of p scaled by the luminance's change.
-    pub(crate) fn apply(&self, p: [f32; 3], s: f32, pos: [f32; 2]) -> [f32; 3] {
-        let density = crate::develop::local_tone::grid_sample(
-            &self.haze.density,
-            [self.haze.width, self.haze.height],
-            self.scale,
-            pos,
-        );
+    /// `tone_gain` is the gain already applied to p by local tone and mask Exposure.
+    pub(crate) fn apply(&self, p: [f32; 3], s: f32, pos: [f32; 2], tone_gain: f32) -> [f32; 3] {
+        // The haze was measured before the local tone operators. Transform its
+        // airlight with the same gain as the pixel, otherwise negative Highlights
+        // subtracts the original bright sky from a now darker one (#600).
+        let air = self.air.map(|a| a * tone_gain);
+        let relative = (p[0] / air[0])
+            .min(p[1] / air[1])
+            .min(p[2] / air[2])
+            .max(0.);
+        let sample = |grid: &[f32]| {
+            crate::develop::local_tone::grid_sample(
+                grid,
+                [self.haze.width, self.haze.height],
+                self.scale,
+                pos,
+            )
+        };
+        let (a, b) = (sample(&self.haze.slope), sample(&self.haze.intercept));
+        // No more veil than the pixel contains. Interpolation and downsampling can
+        // otherwise remove a dark detail that the measurement copy did not resolve.
+        let density = (a * relative + b).clamp(0., relative.min(1.));
         let t = (1. - omega(s) * density).max(MIN_TRANSMISSION);
-        let j: [f32; 3] = std::array::from_fn(|c| (p[c] - self.air[c]) / t + self.air[c]);
+        let j: [f32; 3] = std::array::from_fn(|c| (p[c] - air[c]) / t + air[c]);
         // No channel falls below half of the pixel's colour scaled by its luminance's
         // change: weak channels of bright, saturated colours are not driven to black.
         let ratio = super::luminance(j).max(0.) / super::luminance(p).max(1e-9);
@@ -140,30 +162,111 @@ fn min_filter(x: &[f32], w: usize, h: usize, r: usize) -> Vec<f32> {
     out
 }
 
-/// He et al.'s guided filter of `x` with itself as the guide, box radius `r`.
-fn guided(x: &[f32], w: usize, h: usize, r: usize, epsilon: f32) -> Vec<f32> {
+/// Guided filter coefficients for `x` with the uneroded scene `guide`. Keeping the
+/// coefficients, rather than the filtered density, preserves edges when upsampling.
+fn guided(
+    x: &[f32],
+    guide: &[f32],
+    w: usize,
+    h: usize,
+    r: usize,
+    epsilon: f32,
+) -> (Vec<f32>, Vec<f32>) {
     use crate::develop::local_tone::blur;
-    let sq: Vec<f32> = x.iter().map(|v| v * v).collect();
-    let (m, m2) = rayon::join(|| blur(x, w, h, r), || blur(&sq, w, h, r));
+    let sq: Vec<f32> = guide.iter().map(|v| v * v).collect();
+    let product: Vec<f32> = guide.iter().zip(x).map(|(g, v)| g * v).collect();
+    let (m, mx) = rayon::join(|| blur(guide, w, h, r), || blur(x, w, h, r));
+    let (m2, mproduct) = rayon::join(|| blur(&sq, w, h, r), || blur(&product, w, h, r));
     let a: Vec<f32> = m
         .iter()
         .zip(&m2)
-        .map(|(m, m2)| {
+        .zip(mx.iter().zip(&mproduct))
+        .map(|((m, m2), (mx, mp))| {
             let var = (m2 - m * m).max(0.);
-            var / (var + epsilon)
+            (mp - m * mx) / (var + epsilon)
         })
         .collect();
-    let b: Vec<f32> = m.iter().zip(&a).map(|(m, a)| m - a * m).collect();
+    let b: Vec<f32> = mx
+        .iter()
+        .zip(m.iter().zip(&a))
+        .map(|(mx, (m, a))| mx - a * m)
+        .collect();
     let (a, b) = rayon::join(|| blur(&a, w, h, r), || blur(&b, w, h, r));
-    x.iter()
-        .zip(a.iter().zip(&b))
-        .map(|(v, (a, b))| a * v + b)
-        .collect()
+    (a, b)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// #600: a dark foreground against a bright background must not acquire a
+    /// black rim and a bright outline when the haze is removed.
+    #[test]
+    fn dehaze_preserves_a_neutral_step_without_rims() {
+        let (w, h) = (512, 128);
+        let scene: Vec<[f32; 3]> = (0..w * h)
+            .map(|i| {
+                [if i / w < 16 {
+                    1.
+                } else if i % w < 256 {
+                    0.05
+                } else {
+                    0.4
+                }; 3]
+            })
+            .collect();
+        let haze = Arc::new(Haze::of(&scene, w, h));
+        let dehazing = Dehazing::new(haze, [w as u32, h as u32], 0.);
+        // Camera Raw 18.7's linear-profile step probe (0.05 | 0.4, white 0.9)
+        // retains broad local contrast: bright edge / interior is 1.22 at +50,
+        // 2.30 at +100. Allow that, but reject the former narrow 1.55 / 5.63 rim.
+        for amount in [0.5, 1.] {
+            let at = |x| dehazing.apply(scene[80 * w + x], amount, [x as f32, 80.], 1.)[0];
+            for x in 240..256 {
+                assert!(
+                    at(x) > 0.,
+                    "Dehaze {amount}: nonblack foreground clipped at {x}"
+                );
+            }
+            for x in 256..272 {
+                assert!(
+                    at(x) <= at(350) * if amount < 1. { 1.5 } else { 3. },
+                    "Dehaze {amount}: bright rim at {x}: {} vs {}",
+                    at(x),
+                    at(350)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn dehaze_transforms_airlight_with_prior_tone_and_mask_exposure() {
+        let (w, h) = (120, 80);
+        let scene = hazy(w, h);
+        let dehazing = Dehazing::new(Arc::new(Haze::of(&scene, w, h)), [w as u32, h as u32], 0.);
+        let (p, pos) = (scene[25 * w + 10], [10., 25.]);
+        for amount in [0.5, 1.] {
+            let base = dehazing.apply(p, amount, pos, 1.);
+            for gain in [0.125, 0.5, 2.] {
+                let adjusted = dehazing.apply(p.map(|v| v * gain), amount, pos, gain);
+                for c in 0..3 {
+                    assert!((adjusted[c] - base[c] * gain).abs() < 1e-6);
+                    assert!(adjusted[c] > 0.);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn dehaze_keeps_dark_details_absent_from_the_measurement_copy() {
+        let (w, h) = (64, 48);
+        let scene = hazy(w, h);
+        let dehazing = Dehazing::new(Arc::new(Haze::of(&scene, w, h)), [1024, 768], 0.);
+        for level in [0.0001, 0.001, 0.01] {
+            let out = dehazing.apply([level; 3], 1., [350., 250.], 1.);
+            assert!(out.iter().all(|v| v.is_finite() && *v > 0.));
+        }
+    }
 
     /// A hazy scene: a dark-to-mid gradient of slightly coloured surfaces, seen through
     /// a veil of bright bluish air that thickens toward the top.
@@ -222,11 +325,19 @@ mod tests {
         let scene = hazy(w, h);
         let haze = Arc::new(Haze::of(&scene, w, h));
         let dehazing = Dehazing::new(haze.clone(), [w as u32, h as u32], 0.);
-        let at =
-            |x: usize, y: usize, s: f32| dehazing.apply(scene[y * w + x], s, [x as f32, y as f32]);
+        let at = |x: usize, y: usize, s: f32| {
+            dehazing.apply(scene[y * w + x], s, [x as f32, y as f32], 1.)
+        };
         let lum = super::super::luminance;
         // Denser haze at the top: more of it measured there.
-        let density = |y: usize| haze.density[y * w + w / 2];
+        let density = |y: usize| {
+            let i = y * w + w / 2;
+            let p = scene[i];
+            let relative = (p[0] / haze.air[0])
+                .min(p[1] / haze.air[1])
+                .min(p[2] / haze.air[2]);
+            haze.slope[i] * relative + haze.intercept[i]
+        };
         assert!(density(5) > density(h - 5) + 0.1);
         for s in [0.2, 0.4, 1.] {
             let (y, dark, light) = (h / 3, 5, w - 5);
@@ -250,9 +361,9 @@ mod tests {
         let plain = Dehazing::new(haze.clone(), [w as u32, h as u32], 0.);
         let exposed = Dehazing::new(haze, [w as u32, h as u32], 1.);
         let p = scene[20 * w + 10];
-        assert_eq!(plain.apply(p, 0., [10., 20.]), p);
-        let a = plain.apply(p, 0.6, [10., 20.]);
-        let b = exposed.apply(p.map(|v| 2. * v), 0.6, [10., 20.]);
+        assert_eq!(plain.apply(p, 0., [10., 20.], 1.), p);
+        let a = plain.apply(p, 0.6, [10., 20.], 1.);
+        let b = exposed.apply(p.map(|v| 2. * v), 0.6, [10., 20.], 1.);
         for c in 0..3 {
             assert!((b[c] - 2. * a[c]).abs() < 1e-5, "{a:?} {b:?}");
         }

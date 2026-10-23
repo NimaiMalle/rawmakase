@@ -391,6 +391,12 @@ fn gpu_develop_matches_cpu_pixel_stage() -> Result<()> {
     let mut negative = r.clone();
     negative.effects.dehaze = -0.5;
     recipes.push(negative);
+    // #600: darkened highlights with maximum Dehaze must transform the haze's
+    // airlight by the same per-pixel gain on both backends.
+    let mut dehaze_highlights = r.clone();
+    dehaze_highlights.effects.dehaze = 1.;
+    dehaze_highlights.highlights = -1.;
+    recipes.push(dehaze_highlights);
     // The measured parametric curve, with moved splits, from here on.
     r.effects.parametric = [0.3, 0.2, -0.3, -0.2];
     r.effects.splits = [0.2, 0.45, 0.8];
