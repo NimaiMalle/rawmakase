@@ -150,15 +150,28 @@ mod tests {
         editor.onboarding.visible = false;
         assert!(editor.activity.begin_folder_change());
         for action in [
+            Action::NewCatalog,
             Action::OpenCatalog,
             Action::AddFolder,
+            Action::Export,
+            Action::Undo,
+            Action::Redo,
+            Action::Cut,
+            Action::Copy,
+            Action::Paste,
+            Action::SelectAll,
             Action::Preferences,
             Action::Library,
+            Action::Develop,
+            Action::Sidebar,
+            Action::Inspector,
+            Action::Filmstrip,
             Action::Shortcuts,
         ] {
-            assert!(!editor.menu_state(action, &ctx).0);
+            assert!(!editor.menu_state(action, &ctx).0, "{action:?}");
             editor.menu_action(action, &ctx);
         }
+        assert!(editor.menu_state(Action::Fullscreen, &ctx).0);
         assert!(!editor.preferences.open);
         assert!(!editor.view.shortcuts);
         assert!(editor.activity.is_changing_folder());
